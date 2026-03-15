@@ -1,0 +1,32 @@
+---
+description: Context about the Specimen plugin and its core value proposition
+globs: "**/*"
+alwaysApply: true
+---
+
+# Specimen - Typography System Generator
+
+## What is this tool?
+"Specimen - Typography" is a professional, high-fidelity typography generator and design system utility for Figma. It allows designers to instantly generate mathematically perfect typography scales, visualize them on a presentation-ready "specimen" canvas, and publish them directly to Figma Text Styles.
+
+## Core Value Proposition & "Magic Moments"
+* **Mathematical Precision:** It calculates entire type scales (H0 down to Text Tiny) using modular scales (e.g., Perfect Fourth), including line-height and letter-spacing algorithms.
+* **The "Specimen" Artifact:** It generates a massive, beautifully formatted typography specimen document right on the Figma canvas. This acts as a living artifact that stakeholders can review.
+* **Interactive Previewing:**
+  * Users can "play" preview texts directly in the UI.
+  * Changing text in the generated Figma frame automatically updates all corresponding text layers.
+  * Supports instant toggling between Light and Dark modes to test contrast and legibility.
+* **Typeface Combinations:** Users can independently define settings for "Headings" versus "Text", allowing them to rapidly test and preview font pairings.
+* **Granular Control:** While the math handles the baseline, users can click into any specific style (e.g., `H0`) in the UI to apply custom overrides (size, weight, casing) without breaking the rest of the system.
+* **Library Mode:** The generated Specimen frames can act as a reusable library. Users can pick up an existing Specimen frame and use it as a source of truth for typefaces and styles across projects.
+
+## Monetization Strategy (For Context)
+* The plugin operates on a "Save/Export Wall" freemium model.
+* Users can use the math controls, adjust settings, test font pairings, and generate the beautiful "Specimen" canvas artifact for free.
+* The paywall triggers when a user attempts to **"Create Styles"** (writing the system into native Figma Text Styles) or **"Export"** the system.
+
+## Technical Architecture Notes
+* Built with Preact, TypeScript, and `create-figma-plugin`.
+* Split architecture: `src/main.ts` (runs in Figma's sandboxed environment) and `src/ui/` (runs in the UI iframe).
+* Heavy reliance on `SCREENS_AND_STATES.md` to define UI routing and state management (Zustand). Always check this file before modifying UI flows.
+* The UI is primarily split between a "Generate" tab (global math/font settings) and a "Styles" tab (fine-tuning individual styles).

@@ -1,0 +1,1171 @@
+[
+  {
+    "id": "computer-science-pl-systems-pointer-provenance",
+    "bucket": "Computer Science",
+    "expression": "Pointer Provenance",
+    "description": "Pointer Provenance is a semantic concept in memory models that tracks the origin and validity of pointers to ensure safe memory access. It specifies which pointers are valid for accessing particular memory locations and prevents undefined behavior from pointer misuse. Provenance is crucial for defining memory safety in languages like Rust and C.",
+    "source": "claude"
+  },
+  {
+    "id": "astronomy-space-kuiper-belt",
+    "bucket": "Astronomy / Space",
+    "expression": "Kuiper Belt",
+    "description": "Kuiper Belt is a region of the Solar System beyond Neptune containing thousands of icy bodies and dwarf planets, extending from approximately 30 to 55 astronomical units from the Sun. It is the source of short-period comets and includes notable objects such as Pluto, Eris, and Haumea. The belt represents a remnant of the early Solar System’s formation.",
+    "source": "claude"
+  },
+  {
+    "id": "astronomy-space-accretion-disk",
+    "bucket": "Astronomy / Space",
+    "expression": "Accretion Disk",
+    "description": "Accretion Disk is a structure of material orbiting a massive central object, such as a black hole or neutron star, where friction causes the material to spiral inward and release energy. The disk heats to extreme temperatures, emitting intense radiation across the electromagnetic spectrum. This phenomenon is commonly observed around black holes and compact stellar remnants.",
+    "source": "claude"
+  },
+  {
+    "id": "astronomy-space-microlensing-event",
+    "bucket": "Astronomy / Space",
+    "expression": "Microlensing Event",
+    "description": "Microlensing Event occurs when a foreground star or compact object’s gravity magnifies light from a distant background star as it passes in front of it. This temporary brightening of the background star can last from days to months and is used to detect exoplanets and dark matter. The technique has successfully discovered numerous extrasolar planets around distant stars.",
+    "source": "claude"
+  },
+  {
+    "id": "astronomy-space-schwarzschild-radius",
+    "bucket": "Astronomy / Space",
+    "expression": "Schwarzschild Radius",
+    "description": "Schwarzschild Radius is the distance from the center of a mass at which the escape velocity equals the speed of light. It defines the size of the event horizon for a non-rotating black hole and is calculated using the formula rs = 2GM/c². This radius is fundamental to understanding black hole physics and gravitational collapse.",
+    "source": "claude"
+  },
+  {
+    "id": "instruments-glass-harmonica",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Glass Harmonica",
+    "description": "Glass Harmonica is a musical instrument consisting of nested glass bowls of increasing size mounted on a horizontal spindle. The musician produces sound by touching the wet rims of the rotating bowls with their fingers. Invented by Benjamin Franklin in 1761, it produces ethereal, haunting tones and was popular in the 18th and 19th centuries.",
+    "source": "claude"
+  },
+  {
+    "id": "instruments-hammer-dulcimer",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Hammer Dulcimer",
+    "description": "Hammer Dulcimer is a percussion instrument consisting of a trapezoidal soundboard with strings stretched across it, played by striking the strings with mallets or hammers. The instrument produces a bright, resonant tone and is used in folk music traditions across Europe, Asia, and the Middle East. It requires significant skill to produce clear melodies and chords.",
+    "source": "claude"
+  },
+  {
+    "id": "instruments-bowed-psaltery",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Bowed Psaltery",
+    "description": "Bowed Psaltery is a stringed instrument played with a bow, consisting of strings stretched across a trapezoidal wooden frame. The player uses a violin-like bow to draw across the strings, producing sustained melodic tones. This medieval instrument has experienced a revival in folk and early music ensembles throughout Europe and North America.",
+    "source": "claude"
+  },
+  {
+    "id": "instruments-hurdy-gurdy",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Hurdy Gurdy",
+    "description": "Hurdy Gurdy is a medieval string instrument that produces sound by a hand-crank-turned, rosin-covered wheel that functions as a continuous violin bow against the strings. The instrument has both melody and drone strings, with tangent keys operated by the player’s other hand to change pitch on the melody course. It has been central to European folk music since the Middle Ages.",
+    "source": "claude"
+  },
+  {
+    "id": "instruments-contrabass-clarinet",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Contrabass Clarinet",
+    "description": "Contrabass Clarinet is the lowest-pitched member of the clarinet family, sounding two octaves below the soprano clarinet. It features an extremely long body, typically around five feet, with a curved design and metal construction for structural support. The instrument produces profound, resonant tones rarely heard in standard orchestral settings.",
+    "source": "claude"
+  },
+  {
+    "id": "paradoxes-philosophy-ship-of-theseus",
+    "bucket": "Paradoxes / Philosophy",
+    "expression": "Ship of Theseus",
+    "description": "Ship of Theseus is a philosophical paradox questioning the identity of an object when all its component parts are gradually replaced over time. If a ship’s planks are replaced one by one until no original material remains, is it still the same ship? The paradox explores fundamental questions about continuity, identity, and the nature of objects.",
+    "source": "claude"
+  },
+  {
+    "id": "paradoxes-philosophy-fermi-paradox",
+    "bucket": "Paradoxes / Philosophy",
+    "expression": "Fermi Paradox",
+    "description": "Fermi Paradox questions why, given the vast number of stars and planets, we have not detected extraterrestrial civilizations or their signals. The paradox contrasts the high probability of alien life with the complete absence of evidence for it. It raises profound questions about life’s rarity, technological development, and cosmic timescales.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-piperade-basque",
+    "bucket": "Recipes / Dishes",
+    "expression": "Piperade Basque",
+    "description": "Piperade Basque is a traditional Basque dish of sautéed peppers, tomatoes, onions, and garlic, often served with eggs or jambon. The vegetables are slowly cooked until very soft, creating a sweet and savory base that can be eaten alone or as an accompaniment. It exemplifies Basque regional cuisine and is particularly popular in the Pyrenees region of Spain.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-sopa-tarasca",
+    "bucket": "Recipes / Dishes",
+    "expression": "Sopa Tarasca",
+    "description": "Sopa Tarasca is a traditional Mexican soup from Michoacán featuring black beans, tomatoes, chipotle peppers, and crispy tortilla strips as garnish. The soup is typically finished with avocado, cream, and cheese, creating a rich and complex flavor profile. It represents indigenous Mexican cuisine and is often served as a hearty main course or substantial starter.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-migas-manchegas",
+    "bucket": "Recipes / Dishes",
+    "expression": "Migas Manchegas",
+    "description": "Migas Manchegas is a Spanish dish from La Mancha made from fried breadcrumbs mixed with garlic, paprika, and sometimes chorizo or jamón. The breadcrumbs are fried until crispy and golden, creating a rustic, satisfying preparation that originated as peasant food. It is typically served warm as a breakfast or light main course, often accompanied by grapes or melon.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-chraimeh-fish",
+    "bucket": "Recipes / Dishes",
+    "expression": "Chraimeh Fish",
+    "description": "Chraimeh Fish is a Middle Eastern dish featuring fish cooked in a spicy tomato sauce with peppers, onions, and garlic, popular in Lebanese and Palestinian cuisines. The fish is typically poached in the sauce until tender, absorbing the complex flavors of the preparation. The dish represents Levantine coastal cooking and is often served with rice or bread for sauce absorption.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-ash-reshteh",
+    "bucket": "Recipes / Dishes",
+    "expression": "Ash Reshteh",
+    "description": "Ash Reshteh is a traditional Persian herb soup made with mixed fresh herbs, legumes, and kidney beans, often served with yogurt and dried limes. This nutritious dish is commonly prepared during Persian New Year celebrations and family gatherings. The soup combines aromatic herbs with hearty legumes for a flavorful, warming meal.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-tinga-poblana",
+    "bucket": "Recipes / Dishes",
+    "expression": "Tinga Poblana",
+    "description": "Tinga Poblana is a traditional Mexican stew from Puebla featuring shredded chicken cooked with chipotle peppers, tomatoes, onions, and spices. The dish has a smoky, slightly spicy flavor profile and is commonly served with rice, beans, or used as a filling for tostadas and tacos. It represents authentic Pueblan regional cuisine.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-chiles-en-nogada",
+    "bucket": "Recipes / Dishes",
+    "expression": "Chiles en Nogada",
+    "description": "Chiles en Nogada is a traditional Mexican dish featuring poblano peppers stuffed with a mixture of meat, fruits, and spices, topped with a walnut-based cream sauce and pomegranate seeds. The dish’s colors represent the Mexican flag: green peppers, white sauce, and red pomegranate. It originated in Puebla and is typically served during Mexican Independence Day celebrations.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-aguachile-rojo",
+    "bucket": "Recipes / Dishes",
+    "expression": "Aguachile Rojo",
+    "description": "Aguachile Rojo is a Mexican seafood dish of raw shrimp marinated in a red sauce made from lime juice, red chiles, tomatoes, and onions, creating a spicy and tangy preparation. The acidic marinade cures the shrimp while developing complex flavors from the chiles and aromatics. This coastal Mexican dish is particularly popular in Sinaloa and other Pacific regions.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-pescado-a-la-talla",
+    "bucket": "Recipes / Dishes",
+    "expression": "Pescado a la Talla",
+    "description": "Pescado a la Talla is a traditional Mexican coastal dish of whole fish grilled and basted with a spicy sauce made from chiles, garlic, vinegar, and oil. The fish is typically split lengthwise and cooked over charcoal, allowing the sauce to penetrate the flesh while creating a flavorful crust. This dish originated in Guerrero and represents authentic Mexican coastal cuisine.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-camarones-a-la-diabla",
+    "bucket": "Recipes / Dishes",
+    "expression": "Camarones a la Diabla",
+    "description": "Camarones a la Diabla is a Mexican seafood dish of shrimp cooked in a spicy red sauce made from dried chiles, garlic, tomatoes, and oil, creating a fiery preparation. The shrimp absorb the intense flavors of the sauce while maintaining their tender texture. This popular dish is served throughout Mexico and represents classic Mexican seafood cooking.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-tortas-ahogadas",
+    "bucket": "Recipes / Dishes",
+    "expression": "Tortas Ahogadas",
+    "description": "Tortas Ahogadas are a traditional Mexican sandwich from Guadalajara consisting of a bolillo roll filled with carnitas, topped with pickled vegetables, and completely submerged in a spicy chile sauce. The sandwich is eaten with a fork and knife due to its wet preparation. This iconic dish is known for its bold flavors and messy presentation.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-khanom-jeen",
+    "bucket": "Recipes / Dishes",
+    "expression": "Khanom Jeen",
+    "description": "Khanom Jeen is a Thai dish of thin, fresh rice noodles served with an array of pungent curries, spicy nam ya fish sauce, or coconut-based sauces, typically accompanied by a generous spread of raw vegetables and herbs. The noodles are made fresh daily and have a delicate, slightly fermented texture popular at breakfast and lunch.",
+    "source": "claude"
+  },
+  {
+    "id": "supplements-compounds-ingredients-astaxanthin-oleoresin",
+    "bucket": "Supplements / Compounds / Ingredients",
+    "expression": "Astaxanthin Oleoresin",
+    "description": "Astaxanthin Oleoresin is a concentrated extract containing astaxanthin, a carotenoid pigment derived primarily from microalgae such as Haematococcus pluvialis. The oleoresin form contains astaxanthin suspended in oil, enhancing bioavailability and stability compared to powder formulations. It is used as a dietary supplement for its potent antioxidant and anti-inflammatory properties.",
+    "source": "claude"
+  },
+  {
+    "id": "supplements-compounds-ingredients-boswellia-serrata",
+    "bucket": "Supplements / Compounds / Ingredients",
+    "expression": "Boswellia Serrata",
+    "description": "Boswellia Serrata is a tree native to India and the Arabian Peninsula that produces frankincense resin containing boswellic acids. The resin extract is used in traditional Ayurvedic medicine and modern supplements for its purported anti-inflammatory properties. Standardized extracts typically contain 30-65% boswellic acids as the active constituent.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-bassariscus-astutus",
+    "bucket": "Latin Animal Names",
+    "expression": "Bassariscus astutus",
+    "description": "Bassariscus astutus, commonly known as the ringtail, is a small carnivorous mammal native to North America characterized by its distinctive black-and-white banded tail. This nocturnal creature inhabits rocky areas and forests, feeding primarily on small mammals, insects, and fruits while playing an important ecological role as a predator.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-civettictis-civetta",
+    "bucket": "Latin Animal Names",
+    "expression": "Civettictis civetta",
+    "description": "Civettictis civetta, commonly known as the African civet, is a large nocturnal carnivorous mammal native to sub-Saharan Africa. It is characterized by a stocky body, bold spotted and banded coat pattern, and a distinctive black and white facial mask. The species produces a musky perineal gland secretion that was historically prized as a fixative in perfume production.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-dipodomys-deserti",
+    "bucket": "Latin Animal Names",
+    "expression": "Dipodomys deserti",
+    "description": "Dipodomys deserti, commonly known as the desert kangaroo rat, is a small nocturnal rodent native to the deserts of southwestern North America. It is characterized by long hind legs adapted for bipedal hopping and a long tail used for balance. This species is highly adapted to arid environments and can survive without drinking water.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-eudyptes-chrysocome",
+    "bucket": "Latin Animal Names",
+    "expression": "Eudyptes chrysocome",
+    "description": "Eudyptes chrysocome, commonly known as the rockhopper penguin, is a small and aggressively territorial penguin species native to subantarctic islands across the Southern Ocean. It is characterized by distinctive spiky yellow and black head plumage, bright red eyes, and a preference for rocky coastal cliffs. This species feeds primarily on small fish, krill, and squid.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-loris-tardigradus",
+    "bucket": "Latin Animal Names",
+    "expression": "Loris tardigradus",
+    "description": "Loris tardigradus, the slender loris, is a small nocturnal primate native to the rainforests of India and Sri Lanka. It is characterized by its extremely slow, deliberate movements, large forward-facing eyes, and lack of a tail. This solitary hunter feeds on insects, small vertebrates, and occasionally plant matter while moving cautiously through vegetation.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-okapia-johnstoni",
+    "bucket": "Latin Animal Names",
+    "expression": "Okapia johnstoni",
+    "description": "Okapia johnstoni, the okapi, is a solitary ungulate endemic to the rainforests of the Democratic Republic of Congo. It is characterized by its dark reddish-brown coat, white striped legs and hindquarters, and short ossicones on its head. This elusive, nocturnal browser feeds on leaves and fruits and is considered a living fossil related to giraffes.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-saiga-tatarica",
+    "bucket": "Latin Animal Names",
+    "expression": "Saiga tatarica",
+    "description": "Saiga tatarica is an antelope species native to the semi-arid steppes of Central Asia, particularly Kazakhstan and Russia. The species is distinguished by its distinctive bulbous nose and ability to migrate across vast distances in large herds. It has experienced dramatic population fluctuations due to poaching and disease, making it a conservation priority.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-xerus-inauris",
+    "bucket": "Latin Animal Names",
+    "expression": "Xerus inauris",
+    "description": "Xerus inauris, the ground squirrel, is a diurnal rodent native to the arid and semi-arid regions of southern Africa. This species is characterized by its bushy tail, social behavior, and ability to survive in harsh desert environments with minimal water. It lives in burrow systems and feeds on seeds, vegetation, and insects.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-setonix-brachyurus",
+    "bucket": "Latin Animal Names",
+    "expression": "Setonix brachyurus",
+    "description": "Setonix brachyurus, known as the quokka, is a small marsupial endemic to small islands off the coast of Western Australia, particularly Rottnest Island. This stocky, short-tailed animal is famous for its friendly appearance and has become an iconic symbol of Australian wildlife. The species is nocturnal and herbivorous, feeding on grasses, leaves, and vegetation in its island habitat.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-aepyprymnus-rufescens",
+    "bucket": "Latin Animal Names",
+    "expression": "Aepyprymnus rufescens",
+    "description": "Aepyprymnus rufescens, commonly known as the rufous rat-kangaroo, is a small marsupial native to northeastern Australia. This solitary, nocturnal species is characterized by its reddish-brown coloring and is found in rainforests and wet sclerophyll forests where it forages for invertebrates and plant material on the forest floor.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-galago-senegalensis",
+    "bucket": "Latin Animal Names",
+    "expression": "Galago senegalensis",
+    "description": "Galago senegalensis, commonly known as the northern lesser bushbaby or Senegal galago, is a small nocturnal primate native to Africa. This agile tree-dwelling species is characterized by its large ears, large eyes, and long tail, and it inhabits savannas, woodlands, and forests across sub-Saharan Africa where it hunts insects and small vertebrates.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-perodicticus-potto",
+    "bucket": "Latin Animal Names",
+    "expression": "Perodicticus potto",
+    "description": "Perodicticus potto, known as the potto, is a slow-moving nocturnal primate inhabiting the rainforests of West and Central Africa. This strepsirrhine has a stocky body, short limbs, and specialized vertebrae that provide stability during deliberate movements. It feeds on insects, tree gum, and occasionally fruits and small animals.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-nycticebus-coucang",
+    "bucket": "Latin Animal Names",
+    "expression": "Nycticebus coucang",
+    "description": "Nycticebus coucang, known as the slow loris, is a small nocturnal primate found in Southeast Asia. This endangered species is characterized by its slow, deliberate movements and venomous bite, and it inhabits tropical forests where it feeds on insects, small vertebrates, and plant exudates while moving cautiously through the canopy.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-propithecus-verreauxi",
+    "bucket": "Latin Animal Names",
+    "expression": "Propithecus verreauxi",
+    "description": "Propithecus verreauxi, Verreaux’s sifaka, is a large diurnal lemur endemic to Madagascar’s dry deciduous forests and spiny thickets. This primate is renowned for its distinctive bipedal sideways hopping locomotion across open ground and through trees. It feeds primarily on leaves, seeds, bark, and fruits, living in small family groups.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-bdeogale-crassicauda",
+    "bucket": "Latin Animal Names",
+    "expression": "Bdeogale crassicauda",
+    "description": "Bdeogale crassicauda, commonly known as the African bushy-tailed mongoose, is a small carnivorous mammal native to East Africa. It inhabits forests and woodlands from Kenya to Mozambique, feeding primarily on small vertebrates and invertebrates. This species is characterized by its thick, bushy tail and nocturnal behavior.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-lontra-provocax",
+    "bucket": "Latin Animal Names",
+    "expression": "Lontra provocax",
+    "description": "Lontra provocax, the southern river otter, is a small otter endemic to southern Chile and Argentina, inhabiting cold freshwater rivers and coastal areas. It feeds primarily on fish and crustaceans and is characterized by a dense, dark brown coat adapted to cold water. The species is classified as Endangered due to habitat loss, pollution, and historical persecution.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-hydrictis-maculicollis",
+    "bucket": "Latin Animal Names",
+    "expression": "Hydrictis maculicollis",
+    "description": "Hydrictis maculicollis, the spotted-necked otter, is an African otter species found in freshwater habitats from West Africa to South Africa, characterized by distinctive white spots on its neck and chest. It is a nocturnal, solitary predator feeding primarily on fish and crustaceans in rivers, lakes, and wetlands. The species is listed as Near Threatened due to habitat loss and water pollution.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-tragelaphus-eurycerus",
+    "bucket": "Latin Animal Names",
+    "expression": "Tragelaphus eurycerus",
+    "description": "Tragelaphus eurycerus, the bongo, is a large, colorful antelope native to Central African rainforests, characterized by distinctive vertical white stripes and long, spiraled horns. It is a nocturnal, solitary browser feeding on leaves, fruits, and bark in dense forest habitats. The species is classified as Vulnerable due to habitat loss, poaching, and the fragmentation of its forest range.",
+    "source": "claude"
+  },
+  {
+    "id": "latin-animal-names-cephalophus-zebra",
+    "bucket": "Latin Animal Names",
+    "expression": "Cephalophus zebra",
+    "description": "Cephalophus zebra, commonly known as the zebra duiker, is a small antelope species native to West Africa characterized by distinctive vertical stripes on its reddish-brown coat. This solitary, nocturnal animal inhabits dense forests and is one of the smallest duiker species, weighing only 4-5 kilograms. It feeds primarily on fallen fruits and vegetation found on the forest floor.",
+    "source": "claude"
+  },
+  {
+    "id": "dance-cultural-term-pool-hanagasa-ondo",
+    "bucket": "Dance / Cultural Term Pool",
+    "expression": "Hanagasa Ondo",
+    "description": "Hanagasa Ondo is a traditional Japanese folk dance from Yamagata Prefecture performed during summer festivals. Dancers wear straw hats decorated with flowers while moving in synchronized patterns to folk music. The dance celebrates the region’s cultural heritage and agricultural traditions with joyful community participation.",
+    "source": "claude"
+  },
+  {
+    "id": "dance-cultural-term-pool-zapin-melayu",
+    "bucket": "Dance / Cultural Term Pool",
+    "expression": "Zapin Melayu",
+    "description": "Zapin Melayu is a traditional Malay dance originating from the Malay Archipelago, influenced by Arab and Persian dance traditions. Performed by couples or groups, it features rhythmic hip and shoulder movements accompanied by traditional music. The dance is popular at celebrations and cultural events throughout Malaysia.",
+    "source": "claude"
+  },
+  {
+    "id": "dance-cultural-term-pool-ronggeng-jawa",
+    "bucket": "Dance / Cultural Term Pool",
+    "expression": "Ronggeng Jawa",
+    "description": "Ronggeng Jawa is a traditional Javanese social dance historically performed by professional female dancers at village gatherings, harvest celebrations, and night markets. The dance features sinuous, flowing movements drawn from classical Javanese court choreography, accompanied by a small gamelan ensemble. It holds deep cultural significance and continues to be performed at regional festivals.",
+    "source": "claude"
+  },
+  {
+    "id": "dance-cultural-term-pool-tanoura-sufi",
+    "bucket": "Dance / Cultural Term Pool",
+    "expression": "Tanoura Sufi",
+    "description": "Tanoura Sufi is an Egyptian spinning dance performed by male dancers wearing tall conical skirts, representing spiritual devotion and mystical connection in Sufi Islamic tradition. The dancers spin continuously while the skirt creates a visual spectacle, accompanied by traditional music and performed at cultural venues and celebrations.",
+    "source": "claude"
+  },
+  {
+    "id": "perfumery-olfactory-term-pool-ambrette-musk",
+    "bucket": "Perfumery / Olfactory Term Pool",
+    "expression": "Ambrette Musk",
+    "description": "Ambrette Musk is a prized fragrance ingredient derived from the seeds of the Abelmoschus moschatus plant, producing a warm, musky, and subtly animalic scent profile. It is used in perfumery as a fixative and base note to add depth and lasting power to compositions. This botanical musk offers a softer, ethical alternative to traditional animal musks.",
+    "source": "claude"
+  },
+  {
+    "id": "perfumery-olfactory-term-pool-orris-butter",
+    "bucket": "Perfumery / Olfactory Term Pool",
+    "expression": "Orris Butter",
+    "description": "Orris Butter is a rare and costly fragrant material extracted from aged iris pallida rhizomes through steam distillation, yielding a creamy, powdery, and subtly violet-woody aroma. It serves as one of the most valued fixatives and heart notes in fine perfumery and luxury cosmetics. The rhizomes must be dried and aged for at least three years before distillation can begin.",
+    "source": "claude"
+  },
+  {
+    "id": "perfumery-olfactory-term-pool-galbanum-gum",
+    "bucket": "Perfumery / Olfactory Term Pool",
+    "expression": "Galbanum Gum",
+    "description": "Galbanum Gum is a resinous exudate tapped from Ferula galbaniflua plants native to Iran, producing a sharp, intensely green, and slightly bitter scent with a rubbery undertone. It is commonly used as a top note in perfumery to add an immediate burst of verdant freshness to compositions. Galbanum is particularly valued in chypre and fougère fragrance families.",
+    "source": "claude"
+  },
+  {
+    "id": "perfumery-olfactory-term-pool-juniper-tar",
+    "bucket": "Perfumery / Olfactory Term Pool",
+    "expression": "Juniper Tar",
+    "description": "Juniper Tar is a perfumery term for the dark, smoky, and slightly resinous aromatic character derived from juniper wood distillation. This olfactory note carries woody, slightly bitter undertones with a distinctive smoky, tar-like quality. Juniper tar is used in chypre, fougère, and aromatic fragrances to add depth, smokiness, and a rugged, natural character to the overall composition.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-cochineal-lake",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Cochineal Lake",
+    "description": "Cochineal Lake is a bright red pigment derived from cochineal insects, traditionally used in painting and dyeing since pre-Columbian times. The insects are dried and processed to extract carminic acid, which is then combined with a mineral base to create a stable lake pigment. This vibrant red was highly valued in European art from the Renaissance onward.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-woad-ferment",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Woad Ferment",
+    "description": "Woad Ferment is a blue dye produced from the woad plant through fermentation, historically the primary blue dye used in Europe before indigo became available. The plant leaves were fermented and processed into balls or cakes that could be stored and transported, making it commercially viable. Though less vibrant than indigo, woad was affordable and accessible to common people for textile dyeing.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-quercitron-bark",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Quercitron Bark",
+    "description": "Quercitron Bark is a yellow dye extracted from the inner bark of the black oak tree, producing warm yellow and olive tones when used with appropriate mordants. The dye became commercially important in the eighteenth century as a cheaper alternative to weld and other traditional yellow dyes. Its availability and affordability made it widely adopted in European textile dyeing industries.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-gamboge-resin",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Gamboge Resin",
+    "description": "Gamboge Resin is a natural yellow pigment derived from the resin of Garcinia trees native to Southeast Asia. Historically used in watercolor painting and traditional medicine, it produces a bright, transparent yellow color that was particularly valued in Asian art. The pigment is moderately lightfast and has been largely replaced by synthetic alternatives in modern applications.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-scheele-green",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Scheele Green",
+    "description": "Scheele Green is a toxic copper arsenite pigment discovered in 1775 that produces a bright, yellowish-green color. Widely used in wallpapers, textiles, and paints during the 19th century, it posed serious health risks due to its arsenic content. The pigment has been largely abandoned due to its toxicity and poor lightfastness, though it remains historically significant in art conservation.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-manganese-violet",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Manganese Violet",
+    "description": "Manganese Violet is a synthetic purple pigment composed of manganese ammonium pyrophosphate, developed in the early 20th century. It produces a clear, bright violet color with good lightfastness and is non-toxic, making it suitable for fine art applications. The pigment is commonly used in watercolors, acrylics, and industrial coatings as a reliable purple alternative.",
+    "source": "claude"
+  },
+  {
+    "id": "pigments-color-material-term-pool-ultramarine-ash",
+    "bucket": "Pigments / Color Material Term Pool",
+    "expression": "Ultramarine Ash",
+    "description": "Ultramarine Ash is a byproduct of ultramarine blue pigment production, consisting of the residual material after extraction. It retains some blue coloring but is less vibrant and valuable than pure ultramarine, making it suitable for lower-cost applications. The material has been used historically in cheaper paints and as a filler in various pigment formulations.",
+    "source": "claude"
+  },
+  {
+    "id": "cultural-slang-meme-term-pool-delulu-is-solulu",
+    "bucket": "Cultural / Slang / Meme",
+    "expression": "Delulu is Solulu",
+    "description": "Delulu is Solulu is a slang phrase meaning that being delusional or having unrealistic self-belief can paradoxically make those beliefs feel real or achievable. The term playfully combines ‘delulu’ (delusional) with ‘solulu’ (solution), popularized on TikTok and social media platforms to describe manifesting goals or practicing aggressive positive thinking through cheerful self-deception.",
+    "source": "claude"
+  },
+  {
+    "id": "japanese-dish-prep-term-pool-ika-shiokara",
+    "bucket": "Recipes / Dishes",
+    "expression": "Ika Shiokara",
+    "description": "Ika Shiokara is a Japanese delicacy consisting of squid that has been salted and fermented, creating a pungent and intensely flavored dish. The preparation involves removing the squid’s internal organs and mixing them with salt, then allowing the mixture to cure for several days. This traditional preparation method is popular as an appetizer or side dish in Japanese cuisine.",
+    "source": "claude"
+  },
+  {
+    "id": "japanese-dish-prep-term-pool-dashimaki-tamago",
+    "bucket": "Recipes / Dishes",
+    "expression": "Dashimaki Tamago",
+    "description": "Dashimaki Tamago is a Japanese rolled omelet infused with dashi broth, creating a savory egg dish with umami depth. Thin layers of egg mixture are cooked and rolled together in a rectangular pan to form a compact spiral. This refined preparation is frequently served in sushi restaurants and traditional Japanese cuisine.",
+    "source": "claude"
+  },
+  {
+    "id": "music-theory-audio-engineering-term-pool-cadential-sixfour",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Cadential Sixfour",
+    "description": "Cadential Sixfour is a tonic chord in second inversion (I6/4) that appears immediately before a dominant chord in a cadential progression, functioning as an ornamental embellishment rather than a true harmonic function. This device is characteristic of classical and romantic music, creating rhythmic and harmonic emphasis before the final resolution.",
+    "source": "claude"
+  },
+  {
+    "id": "music-theory-audio-engineering-term-pool-stretto-entry",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Stretto Entry",
+    "description": "Stretto Entry is the accelerated presentation of a fugal subject where successive voices enter before the previous voice has completed its full statement, creating overlapping and intensified thematic material. This technique typically appears near the conclusion of a fugue to build climactic tension, harmonic density, and a sense of urgency.",
+    "source": "claude"
+  },
+  {
+    "id": "landscape-ecology-infrastructure-additions-pleaching-hedge",
+    "bucket": "Landscape / Ecology / Infrastructure Additions",
+    "expression": "Pleaching Hedge",
+    "description": "Pleaching Hedge is a traditional horticultural technique where tree branches are interwoven and trained horizontally to create a dense, formal screen or wall. This labor-intensive method produces living architecture with enhanced privacy and aesthetic appeal, commonly used in formal gardens and historic landscapes for centuries.",
+    "source": "claude"
+  },
+  {
+    "id": "landscape-ecology-infrastructure-additions-whip-and-tongue",
+    "bucket": "Landscape / Ecology / Infrastructure Additions",
+    "expression": "Whip and Tongue",
+    "description": "Whip and Tongue is a grafting technique where a slender scion is joined to a rootstock by cutting matching angled surfaces and interlocking them like a tongue. This method provides excellent cambium contact and is widely used in nurseries for propagating fruit trees and ornamentals. The graft is secured with grafting tape or wax to promote healing and union.",
+    "source": "claude"
+  },
+  {
+    "id": "landscape-ecology-infrastructure-additions-prospect-refuge",
+    "bucket": "Landscape / Ecology / Infrastructure Additions",
+    "expression": "Prospect Refuge",
+    "description": "Prospect Refuge is a landscape design principle that combines open sightlines with protective shelter. It describes environments offering both visual access to surroundings and secure places to hide or rest, creating psychological comfort. This concept is fundamental in urban planning, architecture, and ecological design.",
+    "source": "claude"
+  },
+  {
+    "id": "computer-science-pl-systems-rowhammer-attack",
+    "bucket": "Computer Science",
+    "expression": "Rowhammer Attack",
+    "description": "Rowhammer Attack is a hardware vulnerability where repeatedly accessing the same memory row causes bit flips in adjacent rows, potentially allowing attackers to corrupt data or escalate privileges. It exploits the physical properties of DRAM cells and their susceptibility to disturbance errors from frequent access patterns.",
+    "source": "claude"
+  },
+  {
+    "id": "computer-science-pl-systems-voltage-glitching",
+    "bucket": "Computer Science",
+    "expression": "Voltage Glitching",
+    "description": "Voltage Glitching is a fault injection attack technique where adversaries temporarily reduce or spike the power supply voltage to a processor to induce computational errors. These carefully timed induced faults can bypass security checks, corrupt cryptographic operations, or cause the system to skip security-critical instructions entirely.",
+    "source": "claude"
+  },
+  {
+    "id": "music-theory-audio-engineering-term-pool-wave-folding",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Wave Folding",
+    "description": "Wave Folding is a distortion technique in analog and digital synthesis that folds the waveform back on itself when it exceeds a set threshold, creating complex harmonic overtone content without the harshness of hard clipping. This method generates rich, musical distortion characterized by symmetrical folding patterns and controllable harmonic density.",
+    "source": "claude"
+  },
+  {
+    "id": "music-theory-audio-engineering-term-pool-chebyshev-shaper",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Chebyshev Shaper",
+    "description": "Chebyshev Shaper is a waveshaping processor based on Chebyshev polynomials that generates harmonic distortion with predictable harmonic content. This mathematical approach allows precise control over which harmonics are emphasized or generated. It is widely used in synthesizers, guitar processors, and audio plugins for musically coherent distortion and harmonic enhancement.",
+    "source": "claude"
+  },
+  {
+    "id": "music-theory-audio-engineering-term-pool-wow-flutter",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Wow Flutter",
+    "description": "Wow Flutter refers to speed variations in analog tape machines and vinyl records, with wow being slow pitch changes and flutter being rapid fluctuations. These mechanical imperfections were inherent to analog playback systems and are now often emulated digitally to achieve vintage warmth and character in contemporary music production and audio restoration.",
+    "source": "claude"
+  },
+  {
+    "id": "music-theory-audio-engineering-term-pool-probability-trig",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Probability Trig",
+    "description": "Probability Trig is a sequencing feature that assigns a percentage likelihood to note or event triggering, causing notes to play randomly based on specified probability values rather than deterministically. This technique introduces controlled randomness and variation into repetitive patterns, commonly used in generative and algorithmic music production.",
+    "source": "claude"
+  },
+  {
+    "id": "textile-craft-technique-pool-inkle-weaving",
+    "bucket": "Textile / Craft Technique Pool",
+    "expression": "Inkle Weaving",
+    "description": "Inkle Weaving is a method of creating narrow decorative bands using a small, portable loom with parallel warp threads arranged in a rectangular frame. The weaver passes a shuttle or bobbin through the warps to create weft, producing striped or patterned ribbons. This technique is accessible to beginners and produces trim suitable for bookmarks, belts, and decorative bands.",
+    "source": "claude"
+  },
+  {
+    "id": "textile-craft-technique-pool-mishima-inlay",
+    "bucket": "Textile / Craft Technique Pool",
+    "expression": "Mishima Inlay",
+    "description": "Mishima Inlay is a ceramic decorative technique originating in Korea where carved designs in leather-hard clay are filled with contrasting colored slip or clay. After the inlay material dries, the surface is scraped smooth, leaving colored patterns recessed into the clay body. This technique creates striking visual contrast and is valued in contemporary and traditional ceramic arts.",
+    "source": "claude"
+  },
+  {
+    "id": "textile-craft-technique-pool-raku-firing",
+    "bucket": "Textile / Craft Technique Pool",
+    "expression": "Raku Firing",
+    "description": "Raku Firing is a Japanese ceramic technique involving rapid heating and cooling of pottery in a kiln, followed by removal at high temperature and reduction in combustible materials. This dramatic process creates distinctive crackled glazes and metallic effects. Originally developed for tea ceremony wares, it remains central to contemporary ceramic art.",
+    "source": "claude"
+  },
+  {
+    "id": "textile-craft-technique-pool-kerf-bending",
+    "bucket": "Textile / Craft Technique Pool",
+    "expression": "Kerf Bending",
+    "description": "Kerf Bending is a technique for creating curves in wood by making closely-spaced parallel cuts (kerfs) across the grain, allowing the wood to flex without breaking. The cuts are typically made partway through the thickness, and the resulting gaps are filled with glue or left open depending on the design. This method provides an alternative to steam bending for creating curved forms in woodworking.",
+    "source": "claude"
+  },
+  {
+    "id": "maritime-navigation-term-pool-rhumb-line-course",
+    "bucket": "Maritime / Navigation Term Pool",
+    "expression": "Rhumb Line Course",
+    "description": "Rhumb Line Course is a navigation path that maintains a constant compass bearing, appearing as a straight line on Mercator projection charts. While easier to navigate than great circle routes, rhumb lines are longer distances except near the equator, making them less efficient for long ocean voyages. This course type was historically preferred for shorter passages and coastal navigation.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-khoresht-ghormeh",
+    "bucket": "Recipes / Dishes",
+    "expression": "Ghormeh\nSabzi",
+    "description": "Khoresht Ghormeh Sabzi is a deeply aromatic Persian herb stew combining generous handfuls of sautéed fenugreek leaves, flat-leaf parsley, and chives with red kidney beans and pierced dried limes, all slow-braised over lamb shoulder until the herbs meld into a dark, fragrant sauce. The dried limes lend a distinctive, haunting sour depth that intensifies as the stew cooks down over several hours.",
+    "source": "manual"
+  },
+  {
+    "id": "recipes-dishes-zereshk-polo",
+    "bucket": "Recipes / Dishes",
+    "expression": "Zereshk Polo",
+    "description": "Zereshk Polo is a jeweled saffron-scented Persian rice dish studded with tart, ruby-red barberries that are briefly sautéed in butter with a pinch of sugar to soften their sharp acidity. Layered with saffron-infused basmati and often served alongside roasted chicken, the golden, shatteringly crisp tahdig crust that forms at the bottom of the pot is universally considered the most prized portion.",
+    "source": "manual"
+  },
+  {
+    "id": "recipes-dishes-tahchin-morgh",
+    "bucket": "Recipes / Dishes",
+    "expression": "Tahchin Morgh",
+    "description": "Tahchin Morgh is a layered Persian rice cake bound with a rich mixture of thick strained yogurt, egg yolk, and steeped saffron, pressed firmly around a filling of tender braised chicken. Baked in a heavy pan until the exterior forms a deeply golden, crackling crust, it is ceremonially inverted onto a serving platter and sliced into wedges like a savory torte at festive Iranian gatherings.",
+    "source": "manual"
+  },
+  {
+    "id": "recipes-dishes-mirza-ghasemi",
+    "bucket": "Recipes / Dishes",
+    "expression": "Mirza Ghasemi",
+    "description": "Mirza Ghasemi is a smoky northern Iranian dish from the Gilan province, made by charring whole eggplants over an open flame until collapsed, then mashing the blackened flesh with slow-cooked tomatoes, generous garlic, and golden turmeric before finishing with beaten eggs stirred gently through until just set. The fire-roasted eggplant provides a deep, complex smokiness that anchors the dish’s.",
+    "source": "manual"
+  },
+  {
+    "id": "recipes-dishes-kashk-bademjan",
+    "bucket": "Recipes / Dishes",
+    "expression": "Kashk Bademjan",
+    "description": "Kashk Bademjan is a beloved Persian eggplant dip where thick slices of aubergine are fried until deeply golden, then mashed together with caramelized onions and crushed walnuts, and finally swirled generously with kashk, a tangy fermented whey product. Served warm as an appetizer with sheets of fresh flatbread, it balances smoky, nutty, and sour notes in each bite.",
+    "source": "manual"
+  },
+  {
+    "id": "recipes-dishes-bint-al-sahn",
+    "bucket": "Recipes / Dishes",
+    "expression": "Bint al Sahn",
+    "description": "Bint al Sahn is a traditional Yemeni celebratory bread enriched with clarified butter and eggs, its dough pulled into impossibly thin translucent sheets, layered and coiled into a round pan, then baked until it rises into a golden, flaky, honeycomb-like pastry. Drizzled generously with raw wildflower honey and scattered with nigella seeds, it bridges the line between bread and dessert at festive.",
+    "source": "manual"
+  },
+  {
+    "id": "physics-condensed-matter-zeeman-splitting",
+    "bucket": "Physics / Condensed Matter",
+    "expression": "Zeeman Splitting",
+    "description": "Zeeman Splitting is the separation of atomic spectral lines when atoms are placed in an external magnetic field, caused by the interaction between the applied field and the magnetic moment of electron orbital and spin angular momentum. The pattern of split lines directly reveals quantum numbers and selection rules governing the allowed transitions between energy levels.",
+    "source": "manual"
+  },
+  {
+    "id": "physics-condensed-matter-aharonov-bohm",
+    "bucket": "Physics / Condensed Matter",
+    "expression": "Aharonov Bohm",
+    "description": "Aharonov Bohm effect demonstrates that charged particles are influenced by electromagnetic potentials even in regions where the electric and magnetic fields themselves are identically zero. This purely quantum mechanical phenomenon, first predicted in 1959 and confirmed experimentally in 1986, established the physical significance of gauge potentials beyond the reach of classical field theory.",
+    "source": "manual"
+  },
+  {
+    "id": "physics-condensed-matter-josephson-junction",
+    "bucket": "Physics / Condensed Matter",
+    "expression": "Josephson Junction",
+    "description": "Josephson Junction consists of two superconductors separated by a thin insulating or metallic barrier through which Cooper pairs quantum-mechanically tunnel, producing a dissipationless supercurrent that flows without any applied voltage. The junction’s exquisite sensitivity to magnetic flux enables the most precise magnetic field detectors ever built and defines the international voltage.",
+    "source": "manual"
+  },
+  {
+    "id": "physics-condensed-matter-weyl-semimetal",
+    "bucket": "Physics / Condensed Matter",
+    "expression": "Weyl Semimetal",
+    "description": "Weyl Semimetal is a quantum material that hosts pairs of topologically protected band-crossing points where conduction and valence bands touch with linear dispersion in all three momentum directions, forming massless quasiparticles known as Weyl fermions. These exotic electronic states produce unusual surface Fermi arcs and anomalous magnetotransport signatures that have no counterpart in.",
+    "source": "manual"
+  },
+  {
+    "id": "physics-fields-and-radiation-critical-opalescence",
+    "bucket": "Physics / Fields and Radiation",
+    "expression": "Critical Opalescence",
+    "description": "Critical Opalescence is the dramatic increase in visible light scattering observed in a fluid as it approaches its critical point, where density fluctuations spontaneously grow to optical wavelength scales and scatter light in all directions. The phenomenon signals the divergence of correlation length as the fundamental distinction between liquid and gas phases vanishes.",
+    "source": "manual"
+  },
+  {
+    "id": "physics-fields-and-radiation-kramers-kronig",
+    "bucket": "Physics / Fields and Radiation",
+    "expression": "Kramers Kronig",
+    "description": "Kramers Kronig relations are a pair of integral equations connecting the real and imaginary parts of any causal linear response function, ensuring that absorption and dispersion in a medium are never independent of each other. Derived from the principle of causality alone, they provide powerful consistency checks for optical constants, dielectric measurements, and any frequency-dependent response.",
+    "source": "manual"
+  },
+  {
+    "id": "recipes-dishes-cuy-chactado",
+    "bucket": "Recipes / Dishes",
+    "expression": "Cuy Chactado",
+    "description": "Cuy Chactado is a traditional Andean dish from Peru in which a whole guinea pig is flattened under a heavy stone and deep-fried in oil until the skin is shatteringly crisp and golden. Served with boiled potatoes and fiery aji rocoto sauce, it is a ceremonial and festive food with pre-Columbian roots in the highlands of Cusco and Arequipa.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-juane-de-arroz",
+    "bucket": "Recipes / Dishes",
+    "expression": "Juane de Arroz",
+    "description": "Juane de Arroz is an Amazonian Peruvian dish of turmeric-seasoned rice, braised chicken, briny olives, and quartered hard-boiled egg, all wrapped tightly in large bijao leaves and steamed until the filling melds into a fragrant, compact parcel. The leaf-wrapped bundles are traditionally prepared in large batches for the Fiesta de San Juan and carried as provisions on river journeys.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-sopa-paraguaya",
+    "bucket": "Recipes / Dishes",
+    "expression": "Sopa Paraguaya",
+    "description": "Sopa Paraguaya is a dense, savory cornbread from Paraguay that despite its name is not a soup at all, made from ground cornmeal, beaten eggs, fresh cheese, caramelized onions, and milk, baked until golden and firm. Legend holds that a presidential cook accidentally added too much cornmeal to a soup, thereby creating this beloved national dish.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-tacacho-con-cecina",
+    "bucket": "Recipes / Dishes",
+    "expression": "Tacacho con Cecina",
+    "description": "Tacacho con Cecina is a signature dish of the Peruvian Amazon, pairing roasted green plantains mashed with pork fat into dense balls alongside cecina, a salt-cured and smoke-dried pork. The combination of starchy, slightly sweet tacacho with intensely savory cecina defines jungle cuisine in cities like Tarapoto and Iquitos.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-kinilaw-na-tuna",
+    "bucket": "Recipes / Dishes",
+    "expression": "Kinilaw na Tuna",
+    "description": "Kinilaw na Tuna is a Filipino raw fish preparation from the Visayas, where fresh yellowfin tuna is “cooked” in a pungent mixture of coconut vinegar, calamansi juice, ginger, onion, and bird’s eye chili. Unlike Latin ceviche, kinilaw uses coconut vinegar rather than citrus as the primary acid, producing a distinctly tangy, aromatic, and deeply savory result.",
+    "source": "claude"
+  },
+  {
+    "id": "recipes-dishes-tafelspitz-suppe",
+    "bucket": "Recipes / Dishes",
+    "expression": "Wiener\nTafelspitz",
+    "description": "Tafelspitz is the definitive Viennese boiled beef dish, featuring a prime cut of beef rump simmered for hours in a clear broth of root vegetables, marrow bones, and aromatic spices. Served sliced with its own consommé, apple-horseradish sauce, and chive cream, it was reportedly Emperor Franz Joseph’s favorite daily meal.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-systems-byzantine-fault",
+    "bucket": "Computer Science",
+    "expression": "Byzantine Fault",
+    "description": "A Byzantine Fault occurs when a component of a distributed system fails in an arbitrary and potentially malicious way, including sending contradictory information to different parts of the system. Named after the Byzantine Generals Problem, it represents the hardest class of failures to tolerate in consensus algorithms.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-theory-quine-program",
+    "bucket": "Computer Science",
+    "expression": "Quine Program",
+    "description": "A Quine is a program that takes no input and produces a complete copy of its own source code as its only output. Writing one requires solving the self-reference problem elegantly, and the shortest known quines in various languages are prized artifacts of recreational programming. Named after logician Willard Van Orman Quine.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-theory-thunk-evaluation",
+    "bucket": "Computer Science",
+    "expression": "Thunk Evaluation",
+    "description": "A Thunk is a suspended computation wrapped in a parameterless closure, used in lazy evaluation strategies to defer work until its result is actually needed. The term reportedly originated when someone “thunk” about it and realized the value’s type could be determined at compile time without actually executing the code.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-theory-skolem-function",
+    "bucket": "Computer Science",
+    "expression": "Skolem Function",
+    "description": "A Skolem Function is a function introduced during Skolemization to eliminate existential quantifiers from a logical formula, replacing “there exists” with an explicit witness function that depends on the surrounding universal variables. The technique is fundamental to automated theorem proving and first-order logic resolution.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-theory-zipper-structure",
+    "bucket": "Computer Science",
+    "expression": "Zipper Structure",
+    "description": "A Zipper is a technique for navigating and modifying immutable data structures by maintaining a cursor that records both the current focus element and the surrounding context as a stack of one-hole contexts. It enables efficient local updates in purely functional tree and list manipulations without requiring expensive full-path copying.",
+    "source": "claude"
+  },
+  {
+    "id": "astro-magnetar-starquake",
+    "bucket": "Astronomy / Space",
+    "expression": "Magnetar Starquake",
+    "description": "A Magnetar Starquake is a sudden fracturing of the rigid neutron star crust caused by the intense magnetic stresses of a magnetar, releasing more energy in a tenth of a second than the Sun emits in 100,000 years. The 2004 event from SGR 1806-20 was so powerful it measurably disturbed Earth’s ionosphere from 50,000 light-years away.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-sys-billion-laughs",
+    "bucket": "Computer Science",
+    "expression": "Billion Laughs\nAttack",
+    "description": "The Billion Laughs Attack is an XML bomb exploit where nested entity definitions cause exponential expansion — a few hundred bytes of seemingly innocent XML inflate to gigabytes in memory, crashing the parser or exhausting server resources. Also called an XML bomb because the classic payload recursively expands the string “lol” a billion times over.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-theory-banach-tarski",
+    "bucket": "Computer Science",
+    "expression": "Banach Tarski Paradox",
+    "description": "The Banach-Tarski Paradox proves that a solid ball in three-dimensional space can be decomposed into a finite number of non-measurable pieces and reassembled — using only rotations and translations — into two balls identical to the original. It demonstrates that the axiom of choice permits constructions that violate physical intuition about volume.",
+    "source": "claude"
+  },
+  {
+    "id": "cs-theory-collatz",
+    "bucket": "Computer Science",
+    "expression": "Collatz Conjecture",
+    "description": "The Collatz Conjecture states that starting from any positive integer, repeatedly applying “if even, halve it; if odd, triple it and add one” always eventually reaches 1. Despite its kindergarten-level statement, it remains unproven after 85 years, prompting Paul Erdős to remark that mathematics is not yet ready for such problems.",
+    "source": "claude"
+  },
+  {
+    "id": "culture-streisand",
+    "bucket": "Cultural / Slang / Meme",
+    "expression": "Streisand Effect",
+    "description": "The Streisand Effect is the phenomenon where attempting to suppress or censor information backfires spectacularly by drawing far more attention to it than it ever would have received. Named after Barbra Streisand’s 2003 lawsuit to remove an aerial photo of her mansion, which was viewed only six times before the suit but over 420,000 times after.",
+    "source": "claude"
+  },
+  {
+    "id": "dance-butoh",
+    "bucket": "Dance / Cultural Term Pool",
+    "expression": "Ankoku\nButoh",
+    "description": "Ankoku Butoh is a form of Japanese avant-garde dance born in 1959 as a reaction against Western modern dance, characterized by slow, controlled movements, white body paint, distorted postures, and taboo themes. Co-founded by Tatsumi Hijikata and Kazuo Ohno, it is sometimes called “the dance of darkness” and seeks to express the body’s primal, grotesque nature.",
+    "source": "claude"
+  },
+  {
+    "id": "land-moon-garden",
+    "bucket": "Landscape / Ecology / Infrastructure Additions",
+    "expression": "Moon Garden",
+    "description": "A Moon Garden is a garden designed specifically to be enjoyed at night, planted with white and pale-colored flowers that reflect moonlight, night-blooming species like moonflower and night-blooming jasmine, and silvery foliage. The experience is primarily olfactory and luminous, with fragrance intensifying as temperatures drop after dark.",
+    "source": "claude"
+  },
+  {
+    "id": "land-stumpery",
+    "bucket": "Landscape / Ecology / Infrastructure Additions",
+    "expression": "Stumpery Garden",
+    "description": "A Stumpery is a Victorian garden feature constructed from upturned tree stumps, roots, and weathered logs arranged into dramatic sculptural compositions and planted with ferns, mosses, and shade-loving plants. Prince Charles maintains a famous stumpery at Highgrove, reviving the tradition that peaked in the 19th century.",
+    "source": "claude"
+  },
+  {
+    "id": "music-shepard-tone",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Shepard Tone",
+    "description": "The Shepard Tone is an auditory illusion of a sound that appears to ascend or descend in pitch forever, like an infinite staircase of frequency. Created by overlapping sine waves spaced an octave apart with carefully shaped amplitude, it was used extensively by Hans Zimmer in the Dunkirk score to create relentless tension.",
+    "source": "claude"
+  },
+  {
+    "id": "music-prepared-piano",
+    "bucket": "Music Theory / Audio Engineering Term Pool",
+    "expression": "Prepared Piano",
+    "description": "A Prepared Piano is a piano whose sound has been altered by placing objects like bolts, screws, rubber erasers, and felt strips directly on or between the strings. Pioneered by John Cage in 1940, it transforms a single instrument into an entire percussion orchestra capable of producing metallic, muted, and otherworldly timbres.",
+    "source": "claude"
+  },
+  {
+    "id": "psych-pratfall",
+    "bucket": "Social Psychology",
+    "expression": "Pratfall Effect",
+    "description": "The Pratfall Effect is the finding that highly competent individuals become more likeable after committing a clumsy blunder, while average individuals become less likeable for the same mistake. Discovered by Elliot Aronson in 1966, it explains why powerful leaders gain warmth from minor gaffes while underdogs are punished for them.",
+    "source": "claude"
+  },
+  {
+    "id": "folk-knecht-ruprecht",
+    "bucket": "Folklore / Cryptids / Mythology",
+    "expression": "Knecht Ruprecht",
+    "description": "Knecht Ruprecht is the rough, fur-clad servant of St. Nicholas in German Christmas tradition, carrying a sack of ashes and a bundle of birch switches for naughty children. He asks children to pray, and those who cannot recite are beaten with his switch or stuffed into his sack and carried away, a tradition dating to the 17th century.",
+    "source": "claude"
+  },
+  {
+    "id": "psychology-cognitive-science-conjunction-fallacy",
+    "bucket": "Psychology / Cognitive Science",
+    "expression": "Conjunction Fallacy",
+    "description": "Conjunction Fallacy is a cognitive bias where people judge that a conjunction of two events is more probable than either event alone. The classic demonstration uses the Linda problem, where participants rate a specific combination of traits as more likely than a single trait. It violates basic probability axioms and reveals how representativeness heuristics override logical reasoning in everyday.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "psychology-cognitive-science-attribute-substitution",
+    "bucket": "Psychology / Cognitive Science",
+    "expression": "Attribute Substitution",
+    "description": "Attribute Substitution occurs when a person must make a judgment about a complex target attribute but instead substitutes a simpler, more accessible heuristic attribute. The substitution happens automatically and without conscious awareness, producing systematic errors in judgment. Daniel Kahneman proposed it as the mechanism underlying many cognitive biases and heuristic-based reasoning failures.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "knots-rope-craft-zeppelin-bend",
+    "bucket": "Knots / Rope Craft",
+    "expression": "Zeppelin Bend",
+    "description": "Zeppelin Bend is a secure end-to-end joining knot that resists jamming even under extreme loads. It was reputedly used to moor airships, though documentation for this specific use remains uncertain. The knot consists of two symmetrical interlocking overhand loops and is prized by riggers and climbers for its reliability, ease of untying after loading, and clean symmetric structure.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "knots-rope-craft-blackwall-hitch",
+    "bucket": "Knots / Rope Craft",
+    "expression": "Blackwall Hitch",
+    "description": "Blackwall Hitch is a simple temporary knot used to attach a rope to a hook, relying entirely on the tension of the load to maintain its grip. Named after the Blackwall shipyard on the Thames, it was widely used by dockworkers and sailors for hoisting cargo. It provides no security when unloaded and slips free the moment tension is released, making it a purely functional working knot.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "chemistry-named-reactions-kulinkovich-reaction",
+    "bucket": "Chemistry / Named Reactions",
+    "expression": "Kulinkovich Reaction",
+    "description": "Kulinkovich Reaction is a titanium-mediated cyclopropanation that converts esters into cyclopropanols using ethylmagnesium bromide and a titanium alkoxide catalyst. Discovered by Oleg Kulinkovich in 1989, it proceeds through a titanacyclopropane intermediate that inserts into the carbonyl group. The reaction is valued in organic synthesis for building strained three-membered rings in a single.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "psychology-cognitive-science-semmelweis-reflex",
+    "bucket": "Psychology / Cognitive Science",
+    "expression": "Semmelweis Reflex",
+    "description": "Semmelweis Reflex describes the tendency to reject new evidence or knowledge because it contradicts established norms, beliefs, or paradigms. Named after Ignaz Semmelweis, whose insistence on handwashing in hospitals was dismissed by the medical establishment despite clear evidence of reduced mortality. The term highlights institutional resistance to innovation even when supported by data.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "psychology-cognitive-science-availability-cascade",
+    "bucket": "Psychology / Cognitive Science",
+    "expression": "Availability Cascade",
+    "description": "Availability Cascade is a self-reinforcing cycle where a belief gains increasing plausibility through repetition in public discourse. As more people discuss a claim, it becomes more available in memory, which makes it seem more credible. The mechanism combines individual availability heuristics with social dynamics to amplify certain ideas far beyond what evidence warrants, shaping policy and.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "knots-rope-craft-pretzel-link",
+    "bucket": "Knots / Rope Craft",
+    "expression": "Pretzel Link",
+    "description": "Pretzel Link is a topological construction in knot theory where two or more loops interlock in a pattern resembling the crossed structure of a pretzel. It appears in mathematical knot tables as a specific class of two-component link with defined crossing numbers. Pretzel links serve as fundamental examples in the study of link invariants, Seifert surfaces, and three-manifold topology.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "psychology-cognitive-science-delayed-gratification",
+    "bucket": "Psychology / Cognitive Science",
+    "expression": "Delayed Gratification",
+    "description": "Delayed Gratification is the ability to resist an immediately available reward in favor of a later, often larger or more enduring reward. The Stanford marshmallow experiment by Walter Mischel demonstrated that children who could delay gratification showed better life outcomes decades later. It is considered a key component of self-regulation, executive function, and emotional maturity across.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "astronomy-space-cosmic-microwave",
+    "bucket": "Astronomy / Space",
+    "expression": "Cosmic\nMicrowave\nRadiation",
+    "description": "Cosmic Microwave Radiation is the faint thermal radiation permeating all of space, originating roughly 380,000 years after the Big Bang when the universe cooled enough for photons to travel freely. Discovered accidentally by Arno Penzias and Robert Wilson in 1965, its near-perfect blackbody spectrum at 2.725 Kelvin provides the strongest evidence for the hot Big Bang model of cosmology.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "astronomy-space-virgo-supercluster",
+    "bucket": "Astronomy / Space",
+    "expression": "Virgo Supercluster",
+    "description": "Virgo Supercluster is the massive galactic structure containing the Local Group, which in turn contains the Milky Way. It spans roughly 110 million light-years and contains at least 100 galaxy groups and clusters centered on the Virgo Cluster. In 2014 it was reclassified as a component of the even larger Laniakea Supercluster, a gravitational basin encompassing 100,000 galaxies.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "physics-fields-and-radiation-luminiferous-ether",
+    "bucket": "Physics / Fields and Radiation",
+    "expression": "Luminiferous Ether",
+    "description": "Luminiferous Ether was the hypothetical medium through which light waves were thought to propagate, analogous to how sound requires air. The concept dominated 19th-century physics until the Michelson-Morley experiment of 1887 failed to detect any motion relative to the ether. Einstein special theory of relativity in 1905 rendered the concept unnecessary by establishing that light needs no medium.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "linguistics-pragmatics-self-initiated-repair",
+    "bucket": "Linguistics / Pragmatics",
+    "expression": "Self-Initiated Repair",
+    "description": "Self-Initiated Repair is a conversational mechanism in which a speaker detects and corrects a problem in their own speech without prompting from the listener. It manifests as hesitations, restarts, word replacements, or mid-utterance corrections that maintain communicative accuracy. Conversation analysts Emmanuel Schegloff, Gail Jefferson, and Harvey Sacks documented it as part of the systematic.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "linguistics-pragmatics-state-of-the-glottis",
+    "bucket": "Linguistics / Pragmatics",
+    "expression": "State of the Glottis",
+    "description": "State of the Glottis refers to the configuration of the vocal folds in the larynx during speech production, determining whether a sound is voiced, voiceless, breathy, or creaky. Phoneticians classify glottal states along a continuum from fully open for voiceless sounds to fully closed for a glottal stop. The concept is foundational in articulatory phonetics and laryngeal feature theory.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "linguistics-pragmatics-third-turn-repair",
+    "bucket": "Linguistics / Pragmatics",
+    "expression": "Third Turn Repair",
+    "description": "Third Turn Repair is a conversational sequence in which a speaker uses their next opportunity to speak, the third turn, to address a misunderstanding that became apparent in the second turn. It typically occurs when a listener’s response reveals they interpreted the original utterance differently than intended. The concept comes from conversation analysis and the study of repair organization in.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "linguistics-pragmatics-yes-no-question",
+    "bucket": "Linguistics / Pragmatics",
+    "expression": "Yes-No Question",
+    "description": "Yes-No Question is an interrogative sentence type designed to elicit a response of either affirmation or negation. In English it is typically formed by inverting the subject and auxiliary verb, as in are you coming. Cross-linguistically, yes-no questions may be marked by intonation alone, sentence-final particles, or dedicated morphological markers depending on the language system.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "cultural-slang-meme-humble-brag",
+    "bucket": "Cultural / Slang / Meme",
+    "expression": "Humble Brag",
+    "description": "Humble Brag is a form of self-promotion disguised as a complaint or self-deprecating remark, allowing the speaker to highlight an achievement while appearing modest. The term was popularized by writer Harris Wittels, who documented examples on social media and published a book cataloging the phenomenon in 2012. It has become a recognized rhetorical strategy in digital communication and personal.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "rhetoric-literary-devices-praise-sandwich",
+    "bucket": "Rhetoric / Literary Devices",
+    "expression": "Praise Sandwich",
+    "description": "Praise Sandwich is a feedback technique in which criticism is placed between two positive statements to soften its impact and maintain the recipient’s receptiveness. The structure opens with genuine praise, delivers the constructive critique, and closes with encouragement or affirmation. While widely taught in management training, communication researchers debate whether the predictable format.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "rhetoric-literary-devices-grub-street",
+    "bucket": "Rhetoric / Literary Devices",
+    "expression": "Grub Street",
+    "description": "Grub Street was a street in London historically associated with impoverished writers and literary hacks producing low-quality work for quick payment. By the 18th century the name had become a metonym for the world of commercial hack writing and journalism. Jonathan Swift, Alexander Pope, and Samuel Johnson all used Grub Street as a satirical reference to the debased conditions of the literary.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "rhetoric-literary-devices-deus-ex-machina",
+    "bucket": "Rhetoric / Literary Devices",
+    "expression": "Deus Ex Machina",
+    "description": "Deus Ex Machina is a plot device in which a seemingly unsolvable problem is abruptly resolved by an unexpected and often contrived intervention. The term derives from ancient Greek theater, where a god character was literally lowered onto the stage by a crane to deliver the resolution. In modern criticism it is typically considered a mark of weak storytelling that undermines narrative logic.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "rhetoric-literary-devices-epic-fantasy",
+    "bucket": "Rhetoric / Literary Devices",
+    "expression": "Epic Fantasy",
+    "description": "Epic Fantasy is a subgenre of speculative fiction characterized by grand-scale narratives set in elaborately constructed secondary worlds with their own histories, mythologies, and magic systems. The genre traces its modern form to J.R.R. Tolkien’s The Lord of the Rings and typically features quests, chosen heroes, and conflicts between good and evil played out across vast landscapes and long.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "physics-general-science-absolute-zero",
+    "bucket": "Physics / General Science",
+    "expression": "Absolute Zero",
+    "description": "Absolute Zero is the lowest limit of the thermodynamic temperature scale, corresponding to zero kelvin or minus 273.15 degrees Celsius, at which particles possess minimal vibrational motion. It represents a theoretical state that can be approached but never fully reached according to the third law of thermodynamics. Near absolute zero, matter exhibits quantum phenomena such as superconductivity.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "physics-general-science-doppler-effect",
+    "bucket": "Physics / General Science",
+    "expression": "Doppler Effect",
+    "description": "Doppler Effect is the change in frequency or wavelength of a wave as perceived by an observer moving relative to the wave source. Approaching objects produce higher frequencies while receding objects produce lower frequencies, explaining the pitch shift of a passing siren. In astronomy, redshift and blueshift of spectral lines caused by the Doppler effect reveal the radial velocities of stars and.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "physics-general-science-quantum-gravity",
+    "bucket": "Physics / General Science",
+    "expression": "Quantum Gravity",
+    "description": "Quantum Gravity is a theoretical framework seeking to describe gravity according to the principles of quantum mechanics, reconciling general relativity with quantum field theory. Leading approaches include string theory, loop quantum gravity, and causal dynamical triangulations. The theory is expected to become relevant at the Planck scale, where spacetime itself may exhibit discrete or foam-like.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "physics-general-science-theory-of-everything",
+    "bucket": "Physics / General Science",
+    "expression": "Theory of Everything",
+    "description": "Theory of Everything is a hypothetical unified physical theory that would fully explain and link together all known physical phenomena, merging quantum mechanics and general relativity into a single coherent framework. String theory and M-theory are the most prominent candidates. The pursuit of such a theory has been a central goal of theoretical physics since Einstein’s unsuccessful search for a.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "mathematics-formal-systems-axiomatic-set-theory",
+    "bucket": "Mathematics / Formal Systems",
+    "expression": "Axiomatic Set Theory",
+    "description": "Axiomatic Set Theory is a formal mathematical system that defines sets and their properties through a collection of axioms, most commonly the Zermelo-Fraenkel axioms with the axiom of choice. It was developed in the early twentieth century to resolve paradoxes in naïve set theory such as Russell’s paradox. The framework serves as the standard foundation for virtually all of modern mathematics.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "electrical-engineering-flyback-transformer",
+    "bucket": "Electrical Engineering",
+    "expression": "Flyback Transformer",
+    "description": "Flyback Transformer is a specialized transformer used in switched-mode power supplies and cathode ray tube displays that stores energy in its magnetic core during the switch-on phase and releases it to the secondary winding during the switch-off phase. Unlike conventional transformers, primary and secondary windings do not conduct simultaneously.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "electrical-engineering-proximity-effect",
+    "bucket": "Electrical Engineering",
+    "expression": "Proximity Effect",
+    "description": "Proximity Effect is a phenomenon in electrical engineering where alternating current in adjacent conductors redistributes to concentrate on the sides of the conductors closest to each other, increasing effective resistance. It is related to the skin effect and becomes significant at higher frequencies, affecting transformer windings, bus bars, and printed circuit board traces.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "electrical-engineering-x-ray-lithography",
+    "bucket": "Electrical Engineering",
+    "expression": "X-ray Lithography",
+    "description": "X-ray Lithography is a semiconductor fabrication technique that uses X-ray radiation to transfer circuit patterns from a mask onto a photoresist-coated wafer with extremely fine resolution. The shorter wavelengths of X-rays compared to ultraviolet light allow patterning of features below 100 nanometers. While largely superseded by extreme ultraviolet lithography in mass production, it remains.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "wellness-body-practice-sun-salutation",
+    "bucket": "Wellness / Body Practice",
+    "expression": "Sun Salutation",
+    "description": "Sun Salutation is a flowing sequence of twelve yoga postures performed in a continuous cycle, traditionally practiced at dawn as a devotional greeting to the sun. Known as Surya Namaskar in Sanskrit, it links breath to movement through a series of forward folds, lunges, and backbends that warm the entire body. The sequence serves as both a standalone practice and a foundational warm-up in most.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "wellness-body-practice-loving-kindness",
+    "bucket": "Wellness / Body Practice",
+    "expression": "Loving Kindness",
+    "description": "Loving Kindness is a meditation practice rooted in Theravada Buddhism, known in Pali as metta bhavana, in which the practitioner systematically cultivates feelings of warmth and goodwill toward themselves and progressively widens the circle to include loved ones, neutral persons, difficult people, and all beings. Clinical research has linked regular practice to reduced self-criticism, increased.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "beauty-cosmetics-lash-curler",
+    "bucket": "Beauty / Cosmetics",
+    "expression": "Lash Curler",
+    "description": "Lash Curler is a handheld cosmetic tool with hinged clamp plates that press against the upper eyelashes to bend them upward, creating the appearance of wider, more open eyes. The modern design with a curved silicone or rubber pad was patented in the 1930s and has changed remarkably little since. Heated versions use gentle warmth to set the curl more durably, similar in principle to a curling iron.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "beauty-cosmetics-ultra-matte",
+    "bucket": "Beauty / Cosmetics",
+    "expression": "Ultra Matte",
+    "description": "Ultra Matte is a cosmetic finish designation for products that dry to a completely shine-free, velvety surface with no light reflection. The formulation typically relies on high pigment loads, volatile solvents that evaporate after application, and mattifying polymers that absorb surface oils. Ultra matte lipsticks and foundations gained widespread popularity through liquid lip products launched.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "beauty-cosmetics-zigzag-part",
+    "bucket": "Beauty / Cosmetics",
+    "expression": "Zigzag Part",
+    "description": "Zigzag Part is a hairstyling technique in which the hair is divided using an irregular, angular line rather than a straight center or side part. It is created by drawing the tail of a comb in alternating diagonal strokes across the scalp, producing a jagged separation that adds volume at the roots and disguises visible regrowth.",
+    "source": "wikipedia"
+  },
+  {
+    "id": "cinematography-depth-of-focus",
+    "bucket": "Cinematography / Visual",
+    "expression": "Depth\nof Focus",
+    "description": "Depth of Focus is the corresponding tolerance zone on the sensor or film plane side of the lens, describing how far the imaging surface can shift along the optical axis while maintaining an acceptably sharp image. Often confused with depth of field, it is the lens-side counterpart that concerns camera engineers and optical designers rather than photographers.",
+    "source": "manual"
+  },
+  {
+    "id": "cinematography-extreme-long-shot",
+    "bucket": "Cinematography / Visual",
+    "expression": "Extreme\nLong Shot",
+    "description": "Extreme Long Shot is a framing that reduces the human figure to a speck against a vast landscape, cityscape, or cosmic expanse, establishing scale and geographic context while emphasizing the insignificance of the individual within the environment. It is the signature opening shot of epic and western cinema traditions.",
+    "source": "manual"
+  },
+  {
+    "id": "cinematography-freeze-frame-shot",
+    "bucket": "Cinematography / Visual",
+    "expression": "Freeze\nFrame Shot",
+    "description": "Freeze Frame Shot is an editing technique where a single frame of motion picture is printed repeatedly so that the action appears to halt, suspending the subject in a still photograph within the flow of cinema. François Truffaut’s closing shot of Antoine Doinel running toward the sea in The 400 Blows remains the most iconic use of the device.",
+    "source": "manual"
+  },
+  {
+    "id": "cinematography-worms-eye-view",
+    "bucket": "Cinematography / Visual",
+    "expression": "Worm’s\nEye View",
+    "description": "Worm’s Eye View is an extreme low-angle shot taken from near ground level looking upward, dramatizing the height and dominance of subjects towering above the camera. The perspective distorts vertical lines into converging diagonals and imbues figures with an imposing, almost mythic stature, frequently employed to convey power, menace, or architectural grandeur.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-verba-ex-ore",
+    "bucket": "Latin / Classical",
+    "expression": "Verba\nex Ore",
+    "description": "Verba ex Ore, meaning “words from the mouth,” is a Latin phrase denoting testimony or statements delivered directly by a speaker in their own voice rather than through written or intermediary communication. In legal and ecclesiastical tradition, it carries the weight of personal witness, emphasizing that the authority of a declaration rests on the living presence of the one who utters it.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-veritas-odit-moras",
+    "bucket": "Latin / Classical",
+    "expression": "Veritas\nOdit Moras",
+    "description": "Veritas Odit Moras, meaning “truth hates delay,” is a Latin maxim attributed to Seneca the Younger expressing the principle that genuine truth demands immediate disclosure and resists concealment or postponement. The phrase appears in legal and rhetorical contexts as an argument against stalling tactics, asserting that justice and honesty deteriorate when subjected to procedural delay.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-ex-malo-bonum",
+    "bucket": "Latin / Classical",
+    "expression": "Ex Malo\nBonum",
+    "description": "Ex Malo Bonum, meaning “out of evil, good,” is a Latin phrase expressing the idea that beneficial outcomes can emerge from adverse or harmful circumstances. Rooted in Augustinian theodicy and Stoic philosophy, it frames suffering and misfortune as potential catalysts for growth, resilience, or moral transformation rather than purely destructive forces.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-de-leone-sene",
+    "bucket": "Latin / Classical",
+    "expression": "De Leone\nSene",
+    "description": "De Leone Sene, meaning “of the old lion,” is a Latin fable attributed to Aesop and retold by Phaedrus in which a once-mighty lion, weakened by age, is kicked, bitten, and gored by the very animals that once feared him. The tale is a meditation on the cruelty that attends the loss of power, warning that strength commands respect only as long as it lasts.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-vulpes-et-uva",
+    "bucket": "Latin / Classical",
+    "expression": "Vulpes\net Uva",
+    "description": "Vulpes et Uva, meaning “the fox and the grape,” is the Latin title of one of Aesop’s most enduring fables, in which a fox leaps repeatedly for a cluster of ripe grapes hanging just out of reach and, failing, declares them sour. The story gave rise to the expression “sour grapes” and illustrates the psychological defense of rationalizing unattainable desires.",
+    "source": "manual"
+  },
+  {
+    "id": "fable-the-hare-in-flight",
+    "bucket": "Literature / Cultural Artifacts",
+    "expression": "The Hare\nin Flight",
+    "description": "The Hare in Flight is an Aesopic fable in which a hare, startled by the rustle of leaves, bolts in blind panic across fields and streams until it collapses from exhaustion, having fled from nothing at all. The story illustrates how imagined threats can prove more debilitating than real ones, and how fear, once given free rein, compounds itself far beyond the original cause.",
+    "source": "manual"
+  },
+  {
+    "id": "fable-the-fox-and-the-grapes",
+    "bucket": "Literature / Cultural Artifacts",
+    "expression": "The Fox\nand the Grapes",
+    "description": "The Fox and the Grapes is among the most widely known of Aesop’s fables, telling of a hungry fox who spots a luscious cluster of grapes hanging from a high trellis and, after several failed leaps, stalks away muttering that they were probably sour anyway. The story crystallized the concept of cognitive dissonance centuries before psychology gave it a formal name.",
+    "source": "manual"
+  },
+  {
+    "id": "fable-the-frogs-and-the-sun",
+    "bucket": "Literature / Cultural Artifacts",
+    "expression": "The Frogs\nand the Sun",
+    "description": "The Frogs and the Sun is an Aesopic fable in which a community of frogs celebrates when the sun announces its marriage, until a wise elder frog warns that if one sun already dries up their marshes, imagine what a family of suns would do. The tale cautions against shortsighted celebration and reminds that what benefits the powerful may prove catastrophic for the vulnerable.",
+    "source": "manual"
+  },
+  {
+    "id": "literature-comedy-of-errors",
+    "bucket": "Literature / Cultural Artifacts",
+    "expression": "The Comedy\nof Errors",
+    "description": "The Comedy of Errors is one of Shakespeare’s earliest and shortest plays, a farcical whirlwind of mistaken identity built on two sets of identical twins separated at birth and reunited in the merchant city of Ephesus. Drawn from Plautus’s Menaechmi, the play stacks confusion upon confusion until every character on stage is entangled in someone else’s life.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-animal-vampyroteuthis-infernalis",
+    "bucket": "Latin Animal Names",
+    "expression": "Vampyroteuthis\ninfernalis",
+    "description": "Vampyroteuthis infernalis, literally “vampire squid from hell,” is a small deep-sea cephalopod inhabiting oxygen-minimum zones at depths of 600 to 900 meters. Despite its fearsome name, it feeds passively on marine snow and detritus. Its bioluminescent photophores and webbed arms tipped with fleshy spines make it one of the most otherworldly creatures in the ocean.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-animal-ziphius-cavirostris",
+    "bucket": "Latin Animal Names",
+    "expression": "Ziphius\ncavirostris",
+    "description": "Ziphius cavirostris, Cuvier’s beaked whale, holds the mammalian deep-diving record at nearly 3,000 meters below the surface on breath-hold dives lasting over three hours. This elusive cetacean is found in every ocean yet is rarely observed alive, spending most of its existence hunting squid in the pitch-black mesopelagic and bathypelagic zones far beyond the reach of sunlight.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-animal-zaglossus-attenboroughi",
+    "bucket": "Latin Animal Names",
+    "expression": "Zaglossus\nattenboroughi",
+    "description": "Zaglossus attenboroughi, Sir David’s long-beaked echidna, is a critically endangered egg-laying mammal known from a single specimen collected in 1961 in the Cyclops Mountains of Papua. Named in honor of Sir David Attenborough, it is among the rarest mammals on Earth, with recent camera-trap evidence suggesting a tiny population persists in remote montane forest.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-animal-viverricula-indica",
+    "bucket": "Latin Animal Names",
+    "expression": "Viverricula\nindica",
+    "description": "Viverricula indica, the small Indian civet, is a slender nocturnal carnivore ranging across South and Southeast Asia from Nepal to Java. It secretes civetone from its perineal glands, a musk historically prized in perfumery, and inhabits dense undergrowth where it hunts insects, rodents, and fallen fruit with quick, sinuous movements through the leaf litter.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-animal-xenicus-gilviventris",
+    "bucket": "Latin Animal Names",
+    "expression": "Xenicus\ngilviventris",
+    "description": "Xenicus gilviventris, the New Zealand rock wren, is a tiny alpine passerine and one of only two surviving species of the ancient Acanthisittidae family, an early branch of the passerine evolutionary tree found nowhere else on Earth. It lives above the tree line in the Southern Alps, hopping across rock fields and scree slopes, and is one of the few songbirds adapted to a fully alpine existence.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-animal-vanellus-crassirostris",
+    "bucket": "Latin Animal Names",
+    "expression": "Vanellus\ncrassirostris",
+    "description": "Vanellus crassirostris, the long-toed lapwing, is a striking wading bird of sub-Saharan African wetlands distinguished by its bold black, white, and grey plumage and a sharp carpal spur on each wing used in territorial combat. It forages on floating vegetation with unusually elongated toes that distribute its weight across lily pads, walking on water-plant surfaces other waders cannot reach.",
+    "source": "manual"
+  }
+]

@@ -1,0 +1,261 @@
+/*
+==========================================================================
+ 2. ATOMS & UTILITIES
+==========================================================================
+*/
+
+
+
+/*------- BUTTON AND TOGGLE-------*/
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  width: 100%;
+  height: var(--size-row-height); 
+}
+
+.control-label {
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+  width: 64px;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.button {
+  appearance: none;
+  border: none;
+  margin: 0;
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+  font-family: var(--font-family-base);
+  text-decoration: none;
+  text-align: center;
+  height: var(--size-row-height);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  cursor: pointer;
+  transition: background-color 0.1s ease-out, border-color 0.1s ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  line-height: 1;
+  white-space: nowrap;
+  flex-grow: 1; /* Allow buttons to grow */
+  flex-basis: 0; /* Distribute space evenly */
+}
+
+.button:focus-visible {
+  outline: none;
+  position: relative;
+  z-index: 1;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.button-primary {
+  background-color: var(--brand-default);
+  color: var(--background-default);
+  position: relative; /* ADDED for pseudo-element positioning */
+  overflow: hidden;   /* ADDED to contain pseudo-element */
+}
+
+/* ADDED: Hover overlay for primary button */
+.button-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-cta-hover);
+  opacity: 0;
+  transition: opacity 0.1s ease-out;
+  /* This pseudo-element will render on top of the button's background 
+     and behind its text content by default, which is the desired effect. */
+}
+
+
+.button-secondary {
+  background-color: var(--background-default);
+  border: var(--border-width-standard) solid var(--border-translucent);
+  color: var(--text-default);
+}
+.button-secondary:hover {
+  background-color: var(--background-secondary);
+  border-color: var(--background-secondary);
+}
+.dark-theme .button-primary { 
+  background-color: var(--brand-default);
+  color: var(--text-default);
+}
+
+.footer-create-button {
+  padding: 0 var(--sizing-default-spacers-spacer-3); /* Match general button horizontal padding */
+}
+
+.footer-toggle-group {
+  display: flex;
+  gap: var(--sizing-default-spacers-spacer-3);
+  align-items: center;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  cursor: pointer;
+}
+
+.toggle-checkbox-input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border: var(--border-width-standard) solid var(--border-translucent);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+.toggle-checkbox-input::after {
+  content: "";
+  display: none;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--text-default);
+  mask-image: var(--icon-check-16, url('data:image/svg+xml,%3Csvg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath fill-rule="evenodd" clip-rule="evenodd" d="M11.7774 4.08403C12.0072 4.2372 12.0693 4.54764 11.9161 4.7774L7.91607 10.7774C7.83298 10.902 7.69839 10.9829 7.54932 10.9976C7.40025 11.0124 7.25242 10.9595 7.1465 10.8536L4.1465 7.85361C3.95123 7.65834 3.95123 7.34176 4.1465 7.1465C4.34176 6.95124 4.65834 6.95124 4.8536 7.1465L7.42234 9.71523L11.084 4.2227C11.2372 3.99294 11.5476 3.93085 11.7774 4.08403Z" fill="black"/%3E%3C/svg%3E'));
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--icon-check-16, url('data:image/svg+xml,%3Csvg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath fill-rule="evenodd" clip-rule="evenodd" d="M11.7774 4.08403C12.0072 4.2372 12.0693 4.54764 11.9161 4.7774L7.91607 10.7774C7.83298 10.902 7.69839 10.9829 7.54932 10.9976C7.40025 11.0124 7.25242 10.9595 7.1465 10.8536L4.1465 7.85361C3.95123 7.65834 3.95123 7.34176 4.1465 7.1465C4.34176 6.95124 4.65834 6.95124 4.8536 7.1465L7.42234 9.71523L11.084 4.2227C11.2372 3.99294 11.5476 3.93085 11.7774 4.08403Z" fill="black"/%3E%3C/svg%3E'));
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+.toggle-checkbox-input:checked::after {
+  display: block;
+}
+.toggle-checkbox-input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+.dark-theme .toggle-checkbox-input { 
+  background-color: var(--background-secondary);
+  border-color: var(--border-translucent);
+}
+.dark-theme .toggle-checkbox-input::after { 
+  background-color: var(--text-default); 
+}
+
+.toggle-text {
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+  font-size: var(--ui-font-size-xsmall); /* ADDED: Set font size to xsmall */
+}
+
+.footer-traits-label {
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+body,
+.button {
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: var(--ui-font-weight-regular);
+}
+
+
+
+
+
+/*------- INPUTS & LABELS -------*/
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  width: 100%;
+  height: var(--size-row-height); 
+}
+
+.control-label {
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+  width: 64px;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+/*------- ICONS & UTILITIES -------*/
+
+/* --- Icon Base Styles --- */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* --- Specific Icon Styles --- */
+.section-header-icon {
+  color: var(--text-default);
+  flex-shrink: 0;
+}
+
+/* Tabs container in section headers - Secondary toggle style */
+.section-header .tabs-container {
+  margin-left: auto; /* Push to the right */
+  margin-right: var(--sizing-default-spacers-spacer-2); /* Add some spacing before the icon */
+  background-color: transparent; /* No fill on parent */
+  padding: 0; /* Remove any padding from parent */
+}
+
+/* Secondary toggle style - combo classes */
+.section-header .tabs-container .tab-button {
+  background-color: transparent; /* No fill by default */
+  color: var(--text-secondary); /* Both states use secondary text color */
+  font-weight: var(--ui-font-weight-regular); /* Normal weight */
+  padding: 2px 8px; /* Smaller padding for secondary style */
+  height: 24px; /* Match the height from Figma */
+  border: var(--border-width-standard) solid transparent; /* Always have border, but transparent when inactive */
+  position: relative; /* For proper border rendering */
+}
+
+
+.section-header .tabs-container .tab-button.active {
+  background-color: var(--neutral-925);
+  color: var(--text-onbrand);
+  font-weight: var(--ui-font-weight-regular);
+  border-color: var(--neutral-925);
+}
+
+.control-row .icon {
+  color: var(--text-default);
+}
+
+/*------- SECONDARY BUTTONS -------*/
+
+.control-row.justify-end {
+  justify-content: flex-end;
+} 

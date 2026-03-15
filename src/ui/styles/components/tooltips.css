@@ -1,0 +1,214 @@
+/*
+==========================================================================
+ COMPONENTS - TOOLTIPS
+==========================================================================
+This file contains all tooltip-related styles organized in a logical hierarchy:
+1. Base Tooltip Styles - Core tooltip structure and appearance
+2. Tooltip Positioning - Placement and alignment utilities
+3. Tooltip Arrows - Arrow indicators and directional styling
+4. Tooltip Variants - Different tooltip types and contexts
+5. Tooltip States - Hover, active, and visibility states
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE TOOLTIP STYLES
+==========================================================================
+*/
+
+/* Core tooltip element */
+.knob-tooltip {
+  position: absolute;
+  transform: translateX(-50%);
+  height: var(--size-input-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  background-color: var(--tooltip-fill);
+  color: var(--tooltip-text);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  font-family: var(--font-family-base);
+  font-weight: var(--ui-font-weight-regular);
+  font-size: var(--ui-font-size-small);
+  line-height: 1;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  box-sizing: border-box;
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+/*
+==========================================================================
+ 2. TOOLTIP POSITIONING
+==========================================================================
+*/
+
+/* Top-positioned tooltip */
+.tooltip-top {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Bottom-positioned tooltip */
+.tooltip-bottom {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Left-positioned tooltip */
+.tooltip-left {
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Right-positioned tooltip */
+.tooltip-right {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/*
+==========================================================================
+ 3. TOOLTIP ARROWS
+==========================================================================
+*/
+
+/* Default arrow (pointing down) */
+.knob-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--tooltip-fill);
+}
+
+/* Arrow pointing up */
+.tooltip-bottom::after {
+  top: -4px;
+  bottom: auto;
+  border-top: none;
+  border-bottom: 5px solid var(--tooltip-fill);
+}
+
+/* Arrow pointing right */
+.tooltip-left::after {
+  right: -4px;
+  left: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid var(--tooltip-fill);
+  border-right: none;
+}
+
+/* Arrow pointing left */
+.tooltip-right::after {
+  left: -4px;
+  right: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid var(--tooltip-fill);
+  border-left: none;
+}
+
+/*
+==========================================================================
+ 4. TOOLTIP VARIANTS
+==========================================================================
+*/
+
+/* Small tooltip variant */
+.tooltip-small {
+  height: var(--size-icon-size);
+  min-width: var(--size-icon-size);
+  font-size: var(--ui-font-size-xsmall);
+  padding: 0 var(--sizing-default-spacers-spacer-1);
+}
+
+/* Large tooltip variant */
+.tooltip-large {
+  height: auto;
+  min-height: var(--size-input-height);
+  max-width: 200px;
+  white-space: normal;
+  text-align: center;
+  line-height: var(--ui-line-height-small);
+}
+
+/*
+==========================================================================
+ 5. TOOLTIP STATES
+==========================================================================
+*/
+
+/* Hidden tooltip */
+.tooltip-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* Visible tooltip */
+.tooltip-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip with delay */
+.tooltip-delayed {
+  transition-delay: 0.5s;
+}
+
+/*
+==========================================================================
+ 6. DATA-TOOLTIP (instant, CSS-only)
+==========================================================================
+*/
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: calc((400px - 2 * var(--sizing-default-spacers-spacer-3) - var(--sizing-default-spacers-spacer-2)) / 2);
+  padding: var(--sizing-default-spacers-spacer-2);
+  box-sizing: border-box;
+  background-color: var(--background-default);
+  color: var(--text-default);
+  border-radius: var(--sizing-default-radius-radius-large);
+  box-shadow: var(--elevation-dropdown-shadow);
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  line-height: var(--ui-line-height-small);
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease-out;
+  z-index: 1000;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+} 

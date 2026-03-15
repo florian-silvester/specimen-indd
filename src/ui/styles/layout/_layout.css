@@ -1,0 +1,492 @@
+/*
+==========================================================================
+ 4. LAYOUT
+==========================================================================
+*/
+
+/*------- HEADER & TABS -------*/
+
+.header-tabs-section {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  background-color: var(--background-default);
+  border-bottom: var(--border-width-standard) solid var(--border-translucent);
+  width: 100%;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.tab-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  height: var(--size-header-height);
+  min-width: 0;
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+  box-sizing: border-box;
+}
+
+.tabs-container {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--sizing-default-spacers-spacer-1);
+  flex-shrink: 0; /* ADD: Prevent tabs from shrinking */
+}
+
+.header-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  flex-shrink: 0;
+}
+
+.tab-button {
+  appearance: none;
+  border: none;
+  margin: 0;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.1s ease-out, color 0.1s ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-default);
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+}
+
+.tab-button-count {
+  margin-left: var(--sizing-default-spacers-spacer-1);
+  font-size: var(--ui-font-size-small);
+  line-height: var(--ui-line-height-small);
+  color: var(--text-secondary);
+}
+
+.tab-button-count--sup {
+  font-size: var(--ui-font-size-xsmall);
+  line-height: 1;
+  transform: translateY(calc(-1 * var(--sizing-default-spacers-spacer-1) + (var(--sizing-default-spacers-spacer-1) / 2)));
+}
+
+.tab-button:hover:not(.active) {
+  background-color: var(--color-cta-fill);
+  color: var(--text-onbrand);
+}
+
+.tab-button:hover:not(.active) .tab-button-count {
+  color: var(--text-onbrand);
+}
+
+/* Light theme: inactive tab hover uses neutral-100 + text-default */
+body:not(.dark-theme) .tab-button:hover:not(.active) {
+  background-color: var(--color-cta-fill);
+  color: var(--text-default);
+}
+
+body:not(.dark-theme) .tab-button:hover:not(.active) .tab-button-count {
+  color: var(--text-default);
+}
+
+.tab-button.active {
+  background-color: var(--neutral-925);
+  font-weight: var(--font-weight-mid);
+  color: var(--text-onbrand);
+}
+
+.tab-button.active .tab-button-count {
+  color: var(--text-onbrand);
+}
+
+/* Light theme: active tabs use neutral-100 + text-default */
+body:not(.dark-theme) .tab-button.active {
+  background-color: var(--neutral-100);
+  color: var(--text-default);
+}
+
+body:not(.dark-theme) .tab-button.active .tab-button-count {
+  color: var(--text-default);
+}
+
+.tab-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  position: relative;
+  z-index: 1;
+}
+
+
+/*------- OVERRIDE WARNING MODAL -------*/
+
+.override-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99; /* below header & footer (z-index: 100) so they stay uncovered */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: calc(var(--size-header-height) + var(--sizing-default-spacers-spacer-3)) var(--sizing-default-spacers-spacer-3) 0;
+  background-color: rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.dark-theme .override-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.override-modal {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sizing-default-spacers-spacer-3);
+  background-color: var(--background-default);
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-large);
+  padding: var(--sizing-default-spacers-spacer-4) var(--sizing-default-spacers-spacer-3);
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-default);
+  text-align: center;
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.override-modal-actions {
+  display: flex;
+  gap: var(--sizing-default-spacers-spacer-2);
+  width: 100%;
+}
+
+.override-modal-actions .button-secondary-new,
+.override-modal-actions .button-primary-new {
+  flex: 1;
+  justify-content: center;
+}
+
+
+.override-modal-close {
+  position: absolute;
+  top: var(--sizing-default-spacers-spacer-2);
+  right: var(--sizing-default-spacers-spacer-2);
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.override-modal-close:hover {
+  color: var(--text-default);
+}
+
+
+/*------- SECTIONS (ACCORDION) -------*/
+
+/* --- General Section Styling --- */
+.main-content {
+  /* Reserve at least footer height across all screens */
+  padding-bottom: calc(
+    (2 * var(--size-row-height)) +
+    var(--sizing-default-spacers-spacer-2) +
+    var(--sizing-default-spacers-spacer-2) +
+    var(--sizing-default-spacers-spacer-1) +
+    var(--sizing-default-spacers-spacer-3) +
+    var(--border-width-standard)
+  );
+  padding-top: 41px; 
+  overflow-y: auto; /* Keep this to allow scrolling, even if scrollbar is hidden */
+  height: 100vh;
+  box-sizing: border-box;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-default);
+  width: 100%;
+  box-sizing: border-box;
+  position: relative; /* RE-ADD for pseudo-element positioning */
+  border-top: var(--border-width-standard) solid var(--border-translucent); /* top divider */
+}
+
+.section.section-open {
+  padding-bottom: var(--sizing-default-spacers-spacer-3);
+}
+
+.section:first-child,
+.header-tabs-section + .section {
+  border-top: none;
+}
+
+
+.section-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* titles-container(flexible) | dropdown(auto) */
+  cursor: pointer;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+  height: var(--size-header-height); /* Explicitly set height */
+  min-height: 0; /* Ensure no min-height interference */
+  position: relative; /* Added for absolute positioning of controls */
+  width: 100%; /* ADDED to ensure full width */
+  box-sizing: border-box; /* ADDED to include padding in width calculation */
+  background-color: var(--background-default); /* Explicitly set non-hover background */
+  outline: none;
+}
+
+.section-header:focus-visible {
+  box-shadow: var(--focus-ring-shadow);
+  z-index: 1;
+}
+
+.section-header-titles-container {
+  display: flex;
+  align-items: center; /* ADDED to vertically align icon and title */
+  gap: 0; /* ADDED to ensure no gap */
+  flex-grow: 1; /* Allow this container to take up available space */
+  min-width: 0; /* Allow shrinking */
+}
+
+.section-header-left {
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+.section-header-chevron {
+  margin-right: 0; /* Ensure no margin if gap isn't enough */
+  color: var(--text-default);
+  flex-shrink: 0; /* Prevent icon from shrinking */
+  transition: transform 0.2s ease-in-out; /* Add transition for smooth rotation */
+  transform: rotate(0deg); /* Default state: points right */
+}
+
+.section-header-chevron.open {
+  transform: rotate(90deg); /* Open state: points down */
+}
+
+.header-controls-group {
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+.styles-header-actions,
+.generator-reset-row__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+}
+
+.generator-reset-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  width: 100%;
+  box-sizing: border-box;
+  height: var(--size-header-height);
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+  border-top: var(--border-width-standard) solid var(--border-translucent);
+}
+
+.section-title {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-mid);
+  font-size: var(--ui-font-size-small);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-default);
+  flex-grow: 1;
+  outline: none;
+  min-width: 0; /* ADDED to allow shrinking */
+  overflow: hidden; /* ADDED for clean truncation */
+  text-overflow: ellipsis; /* ADDED for clean truncation */
+  white-space: nowrap; /* ADDED for clean truncation */
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+}
+
+.section-content:first-child {
+  padding-top: var(--sizing-default-spacers-spacer-2);
+}
+
+/*------- FOOTER -------*/
+
+/* --- Footer --- */
+.footer-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-default);
+  border-top: var(--border-width-standard) solid var(--border-translucent);
+  z-index: 100;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: visible; 
+}
+
+
+.footer-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.footer-top-row {
+  padding-top: var(--sizing-default-spacers-spacer-2);
+  padding-bottom: var(--sizing-default-spacers-spacer-2); 
+  padding-left: var(--sizing-default-spacers-spacer-3);
+  padding-right: var(--sizing-default-spacers-spacer-3);
+  display: flex;
+  flex-direction: column; 
+  align-items: flex-start; 
+  gap: var(--sizing-default-spacers-spacer-2); 
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: var(--border-width-standard) solid var(--border-translucent); 
+}
+
+.footer-middle-row {
+  padding: var(--sizing-default-spacers-spacer-2) var(--sizing-default-spacers-spacer-3);
+  gap: var(--sizing-default-spacers-spacer-2);
+  width: 100%;
+  box-sizing: border-box;
+  border-top: var(--border-width-standard) solid var(--border-translucent);
+  position: relative; 
+  overflow: visible; 
+}
+
+.footer-bottom-row {
+  padding-top: var(--sizing-default-spacers-spacer-1);
+  padding-right: var(--sizing-default-spacers-spacer-3);
+  padding-bottom: var(--sizing-default-spacers-spacer-2);
+  padding-left: var(--sizing-default-spacers-spacer-3);
+  gap: var(--sizing-default-spacers-spacer-1);
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.footer-dropdown-container {
+  flex-grow: 1;
+  margin-right: var(--sizing-default-spacers-spacer-2);
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+.footer-dropdown {
+  width: 100%;
+  height: var(--size-row-height);
+}
+
+.footer-button-group {
+  display: flex;
+  gap: var(--sizing-default-spacers-spacer-2);
+  flex-shrink: 0;
+  width: 100%; 
+}
+
+.footer-secondary-button-group {
+  width: auto; /* Override to not take full width in the bottom row */
+  flex-shrink: 1; /* Allow this group to shrink if the container is too narrow */
+  gap: var(--sizing-default-spacers-spacer-1); /* Tighter spacing between footer controls */
+}
+
+.footer-secondary-button-group .button-secondary-new,
+.footer-bottom-row .button-secondary-new {
+  background-color: transparent;
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+}
+
+.footer-secondary-button-group .button-secondary-new:hover,
+.footer-secondary-button-group .button-secondary-new:active,
+.footer-secondary-button-group .button-secondary-new.active,
+.footer-bottom-row .button-secondary-new:hover,
+.footer-bottom-row .button-secondary-new:active,
+.footer-bottom-row .button-secondary-new.active {
+  background-color: var(--color-cta-fill);
+  border: none;
+}
+
+/* Keep footer hover text readable in light mode */
+body:not(.dark-theme) .footer-secondary-button-group .button-secondary-new:hover,
+body:not(.dark-theme) .footer-secondary-button-group .button-secondary-new:active,
+body:not(.dark-theme) .footer-secondary-button-group .button-secondary-new.active,
+body:not(.dark-theme) .footer-bottom-row .button-secondary-new:hover,
+body:not(.dark-theme) .footer-bottom-row .button-secondary-new:active,
+body:not(.dark-theme) .footer-bottom-row .button-secondary-new.active {
+  color: var(--text-default);
+}
+
+.footer-play-progress {
+  width: 100%;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.footer-play-progress::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 25vw;
+  background: linear-gradient(270deg, var(--border-accent) 0%, transparent 100%);
+  transform: translateX(-25vw);
+}
+
+.footer-play-progress.is-active::after {
+  animation: footer-play-cycle var(--play-cycle-duration, 3000ms) linear 1 forwards;
+}
+
+@keyframes footer-play-cycle {
+  from {
+    transform: translateX(-25vw);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+/* Ensure first content row has no top margin */
+.section-content > .control-row-flex:first-child {
+    margin-top: 0;
+  }
+  
+
+
+  

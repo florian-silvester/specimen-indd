@@ -1,0 +1,170 @@
+/*
+==========================================================================
+ 1. CONFIG & BASE
+==========================================================================
+*/
+
+/*------- SHARED (PALETTE & BASE) -------*/
+
+:root {
+  --neutral-0: #FFFFFF;
+  --neutral-50: #FAFAFA;
+  --neutral-100: #F5F5F5;
+  --neutral-200: #E6E6E6;
+  --neutral-300: #D6D6D6;
+  --neutral-400: #B3B3B3;
+  --neutral-500: #808080;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #333333;
+  --neutral-900: #1E1E1E;
+  --neutral-910: #262626;
+  --neutral-925: #1B1B1B;
+  --neutral-950: #000000;
+
+  --sizing-default-radius-radius-none: 0px;
+  --sizing-default-radius-radius-medium: 5px;
+  --sizing-default-radius-radius-large: 13px;
+  --sizing-default-radius-radius-full: 9999px;
+
+  --sizing-default-spacers-spacer-0: 0px;
+  --sizing-default-spacers-spacer-1: 4px;
+  --sizing-default-spacers-spacer-2: 8px;
+  --sizing-default-spacers-spacer-3: 16px;
+  --sizing-default-spacers-spacer-4: 24px;
+  --sizing-default-spacers-spacer-5: 32px;
+
+  --size-input-height: 24px;
+  --size-icon-size: 24px;
+  --size-row-height: 32px;
+  --size-header-height: 40px;
+  --size-slider-knob: 24px;
+  --size-slider-handle-line-width: 1px;
+  --size-slider-handle-overhang: 0px;
+
+  --border-width-standard: 1px;
+  --border-width-track: 24px;
+
+  --font-family-base: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-mid: 450;
+  --font-weight-strong: 550;
+  --ui-font-size-xsmall: 9px;
+  --ui-font-size-small: 11px;
+  --ui-font-weight-regular: 400;
+  --ui-line-height-small: 1.45;
+  --ui-letter-spacing-small: 0.005em;
+  --font-style-ui-small-regular: var(--ui-font-weight-regular) var(--ui-font-size-small)/var(--ui-line-height-small) var(--font-family-base);
+
+  --opacity-disabled: 0.3;
+
+  --border-accent-dark: #D8BFFF;
+  --border-accent-light: #9747FF;
+
+
+  --icon-chevron-down-inactive: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24 ' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M9.64645 11.1464C9.84171 10.9512 10.1583 10.9512 10.3536 11.1464L12 12.7929L13.6464 11.1464C13.8417 10.9512 14.1583 10.9512 14.3536 11.1464C14.5488 11.3417 14.5488 11.6583 14.3536 11.8536L12.3536 13.8536C12.1583 14.0488 11.8417 14.0488 11.6464 13.8536L9.64645 11.8536C9.45118 11.6583 9.45118 11.3417 9.64645 11.1464Z' fill='%23808080'/%3E%3C/svg%3E");
+}
+
+/*------- LIGHT THEME -------*/
+
+:root {
+  --border-accent: var(--neutral-950);
+
+  --brand-default: var(--neutral-900);
+  --brand-interactive-overlay: rgba(255, 255, 255, 0.2);
+  --color-footer-cta-background: var(--neutral-200);
+  --color-cta-hover: var(--neutral-100);
+  --color-cta-fill: var(--neutral-100);
+  --color-main-cta-highlight-overlay: #F1E5FF;
+
+  --text-default: var(--neutral-900);
+  --text-secondary: var(--neutral-500);
+  --text-inactive: var(--neutral-400);
+  --text-onbrand: var(--neutral-0);
+  --text-footer-cta: var(--text-default);
+
+  --border-translucent: var(--neutral-200);
+
+  --background-default: var(--neutral-0);
+  --background-secondary: var(--neutral-100);
+
+  --elevation-dropdown-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  --focus-ring-shadow: 0 0 0 1px var(--neutral-950);
+
+  --icon-chevron-down-light: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24 ' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M9.64645 11.1464C9.84171 10.9512 10.1583 10.9512 10.3536 11.1464L12 12.7929L13.6464 11.1464C13.8417 10.9512 14.1583 10.9512 14.3536 11.1464C14.5488 11.3417 14.5488 11.6583 14.3536 11.8536L12.3536 13.8536C12.1583 14.0488 11.8417 14.0488 11.6464 13.8536L9.64645 11.8536C9.45118 11.6583 9.45118 11.3417 9.64645 11.1464Z' fill='currentColor'/%3E%3C/svg%3E");
+
+  --tooltip-fill: var(--neutral-950);
+  --tooltip-text: var(--neutral-0);
+
+  --track-fill: var(--neutral-200);
+  --slider-dot-color: var(--tooltip-fill);
+  --tick-color: var(--neutral-400);
+}
+
+/*------- DARK THEME -------*/
+
+body.dark-theme {
+  --border-accent: var(--neutral-0);
+  --focus-ring-shadow: 0 0 0 1px var(--neutral-0);
+
+  --brand-default: var(--neutral-900);
+  --color-footer-cta-background: var(--neutral-950);
+  --color-cta-hover: var(--neutral-925);
+  --color-cta-fill: var(--neutral-925);
+  --color-main-cta-highlight-overlay: transparent;
+
+  --text-default: var(--neutral-0);
+  /* Footer CTA: light text in dark mode (same as active tag) */
+  --text-footer-cta: var(--text-onbrand);
+  --text-secondary: var(--neutral-400);
+  --text-inactive: var(--neutral-500);
+  --text-onbrand: var(--neutral-0);
+
+  --border-translucent: var(--neutral-800);
+
+  --background-default: var(--neutral-910);
+  --background-secondary: var(--neutral-925);
+
+  --elevation-dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  --icon-chevron-down-inactive: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24 ' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M9.64645 11.1464C9.84171 10.9512 10.1583 10.9512 10.3536 11.1464L12 12.7929L13.6464 11.1464C13.8417 10.9512 14.1583 10.9512 14.3536 11.1464C14.5488 11.3417 14.5488 11.6583 14.3536 11.8536L12.3536 13.8536C12.1583 14.0488 11.8417 14.0488 11.6464 13.8536L9.64645 11.8536C9.45118 11.6583 9.45118 11.3417 9.64645 11.1464Z' fill='%23808080'/%3E%3C/svg%3E");
+  --icon-chevron-down-dark: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M9.64645 11.1464C9.84171 10.9512 10.1583 10.9512 10.3536 11.1464L12 12.7929L13.6464 11.1464C13.8417 10.9512 14.1583 10.9512 14.3536 11.1464C14.5488 11.3417 14.5488 11.6583 14.3536 11.8536L12.3536 13.8536C12.1583 14.0488 11.8417 14.0488 11.6464 13.8536L9.64645 11.8536C9.45118 11.6583 9.45118 11.3417 9.64645 11.1464Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
+
+  --track-fill: var(--neutral-950);
+  --tick-color: var(--neutral-500);
+
+  background-color: var(--background-default);
+  color: var(--text-default);
+}
+
+/*------- BODY SCROLLBARS -------*/
+
+body::-webkit-scrollbar {
+  width: 6px;
+}
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+body::-webkit-scrollbar-thumb {
+  background-color: var(--border-translucent);
+  border-radius: 3px;
+}
+body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-translucent);
+}
+
+/*------- MAIN CONTENT SCROLLBARS -------*/
+
+.main-content::-webkit-scrollbar {
+  width: 4px;
+}
+.main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.main-content::-webkit-scrollbar-thumb {
+  background-color: var(--border-translucent);
+  border-radius: 3px;
+}
+.main-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-translucent);
+}

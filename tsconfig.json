@@ -1,0 +1,20 @@
+{
+  "extends": "@create-figma-plugin/tsconfig",
+  "compilerOptions": {
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["ES2020"],
+    "skipLibCheck": true,
+    "typeRoots": [
+      "node_modules/@figma",
+      "node_modules/@types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
+} 

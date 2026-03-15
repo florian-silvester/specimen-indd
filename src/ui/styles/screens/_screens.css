@@ -1,0 +1,249 @@
+/*
+==========================================================================
+ 5. SCREENS
+==========================================================================
+*/
+
+
+/*------- LANDING PAGE -------*/
+
+/* Hover state for landing screen option rows */
+.landing-option-section .section-header:hover {
+  background-color: var(--background-secondary);
+}
+
+
+.landing-intro-text {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-normal); /* For 400 weight */
+  font-size: var(--ui-font-size-small); /* For 11px */
+  line-height: var(--ui-line-height-small); /* For 1.45 LH */
+  letter-spacing: var(--ui-letter-spacing-small); /* For 0.005em or 0.5% at 11px */
+  color: var(--text-default); /* Primary text color */
+  margin: 0; /* Remove default paragraph margin */
+  max-width: 200px; /* As per Figma spec for the text content width */
+}
+
+.landing-intro-wrap {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--sizing-default-spacers-spacer-6);
+  padding-bottom: var(--sizing-default-spacers-spacer-6);
+}
+
+.landing-header-logo-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: var(--sizing-default-spacers-spacer-3);
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+.landing-header-text-group {
+  padding: var(--sizing-default-spacers-spacer-2) var(--sizing-default-spacers-spacer-3) var(--sizing-default-spacers-spacer-3) var(--sizing-default-spacers-spacer-3);
+}
+
+.icon-wrap-right {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/*------- MODALS -------*/
+
+/* NEW: Basic Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; 
+}
+
+.dark-theme .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: var(--background-default);
+  padding-top: var(--sizing-default-spacers-spacer-2);
+  padding-right: var(--sizing-default-spacers-spacer-3);
+  padding-bottom: var(--sizing-default-spacers-spacer-3);
+  padding-left: var(--sizing-default-spacers-spacer-3);
+  border-radius: var(--sizing-default-radius-radius-large); 
+  box-shadow: var(--elevation-dropdown-shadow); 
+  width: 300px; 
+  max-width: 90%;
+  box-sizing: border-box;
+}
+
+/*------- SCAN RESULTS -------*/
+
+/* Hover state for scan result rows */
+.scan-results-list > .section-header:hover {
+  background-color: var(--color-footer-cta-background);
+}
+
+/*------- DESIGN SYSTEM IMPORT -------*/
+
+/* Remove hover effects from design system group headers and style rows */
+.design-system-group-header:hover,
+.design-system-style-row:hover {
+  background-color: transparent !important;
+}
+
+/* Add bottom padding to design system styles list */
+.design-system-styles-list {
+  padding-bottom: var(--sizing-default-spacers-spacer-2);
+}
+
+
+
+/*------- TEXT AREAS -------*/
+
+/* NEW: Style for large text area in text input screen */
+.text-input-area-large {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--sizing-default-spacers-spacer-2); /* Consistent padding */
+  line-height: var(--ui-line-height-small); /* Match other inputs */
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-translucent); /* Add a border to distinguish it */
+  resize: vertical; /* Allow vertical resizing */
+}
+
+.text-input-area-large:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.section-header-label {
+  font-size: var(--ui-font-size-xsmall);
+  color: var(--text-inactive);
+  padding-right: var(--sizing-default-spacers-spacer-2);
+}
+
+.dropdown-trigger-label.is-disabled {
+  color: var(--text-inactive);
+}
+
+
+.sub-section-header {
+  border-top: 1px solid var(--border-translucent);
+  cursor: default;
+}
+
+.label-active-drag {
+  color: var(--text-default);
+}
+
+.dark-theme .labelSpecsRow span {
+  color: var(--text-secondary) !important;
+}
+
+
+
+/*------- UPDATE LINK -------*/
+
+#update-heading-link {
+  color: var(--brand-default);
+  text-decoration: none;
+  cursor: pointer;
+}
+#update-heading-link:hover {
+  text-decoration: underline;
+}
+
+/*------- HEADER MODE TOGGLE -------*/
+
+/* NEW Row specifically for Desktop/Mobile mode toggle */
+.header-mode-toggle-row {
+  height: var(--size-header-height);
+  padding: 0 var(--sizing-default-spacers-spacer-3); /* RE-ADD Horizontal padding */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Align toggle to the right */
+  border-bottom: var(--border-width-standard) solid var(--border-translucent);
+  box-sizing: border-box; 
+}
+
+/* Style for the icon in the tab-row (specimen label row) */
+.header-row-icon {
+  margin-left: auto; /* Push to the right */
+  color: var(--text-default); /* MODIFIED: Changed from --text-secondary */
+  flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+/* ADDED: Styling for the new group of title and icon */
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-1); /* Small gap between title and icon */
+  /* flex-grow: 1; Optional: if you want this group to take available space before tabs-container */
+} 
+
+/*------- UNIFIED UPDATE SCREEN -------*/
+
+/* Section title small variant */
+.section-title-small {
+  font-size: var(--ui-font-size-small); 
+  font-weight: var(--ui-font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--sizing-default-spacers-spacer-4);
+}
+
+/* Weight group header */
+.weight-group-header {
+  height: var(--size-row-height); 
+  padding: var(--sizing-default-spacers-spacer-1) var(--sizing-default-spacers-spacer-3);
+  display: flex;
+  align-items: center;
+  background-color: var(--background-muted);
+  border-bottom: 1px solid var(--border-translucent);
+}
+
+.weight-group-title {
+  font-weight: var(--ui-font-weight-medium);
+  font-size: var(--ui-font-size-small);
+  color: var(--text-primary);
+}
+/* No content message */
+.no-content-message {
+  padding: var(--sizing-default-spacers-spacer-4);
+  text-align: center;
+  color: var(--text-inactive);
+}
+
+.no-content-subtitle {
+  font-size: var(--ui-font-size-xsmall);
+}
+
+/* Content containers */
+.unified-update-content {
+  padding-bottom: var(--sizing-default-spacers-spacer-4);
+}
+
+.variables-section {
+  margin-bottom: var(--sizing-default-spacers-spacer-4);
+}
+
+.subsection-header {
+  height: var(--size-header-height); 
+  padding: var(--sizing-default-spacers-spacer-2) var(--sizing-default-spacers-spacer-3) 0 var(--sizing-default-spacers-spacer-3);
+  margin-top: var(--sizing-default-spacers-spacer-4);
+  display: flex;
+  align-items: flex-start;
+  background-color: var(--background-muted);
+  border-top: 1px solid var(--border-translucent);
+  box-sizing: border-box;
+}
+
+
+
+ 

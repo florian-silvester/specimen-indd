@@ -1,0 +1,15 @@
+---
+description: NEVER use watch processes
+globs: "*"
+alwaysApply: true
+---
+
+# NEVER Use Watch Processes
+
+## Absolute Rule — No Exceptions
+- **NEVER** run `npm run watch`, `npm run dev`, or any file-watching/hot-reload process.
+- **NEVER** start any long-running background build process.
+- **ALWAYS** use `npm run build` for a single, one-shot build when changes need compiling.
+- If you find a watch process already running, **kill it immediately**.
+
+This is a Figma plugin project. The user manually triggers builds. Watch processes cause unwanted rebuilds, resource drain, and interfere with the workflow.

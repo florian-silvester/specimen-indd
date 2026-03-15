@@ -1,0 +1,346 @@
+{
+  "timestamp": "2025-06-13T06:12:01.682Z",
+  "summary": {
+    "originalSelectors": 456,
+    "refactoredSelectors": 161,
+    "originalImportant": 89,
+    "refactoredImportant": 6,
+    "status": "FAIL"
+  },
+  "issues": [
+    {
+      "type": "ADDED_SELECTORS",
+      "count": 7,
+      "selectors": [
+        "body.dark-theme .dropdown-items-container::-webkit-scrollbar-thumb",
+        "body.dark-theme .dropdown-items-container::-webkit-scrollbar-thumb:hover",
+        ".dark-theme .button:focus-visible",
+        ".dark-theme .input",
+        ".dark-theme .input:focus-visible"
+      ],
+      "message": "7 new selectors added (verify these are intentional)"
+    }
+  ],
+  "criticalIssues": [
+    {
+      "type": "MISSING_SELECTORS",
+      "count": 273,
+      "selectors": [
+        ".header-tabs-section",
+        ".tab-row",
+        ".tabs-container",
+        ".tab-button",
+        ".tab-button:hover:not(.active)",
+        ".tab-button:focus-visible",
+        ".tab-button.active",
+        ".main-content",
+        "body.dark-theme .section-header-chevron",
+        ".header-controls-group"
+      ],
+      "message": "273 selectors are missing from refactored CSS"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dropdown-trigger-button:focus-visible",
+      "properties": [
+        "outline",
+        "box-shadow",
+        "outline",
+        "box-shadow"
+      ],
+      "message": "Selector with !important declarations is missing: .dropdown-trigger-button:focus-visible"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme button.dropdown-trigger-button:focus-visible",
+      "properties": [
+        "outline",
+        "box-shadow",
+        "outline",
+        "box-shadow"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme button.dropdown-trigger-button:focus-visible"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-cell > .input-container-fixed > .input.number-input",
+      "properties": [
+        "padding-left",
+        "padding-right"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-cell > .input-container-fixed > .input.number-input"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-cell > .input-container-fixed > .input-unit",
+      "properties": [
+        "position",
+        "right",
+        "top",
+        "transform"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-cell > .input-container-fixed > .input-unit"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-style-row .grid-cell:nth-child(6) > .grid-text-case-trigger-button",
+      "properties": [
+        "border-radius"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-style-row .grid-cell:nth-child(6) > .grid-text-case-trigger-button"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-style-row .grid-cell:first-child > input.grid-input-name",
+      "properties": [
+        "border-top-left-radius",
+        "border-bottom-left-radius"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-style-row .grid-cell:first-child > input.grid-input-name"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme .labelSpecsRow span",
+      "properties": [
+        "color"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme .labelSpecsRow span"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme .dropdown-trigger-button",
+      "properties": [
+        "background-image"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme .dropdown-trigger-button"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dropdown-trigger-button:disabled:hover",
+      "properties": [
+        "background-color"
+      ],
+      "message": "Selector with !important declarations is missing: .dropdown-trigger-button:disabled:hover"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme .dropdown-trigger-button:disabled:hover",
+      "properties": [
+        "background-color",
+        "border-color"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme .dropdown-trigger-button:disabled:hover"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".segmented-input-field",
+      "properties": [
+        "border",
+        "border-radius",
+        "background-color"
+      ],
+      "message": "Selector with !important declarations is missing: .segmented-input-field"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".segmented-input-trigger",
+      "properties": [
+        "border",
+        "border-radius",
+        "background-color",
+        "padding"
+      ],
+      "message": "Selector with !important declarations is missing: .segmented-input-trigger"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".segmented-input-container.readonly:focus-within",
+      "properties": [
+        "box-shadow"
+      ],
+      "message": "Selector with !important declarations is missing: .segmented-input-container.readonly:focus-within"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": "body.dark-theme .segmented-input-trigger",
+      "properties": [
+        "border",
+        "border-radius",
+        "background-color",
+        "padding"
+      ],
+      "message": "Selector with !important declarations is missing: body.dark-theme .segmented-input-trigger"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dropdown-item.disabled",
+      "properties": [
+        "background-color"
+      ],
+      "message": "Selector with !important declarations is missing: .dropdown-item.disabled"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-font-style-trigger-button",
+      "properties": [
+        "border-top",
+        "border-right",
+        "border-bottom",
+        "border-left",
+        "border-radius"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-font-style-trigger-button"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-visibility-button",
+      "properties": [
+        "width",
+        "height",
+        "padding"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-visibility-button"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-text-case-trigger-button",
+      "properties": [
+        "border-top",
+        "border-right",
+        "border-bottom",
+        "border-left",
+        "border-radius"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-text-case-trigger-button"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".styles-grid .grid-cell > .input.grid-input-name",
+      "properties": [
+        "background-color",
+        "border",
+        "border-radius"
+      ],
+      "message": "Selector with !important declarations is missing: .styles-grid .grid-cell > .input.grid-input-name"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": "body.dark-theme .styles-grid .grid-cell > .input.grid-input-name",
+      "properties": [
+        "background-color"
+      ],
+      "message": "Selector with !important declarations is missing: body.dark-theme .styles-grid .grid-cell > .input.grid-input-name"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-cell > .input-container-fixed > .input.grid-input-number",
+      "properties": [
+        "padding-right"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-cell > .input-container-fixed > .input.grid-input-number"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".grid-cell > .input-container-fixed > .input.grid-input-number, \n.grid-cell > .input-container-fixed > .input.number-input",
+      "properties": [
+        "text-align",
+        "padding-left",
+        "padding-right"
+      ],
+      "message": "Selector with !important declarations is missing: .grid-cell > .input-container-fixed > .input.grid-input-number, \n.grid-cell > .input-container-fixed > .input.number-input"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".knob-tooltips-row .input-container-fixed .input.number-input",
+      "properties": [
+        "background-color",
+        "color",
+        "border",
+        "border-radius",
+        "padding",
+        "text-align"
+      ],
+      "message": "Selector with !important declarations is missing: .knob-tooltips-row .input-container-fixed .input.number-input"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": "body.dark-theme .knob-tooltips-row .input-container-fixed .input.number-input",
+      "properties": [
+        "background-color",
+        "background-color",
+        "color",
+        "background-color",
+        "color"
+      ],
+      "message": "Selector with !important declarations is missing: body.dark-theme .knob-tooltips-row .input-container-fixed .input.number-input"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".knob-tooltips-row .input-container-fixed .input.number-input:focus-visible",
+      "properties": [
+        "box-shadow",
+        "border-color",
+        "box-shadow"
+      ],
+      "message": "Selector with !important declarations is missing: .knob-tooltips-row .input-container-fixed .input.number-input:focus-visible"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme .custom-dropdown-container.header-section-dropdown-container > .dropdown-trigger-button,\n.dark-theme .custom-dropdown-container.header-section-dropdown-container > .dropdown-trigger-button .dropdown-trigger-label",
+      "properties": [
+        "color"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme .custom-dropdown-container.header-section-dropdown-container > .dropdown-trigger-button,\n.dark-theme .custom-dropdown-container.header-section-dropdown-container > .dropdown-trigger-button .dropdown-trigger-label"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme .custom-dropdown-container.header-section-dropdown-container > .dropdown-trigger-button",
+      "properties": [
+        "background-image"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme .custom-dropdown-container.header-section-dropdown-container > .dropdown-trigger-button"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".custom-single-slider-input-row .input-container-fixed .input.number-input",
+      "properties": [
+        "background-color",
+        "color",
+        "border",
+        "border-radius",
+        "padding",
+        "text-align",
+        "height"
+      ],
+      "message": "Selector with !important declarations is missing: .custom-single-slider-input-row .input-container-fixed .input.number-input"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".custom-single-slider-input-row .input-container-fixed .input.number-input:focus-visible",
+      "properties": [
+        "border-color",
+        "box-shadow"
+      ],
+      "message": "Selector with !important declarations is missing: .custom-single-slider-input-row .input-container-fixed .input.number-input:focus-visible"
+    },
+    {
+      "type": "MISSING_IMPORTANT_SELECTOR",
+      "selector": ".dark-theme .custom-single-slider-input-row .input-container-fixed .input.number-input",
+      "properties": [
+        "color",
+        "border-color"
+      ],
+      "message": "Selector with !important declarations is missing: .dark-theme .custom-single-slider-input-row .input-container-fixed .input.number-input"
+    },
+    {
+      "type": "MISSING_CRITICAL_GRID_SELECTOR",
+      "selector": ".grid-style-row .grid-cell:nth-child(n+2):nth-child(-n+7) > .input",
+      "message": "Critical grid selector is missing: .grid-style-row .grid-cell:nth-child(n+2):nth-child(-n+7) > .input"
+    },
+    {
+      "type": "MISSING_CRITICAL_GRID_SELECTOR",
+      "selector": ".dark-theme .grid-style-row .grid-cell:nth-child(n+2):nth-child(-n+7) > .input",
+      "message": "Critical grid selector is missing: .dark-theme .grid-style-row .grid-cell:nth-child(n+2):nth-child(-n+7) > .input"
+    }
+  ]
+}

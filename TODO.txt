@@ -1,0 +1,84 @@
+Specimen - Typography Backlog (collected)
+Date: 2025-09-11
+
+- State management
+  - Revert picked font settings when entering Scan/Import flows (avoid carryover from Specimen)
+
+- Scan flow
+  - Pick dominant font for mixed-style text nodes (segment-based detection)
+  - Show available/scanned styles in styles section; indicate which styles are on frame
+  - Size-tolerant mapping: treat near sizes (±1px) as same style (e.g., 15px → Text Main when 16px present); prefer higher-instance bin
+  - Smarter body mapping: allow duplicates for Text Main/Text Small, detect base body size by instance count (12–20px window), map sizes within ±1px to Text Main; below base → Text Small, above base → Text Large. Prioritize: name match > instance density > size bin.
+
+
+-Better "Active frame" indication 
+
+-Add image preview (theme)
+
+-add variable font weight calculator
+
+when yu scan frame it shpul ponly show available sizes in slider?
+
+main text size doesnt update
+
+specimen display
+
+i dont understand the scanning logic 
+it reads out settings (linehighet etc) but then doesnt adapt the specimh screen accordingly
+
+"checkout" for "normal" styles is odd
+
+"rounding" - simplify steps
+
+- Basic rounding
+  - Toggle in Baseline (mirror pill in Styles header?)
+  - Grid step: Off, 2px, 4px (default 4px)
+  - Line-height buckets: Tight/Normal/Roomy (110/125/140, editable)
+  - Applies to line-height; px rounded to step, % as integers (decide: sizes too?)
+  - Save in presets: basicRoundingEnabled, roundingGridSize, lhBuckets
+  - Non-destructive overlay; "Reset All" respects manual edits
+
+Make clearer: heading vs Teyxt styles
+
+improve matching
+
+
+- Specimen → perfect scan mapping
+  - Tag specimen nodes with pluginData: data.stylegeekKey (display,h1,…,micro)
+  - Scan reads textStyleId > pluginData > fallback; ensures 100% mapping
+
+- Global assignment (replace greedy)
+  - Build cost matrix across detected items ↔ system slots
+  - Use Hungarian (Munkres) solver; minimize size/name/LH/LS distance
+  - Strong duplicate penalties; bonus if pluginData key matches
+
+- Robust detection
+  - Mixed nodes: extract dominant run (longest contiguous style) instead of skipping
+  - Size tolerance ±1px (or ±6%); cluster sizes before mapping
+  - System-aware synonyms: map Tiny↔Micro, H0↔Display by selected system
+
+- Coverage guarantees
+  - Ensure H0/Display, Text Main, Micro always assigned (nearest candidate backfill)
+
+- Debugging & tests
+  - Per-row diagnostics: source, bin, penalties, chosen slot
+  - Debug overlay: highlight matched nodes on canvas
+  - Golden tests: scan our specimen; assert 12/12 correct mapping
+
+
+Rounding parity (create/update must match UI values exactly)
+  - Add helper: computeRoundedStyle(uiStyle, { lineHeightUnit, roundingGridSize })
+    - size: integer px (no baseline rounding unless explicitly enabled for size)
+    - lineHeight: if % → integer percent; if px → round(px) to baseline step when roundingGridSize>0 else integer px
+    - letterSpacing: snap to 0.25% steps
+  - Use helper in:
+    - src/services/style-creator.ts (CREATE_STYLES)
+    - src/core/main.ts updateExistingStylesWithVariables()
+    - src/core/main.ts updateSingleStyle()
+    - Variable paths: applyVariableMappings() and variable writes in updateDesignSystem() planning/execution
+  - Pass UI rounding settings (lineHeightUnit, roundingGridSize) in CREATE_STYLES/UPDATE_STYLES request payload
+  - Add assertions: after create/update, read back a sample of styles and verify equality with UI display values
+  - Console diagnostics: log before/after for size/LH/LS and note variable-bound overrides
+
+
+weights updated?

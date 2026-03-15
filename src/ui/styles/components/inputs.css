@@ -1,0 +1,224 @@
+/*
+==========================================================================
+ COMPONENTS - INPUTS
+==========================================================================
+This file contains all input-related styles organized in a logical hierarchy:
+1. Base Input Styles - Core input behavior and appearance
+2. Input Variants - Different visual styles for inputs
+3. Input Containers - Wrappers and positioning for inputs
+4. Specialized Components - Number inputs, units, and combo inputs
+5. Input States - Focus, disabled, and validation states
+6. Utility Classes - Helper classes for input styling
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE INPUT STYLES
+==========================================================================
+*/
+
+/* Core input element - foundational styles for all inputs */
+.input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  width: 100%;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-default);
+  text-align: left;
+  box-sizing: border-box;
+  outline: none;
+  transition: background-color 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+/* Remove number input spinners */
+.input[type=number]::-webkit-inner-spin-button,
+.input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/*
+==========================================================================
+ 2. INPUT VARIANTS
+==========================================================================
+*/
+
+/* Number inputs with special formatting */
+.number-input {
+  padding-right: 20px; /* Space for unit labels */
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mini dropdown variant */
+.mini-dropdown {
+  height: var(--size-input-height);
+  width: calc(50% - (var(--sizing-default-spacers-spacer-2) / 2));
+  box-sizing: border-box;
+}
+
+/*
+==========================================================================
+ 3. INPUT CONTAINERS
+==========================================================================
+*/
+
+/* Fixed-width input container */
+.input-container-fixed {
+  position: relative;
+  width: 64px;
+  flex-shrink: 0;
+}
+
+/* Flexible full-width input container */
+.input-container-flex-full {
+  flex-grow: 1;
+  position: relative;
+}
+
+/*
+==========================================================================
+ 4. SPECIALIZED COMPONENTS
+==========================================================================
+*/
+
+/* Input unit labels */
+.input-unit {
+  position: absolute;
+  right: var(--sizing-default-spacers-spacer-2);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  color: var(--text-inactive);
+  pointer-events: none;
+}
+
+/* Footer Main CTA components (formerly combo-input) */
+.footer-main-cta {
+  display: flex;
+  height: var(--size-row-height);
+  flex: 1 0 0;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background: var(--color-footer-cta-background);
+  overflow: visible; /* Allow dropdown to be visible outside bounds */
+  cursor: pointer;
+  position: relative; /* Enable positioning context for dropdown */
+}
+
+/* cta-highlighted: no accent styling — kept as semantic class only */
+.footer-main-cta.cta-highlighted {
+  box-shadow: none;
+}
+
+.footer-main-cta-value {
+  display: flex;
+  height: 100%;
+  padding-left: var(--sizing-default-spacers-spacer-4);
+  justify-content: center;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-0);
+  flex: 1 0 0;
+  color: var(--text-footer-cta); 
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--font-weight-mid); 
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.1s ease-out;
+  border-radius: var(--sizing-default-radius-radius-medium) 0 0 var(--sizing-default-radius-radius-medium);
+}
+
+/* When footer-main-cta-value is standalone (no trigger), round all corners and add right padding */
+.footer-main-cta-value:only-child {
+  padding-right: var(--sizing-default-spacers-spacer-4);
+  border-radius: var(--sizing-default-radius-radius-medium);
+}
+
+.footer-main-cta-value:hover {
+  background-color: var(--color-cta-hover);
+}
+
+.footer-main-cta-trigger {
+  display: flex;
+  width: var(--size-row-height);
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  color: var(--text-footer-cta); 
+  padding: 0;
+  transition: background-color 0.1s ease-out;
+  border-radius: 0 var(--sizing-default-radius-radius-medium) var(--sizing-default-radius-radius-medium) 0;
+}
+
+.footer-main-cta-trigger:hover {
+  background-color: var(--color-cta-hover);
+}
+
+/*
+==========================================================================
+ 5. INPUT STATES
+==========================================================================
+*/
+
+/* Focus state */
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  background-color: var(--background-default);
+}
+
+/* Faded state for inputs during interactions */
+.input-faded-out {
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+/* Disabled state */
+.input:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background-color: var(--background-secondary);
+}
+
+/*
+==========================================================================
+ 6. UTILITY CLASSES
+==========================================================================
+*/
+
+/* Text alignment utilities */
+.input-text-left {
+  text-align: left;
+}
+
+.input-text-right {
+  text-align: right;
+}
+
+.input-text-center {
+  text-align: center;
+} 
+
+.input-label {
+  display: block;
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-medium);
+  color: var(--text-secondary);
+  margin-bottom: var(--sizing-default-spacers-spacer-0);
+}
+
+.responsive-input-pair {
+  display: flex;
+  gap: var(--sizing-default-spacers-spacer-1);
+  align-items: flex-end;
+}

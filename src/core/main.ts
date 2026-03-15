@@ -1,0 +1,5495 @@
+// main.ts - Main plugin code for Typography Curves
+
+import { on, showUI, emit } from '@create-figma-plugin/utilities';
+// Import types
+import {
+  TypographyStyle,
+  TypographySystem,
+  FontInfo,
+  PreviewLayoutType,
+  CreateSpecimenCompactPreviewRequest,
+  DetectedTextStyle,
+  AutoMatchStylesEvent,
+  AutoMatchResultsEvent,
+  SaveApiKeyEvent,
+  LoadedSettingsEvent,
+  ManualTextEditsDetectedEvent,
+  NormalizeFrameStylesEvent,
+  ApplySystemStylesToFrameEvent,
+  ApplyMatchesCompleteMessage,
+  GetStylesForFamilyRequest,
+  InitialFontsMessage,
+  StylesForFamilyMessage,
+  CreateStylesRequest,
+  UpdatePreviewRequest,
+  PreviewLayoutHandlerParams,
+  ProcessUnformattedTextRequestEvent,
+  ColorModeChangedMessage,
+  ImportDesignSystemEvent,
+  ApplyTextStyleWeightMappingEvent,
+  TextStyleWeightMappingRequiredEvent,
+  TypographyVariableMappingRequiredEvent,
+  ApplyTypographyVariableMappingEvent,
+  ApplyStyleMappingEvent,
+  UnifiedUpdateRequiredEvent,
+  ApplyUnifiedUpdateEvent,
+  SpecimenSnapshot,
+  SpecimenSampledEvent
+} from './types';
+// Import constants
+import {
+  PREVIEW_FRAME_NAME,
+  LAYOUT_BASE_NAMES,
+  PREVIEW_WIDTH,
+  FRAME_CORNER_RADIUS,
+  FRAME_PADDING_HORIZONTAL,
+  FRAME_PADDING_VERTICAL,
+  MIDDLE_COLUMN_WIDTH,
+  ITEM_SPACING,
+  ITEM_INTERNAL_SPACING,
+  SECTION_SPACING,
+  HORIZONTAL_TEXT_SECTION_SPACING,
+  // RIGHT_COLUMN_TEXT_WIDTH, // Currently unused, commented out
+  SPEC_FONT_SIZE,
+  SPEC_COLOR,
+  // TEXT_COLOR_LIGHT, // Used only within constants.ts
+  LIGHT_MODE_BACKGROUND,
+  LIGHT_MODE_TEXT,
+  DARK_MODE_BACKGROUND,
+  DARK_MODE_TEXT,
+  ACTIVE_FRAME_BORDER_LIGHT,
+  ACTIVE_FRAME_BORDER_DARK,
+  INTER_REGULAR,
+  INTER_BOLD,
+  // MIDDLE_COLUMN_STYLE_NAMES, // Removed unused import
+  // HORIZONTAL_TEXT_STYLE_NAMES, // Removed unused import
+  NUMBERS_SET,
+  UPPERCASE_SET,
+  LOWERCASE_SET,
+  SPECIAL_SET,
+  PRESET_RATIOS_MAP,
+  PREVIEW_FRAME_NAME_COMPACT,
+  PREVIEW_FRAME_NAME_WATERFALL,
+  TYPOGRAPHY_SCALE_POINTS,
+  STYLE_KEYS
+} from './constants';
+// Import helpers
+import {
+  getDisplayName,
+  getDisplayNameWithConvention,
+  getExampleText,
+  applyTextStyleToNode,
+  updateSpecsInRow,
+  getValidFont,
+  sortFontStylesNumerically,
+  extractStyleFromTextNode,
+  getStyleFolderPrefix
+} from '../services/utils';
+// Import layout utils
+import { createStyleItem } from '../preview/preview-layouts/layout-utils';
+// Import specimen layout creator
+// import { createPreviewFrame } from './preview-layouts/specimen'; // Removed import
+// Import type tool layout creator
+// Import clean waterfall layout creator
+// import { createCleanWaterfallFrame } from './preview-layouts/clean-waterfall';
+// Import preview updater
+import { updateGivenFrame } from '../preview/preview-updater';
+// Import preview manager
+import { managePreview } from '../preview/preview-manager';
+// Import style creator
+import { createFigmaTextStyles } from '../services/style-creator';
+// Import event handler initializer
+import { initializeEventHandlers } from '../services/event-handlers';
+// NEW: Import OpenAI utils
+import {
+    OPENAI_API_KEY_STORAGE_KEY, // Though not directly used in main.ts after refactor, good to list if it were
+    getOpenaiApiKey,
+    setOpenaiApiKey,
+    callOpenaiApiForAutoMatch
+} from '../api/openai-utils';
+import { getAutoMatchSystemPrompt, getRelumeSmartMatchPrompt } from '../api/llm-prompts';
+import { detectDesignSystem, getDesignSystemHandler, getInternalKeyForDisplayName } from '../design-systems';
+
+// Import the new layout handler and registry
+import { SpecimenCompactLayout } from '../preview/preview-layouts/specimen-compact-layout';
+import { CleanWaterfallLayout } from '../preview/preview-layouts/clean-waterfall-layout';
+import { registerPreviewLayout } from '../preview/preview-layout-registry';
+import { handleProcessUnformattedText } from '../api/text-processor';
+
+// --- CLEAN UPDATE PIPELINE DATA STRUCTURES ---
+
+interface DiscoveredStyle {
+  figmaStyle: TextStyle;
+  systemKey: string | null; // Which system style this maps to (h1, textMain, etc)
+  needsUpdate: boolean;
+  hasVariables: boolean;
+  variableBindings?: { [property: string]: string }; // property -> variableId
+}
+
+interface UpdatePlan {
+  stylesToUpdate: Array<{
+    figmaStyle: TextStyle;
+    systemKey: string;
+    targetFont: FontName;
+    targetSize: number;
+    targetLineHeight: number;
+    targetLetterSpacing: number;
+    preserveVariables: boolean;
+  }>;
+  variablesToUpdate: Array<{
+    variableId: string;
+    variableName: string;
+    property: string;
+    newValue: string | number;
+  }>;
+  weightMappingsToApply: Array<{
+    originalStyleName: string;
+    newWeight: string;
+    shouldDelete: boolean;
+  }>;
+}
+
+interface UpdateResults {
+  stylesUpdated: number;
+  stylesCreated: number;
+  stylesDeleted: number;
+  variablesUpdated: number;
+  stylesFailed: number;
+  message: string;
+}
+
+// --- END CLEAN UPDATE PIPELINE DATA STRUCTURES ---
+
+// --- Predefined Typographic Ratios (for estimation) ---
+// MOVED TO constants.ts
+
+// Keep track of the full font list globally in main
+let availableFontsList: FontInfo[] = [];
+
+// --- REMOVED: Global naming convention state (now passed through proper data flow) ---
+
+// --- Main Plugin Logic ---
+let latestPreviewFrame: FrameNode | null = null; // Track the latest frame
+let currentColorMode: 'light' | 'dark' = 'light'; // Track the current color mode
+
+// NEW: Store latest parameters used for preview generation/update
+let latestSelectedStyle: string = 'Regular';
+let latestShowSpecLabels: boolean = true;
+let latestActiveMode: 'desktop' | 'mobile' = 'desktop';
+let latestActiveScaleRatio: number = 1.333; // Default typical ratio
+let latestScannedFontFamily: string | undefined = undefined;
+let latestScannedFontStyle: string | undefined = undefined;
+
+// NEW: State for live-tweaking a user's design frame
+let liveTweakingTargetFrameId: string | null = null;
+let liveTweakingNodeMappings: Array<{ nodeId: string; systemStyleKey: string }> | null = null;
+
+// NEW: State for highlight-on-hover feature
+let originalSelectionBeforeHighlight: ReadonlyArray<SceneNode> | null = null;
+let currentScanSessionNodeCache: Map<string, SceneNode[]> | null = null; // Maps aggregationKey to nodes
+
+// NEW: State for "Play Text" on scanned frames - stores word counts per node ID
+let scannedFrameWordCounts: Map<string, number> | null = null; // Maps nodeId to word count
+let scannedFrameContainerId: string | null = null; // ID of the scanned frame/container
+
+// --- NEW for preview highlight ---
+let previewNodeMapping: Map<string, string[]> | null = null; // Maps style name (e.g., 'h1') to node IDs
+
+// NEW: Store mapping from system style names to original Figma style names
+let figmaStyleNameMapping: Map<string, string> | null = null;
+
+// --- Specimen picker state (no longer needed for overlay/listener approach) ---
+
+// --- NEW: Text mirroring state ---
+let isInternalTextUpdate = false; // Flag to prevent documentchange from triggering on internal updates
+let hasManualTextEdits = false; // Track if user has manually edited text
+export let isTextGenerationActive = false; // Track if text generation is in progress - EXPORTED so event-handlers can set it
+let customHeadlineText: string | null = null; // Store custom headline text
+let customTextContent: string | null = null; // Store custom body text
+let lastTextGenerationCompleteTime = 0; // Timestamp of last text generation completion
+let mirrorDebounceTimer: ReturnType<typeof setTimeout> | null = null; // Debounce timer for mirroring
+
+// Export function to set the flag from event-handlers
+export function setTextGenerationActive(active: boolean) {
+  isTextGenerationActive = active;
+  if (!active) {
+    // Record timestamp when generation completes
+    lastTextGenerationCompleteTime = Date.now();
+  }
+  console.log(`[Main] isTextGenerationActive set to: ${active}`);
+}
+
+// Removed inferStyleTypeFromSize function - no longer used
+// Unstyled text now shows only instance counts, not fake style names
+
+// Maps system style name to original Figma style name
+
+// Define DetectedTextStyle interface (ideally move to types.ts)
+// MOVED TO TYPES.TS
+
+// Helper: Find system key for a Figma text style name
+function findSystemKeyForStyle(styleName: string, namingConvention: string): string | null {
+  // Extract the display name from the style (e.g., "Desktop / Inter / Display" → "Display")
+  const parts = styleName.split('/').map(p => p.trim());
+  const displayName = parts[parts.length - 1]; // Last part is the display name
+
+  // Use canonical reverse-lookup with aliases across all supported systems.
+  // This matches H0<->Display and other naming variants consistently.
+  return (
+    getInternalKeyForDisplayName(displayName, namingConvention)
+    || getInternalKeyForDisplayName(displayName, 'Lumos')
+    || getInternalKeyForDisplayName(displayName, 'Relume')
+    || getInternalKeyForDisplayName(displayName, 'Bootstrap')
+    || getInternalKeyForDisplayName(displayName, 'Tailwind')
+    || getInternalKeyForDisplayName(displayName, 'Default Naming')
+    || null
+  );
+}
+
+// Interface for Auto Match Styles event payload from UI
+// MOVED TO TYPES.TS
+
+// Interface for Auto Match Results event payload to UI
+// MOVED TO TYPES.TS
+
+// Interface for Save API Key event payload from UI
+// MOVED TO TYPES.TS
+
+// NEW: Interface for Loaded Settings event payload to UI
+// MOVED TO TYPES.TS
+
+// NEW: Interface for Normalize Frame Styles event payload from UI
+// MOVED TO TYPES.TS
+
+// NEW: Interface for Apply System Styles to Frame event payload from UI
+// MOVED TO TYPES.TS
+
+// ADDED: Interface for Apply Matches Complete event payload to UI
+// MOVED TO TYPES.TS
+
+// Helper function to consolidate font sizes to clean values
+function consolidateFontSize(rawSize: number): number {
+  // For scanning purposes, always round to nearest whole pixel
+  // This eliminates the fractional noise from Figma's scaling/auto-layout
+  const wholePixel = Math.round(rawSize);
+  
+  console.log(`[Main - Consolidate] ${rawSize}px → ${wholePixel}px`);
+  return wholePixel;
+}
+
+// 🎯 SMART VALIDATION: Typography mapping validation functions
+function validateTypographyMapping(fontSize: number, mappedStyle: string): boolean {
+  // Define size ranges for each style category
+  if (fontSize >= 50) {
+    // Large sizes should only map to large headings
+    return ['H0', 'H1', 'H2'].includes(mappedStyle);
+  } else if (fontSize >= 30) {
+    // Medium-large sizes should map to medium headings
+    return ['H2', 'H3', 'H4'].includes(mappedStyle);
+  } else if (fontSize >= 20) {
+    // Medium sizes can map to small headings or large text
+    return ['H4', 'H5', 'H6', 'Text Large'].includes(mappedStyle);
+  } else if (fontSize >= 14) {
+    // Body text sizes
+    return ['Text Large', 'Text Main'].includes(mappedStyle);
+  } else if (fontSize >= 12) {
+    // Small text sizes
+    return ['Text Main', 'Text Small'].includes(mappedStyle);
+  } else {
+    // Very small sizes
+    return ['Text Small', 'Text Tiny', 'None'].includes(mappedStyle);
+  }
+}
+
+function suggestBetterMapping(fontSize: number, originalStyle: any): string {
+  const { fontStyle, instanceCount, nodeName } = originalStyle;
+  
+  // Context clues
+  const isBold = fontStyle?.toLowerCase().includes('bold') || fontStyle?.toLowerCase().includes('heavy');
+  const isHighInstance = instanceCount >= 10; // Likely body text
+  const isHeadingContext = nodeName?.toLowerCase().includes('head') || nodeName?.toLowerCase().includes('title');
+  
+  if (fontSize >= 50) {
+    return isBold ? 'H0' : 'H1';
+  } else if (fontSize >= 40) {
+    return isBold ? 'H1' : 'H2';
+  } else if (fontSize >= 30) {
+    return isBold || isHeadingContext ? 'H2' : 'H3';
+  } else if (fontSize >= 24) {
+    return isBold || isHeadingContext ? 'H3' : 'H4';
+  } else if (fontSize >= 20) {
+    return isBold || isHeadingContext ? 'H4' : 'Text Large';
+  } else if (fontSize >= 16) {
+    return isHighInstance ? 'Text Main' : 'Text Large';
+  } else if (fontSize >= 14) {
+    return isHighInstance ? 'Text Main' : 'Text Small';
+  } else if (fontSize >= 12) {
+    return 'Text Small';
+  } else {
+    return 'Text Tiny';
+  }
+}
+
+export default function () {
+  // Register layout handlers
+  registerPreviewLayout(new SpecimenCompactLayout());
+  registerPreviewLayout(new CleanWaterfallLayout());
+  
+  const options = { width: 400, height: 576 };
+  showUI(options);
+
+  const clearActivePreviewFrameHighlight = (frame: FrameNode | null) => {
+    if (!frame || frame.removed) return;
+    frame.strokes = [];
+    frame.strokeWeight = 0;
+  };
+
+  const applyActivePreviewFrameHighlight = (frame: FrameNode | null) => {
+    if (!frame || frame.removed) return;
+    if (frame.name.startsWith(LAYOUT_BASE_NAMES.specimenCompact)) {
+      frame.strokes = [];
+      frame.strokeWeight = 0;
+      return;
+    }
+    frame.strokes = [{
+      type: 'SOLID',
+      color: currentColorMode === 'dark' ? ACTIVE_FRAME_BORDER_DARK : ACTIVE_FRAME_BORDER_LIGHT
+    }];
+    frame.strokeWeight = 2;
+  };
+
+  const setLatestPreviewFrameWithHighlight = (frame: FrameNode | null) => {
+    if (latestPreviewFrame && latestPreviewFrame.id !== frame?.id) {
+      clearActivePreviewFrameHighlight(latestPreviewFrame);
+    }
+    latestPreviewFrame = frame;
+    applyActivePreviewFrameHighlight(latestPreviewFrame);
+
+    let hasActiveSpecimenContext = false;
+    if (latestPreviewFrame && !latestPreviewFrame.removed) {
+      const isSpecimenLayoutFrame = latestPreviewFrame.name.startsWith(LAYOUT_BASE_NAMES.specimenCompact);
+      let hasSnapshotData = false;
+      try {
+        hasSnapshotData = !!latestPreviewFrame.getPluginData('specimen-snapshot');
+      } catch {
+        hasSnapshotData = false;
+      }
+      hasActiveSpecimenContext = isSpecimenLayoutFrame || hasSnapshotData;
+    }
+    emit('ACTIVE_SPECIMEN_CONTEXT', { hasActiveSpecimenContext });
+  };
+
+  // Define state accessors for event handlers
+  const stateAccessors = {
+    setLatestPreviewFrame: (frame: FrameNode | null) => { setLatestPreviewFrameWithHighlight(frame); },
+    getLatestPreviewFrame: () => latestPreviewFrame,
+    setCurrentColorMode: (mode: 'light' | 'dark') => { currentColorMode = mode; },
+    getCurrentColorMode: () => currentColorMode,
+    setAvailableFontsList: (fonts: FontInfo[]) => { availableFontsList = fonts; },
+    getAvailableFontsList: () => availableFontsList,
+    // Add setters for new latest... variables
+    setLatestSelectedStyle: (style: string) => { latestSelectedStyle = style; },
+    setLatestShowSpecLabels: (show: boolean) => { latestShowSpecLabels = show; },
+    setLatestActiveMode: (mode: 'desktop' | 'mobile') => { latestActiveMode = mode; },
+    setLatestActiveScaleRatio: (ratio: number) => { latestActiveScaleRatio = ratio; },
+    // Add getters and setters for live tweaking state
+    getLiveTweakingTargetFrameId: () => liveTweakingTargetFrameId,
+    setLiveTweakingTargetFrameId: (id: string | null) => { liveTweakingTargetFrameId = id; },
+    getLiveTweakingNodeMappings: () => liveTweakingNodeMappings,
+    setLiveTweakingNodeMappings: (mappings: Array<{ nodeId: string; systemStyleKey: string }> | null) => { liveTweakingNodeMappings = mappings; },
+    // Add accessors for highlight state
+    getOriginalSelectionBeforeHighlight: () => originalSelectionBeforeHighlight,
+    setOriginalSelectionBeforeHighlight: (selection: ReadonlyArray<SceneNode> | null) => { originalSelectionBeforeHighlight = selection; },
+    getCurrentScanSessionNodeCache: () => currentScanSessionNodeCache,
+    setCurrentScanSessionNodeCache: (cache: Map<string, SceneNode[]> | null) => { currentScanSessionNodeCache = cache; },
+    // --- NEW for preview highlight ---
+    getPreviewNodeMapping: () => previewNodeMapping,
+    setPreviewNodeMapping: (mapping: Map<string, string[]> | null) => { previewNodeMapping = mapping; },
+    // --- NEW for "Play Text" on scanned frames ---
+    getScannedFrameWordCounts: () => scannedFrameWordCounts,
+    setScannedFrameWordCounts: (counts: Map<string, number> | null) => { scannedFrameWordCounts = counts; },
+    getScannedFrameContainerId: () => scannedFrameContainerId,
+    setScannedFrameContainerId: (id: string | null) => { scannedFrameContainerId = id; }
+  };
+
+  // Initialize event handlers with state accessors
+  initializeEventHandlers(stateAccessors);
+
+  // --- NEW: Add selection change listener to clean up stale references ---
+  figma.on("selectionchange", () => {
+    // Clean up stale preview frame reference if it was deleted
+    if (latestPreviewFrame) {
+      try {
+        // Test if frame still exists by accessing a property
+        const _ = latestPreviewFrame.name;
+        // Also check if it was removed
+        if (latestPreviewFrame.removed) {
+          console.log('[Main] Cleaning up removed preview frame reference');
+          setLatestPreviewFrameWithHighlight(null);
+          previewNodeMapping = null;
+        }
+      } catch (error) {
+        // Frame no longer exists, clear the reference
+        console.log('[Main] Cleaning up stale preview frame reference');
+        setLatestPreviewFrameWithHighlight(null);
+        previewNodeMapping = null;
+      }
+    }
+
+    // Clean up stale live tweaking frame reference if it was deleted
+    if (liveTweakingTargetFrameId) {
+      try {
+        const liveFrame = figma.getNodeById(liveTweakingTargetFrameId);
+        if (!liveFrame || liveFrame.removed) {
+          console.log('[Main] Cleaning up removed live tweaking frame reference');
+          liveTweakingTargetFrameId = null;
+          liveTweakingNodeMappings = null;
+        }
+      } catch (error) {
+        // Frame no longer exists, clear the reference
+        console.log('[Main] Cleaning up stale live tweaking frame reference');
+        liveTweakingTargetFrameId = null;
+        liveTweakingNodeMappings = null;
+      }
+    }
+  });
+
+  // --- NEW: Document change listener for text mirroring ---
+  let documentChangeHandler: ((event: DocumentChangeEvent) => void) | null = null;
+  
+  const createDocumentChangeHandler = () => {
+    return async (event: DocumentChangeEvent) => {
+      // Only process if we have a preview frame and not during internal updates or text generation
+      if (!latestPreviewFrame || isInternalTextUpdate || isTextGenerationActive) {
+        return;
+      }
+      
+      // Ignore events within 800ms of text generation completing (queued events from typing animation)
+      const timeSinceGeneration = Date.now() - lastTextGenerationCompleteTime;
+      if (timeSinceGeneration < 800 && lastTextGenerationCompleteTime > 0) {
+        return; // Silently ignore queued events
+      }
+
+      // Import the text mirror manager functions
+      const { mirrorTextAcrossCategory, getStyleCategory } = await import('../preview/text-mirror-manager');
+
+      // Check if the change is a text property change in the preview frame
+      for (const change of event.documentChanges) {
+        if (change.type === 'PROPERTY_CHANGE' && change.node.type === 'TEXT') {
+          const textNode = change.node as TextNode;
+          
+          // Check if this text node is inside the preview frame
+          let parent = textNode.parent;
+          let isInPreviewFrame = false;
+          while (parent) {
+            if (parent.id === latestPreviewFrame.id) {
+              isInPreviewFrame = true;
+              break;
+            }
+            parent = parent.parent;
+          }
+
+          if (isInPreviewFrame && change.properties.includes('characters')) {
+            // Determine the category (headline or text)
+            const category = getStyleCategory(textNode.name);
+            
+            if (category !== 'none') {
+              // Capture values before timeout
+              const frameToUpdate = latestPreviewFrame;
+              const nodeToMirror = textNode;
+              const capturedTextAtEvent = textNode.characters;
+              
+              // Clear any existing debounce timer
+              if (mirrorDebounceTimer) {
+                clearTimeout(mirrorDebounceTimer);
+              }
+              
+              // Debounce mirroring to reduce lag (wait 200ms after typing stops)
+              mirrorDebounceTimer = setTimeout(async () => {
+                console.log('[Main] Text edit detected (debounced):', nodeToMirror.name);
+                console.log(`[Main] Mirroring ${category} text across preview`);
+                
+                // Set flag to prevent recursive triggers
+                isInternalTextUpdate = true;
+                
+                try {
+                  const stableTextToMirror = nodeToMirror.characters;
+                  if (stableTextToMirror !== capturedTextAtEvent) {
+                    console.log(
+                      `[Main] Text settled after debounce: "${capturedTextAtEvent}" -> "${stableTextToMirror}"`
+                    );
+                  }
+
+                  // Mirror the text across the same category
+                  await mirrorTextAcrossCategory(
+                    frameToUpdate,
+                    nodeToMirror,
+                    stableTextToMirror,
+                    category
+                  );
+                  
+                  // Mark that user has made manual edits
+                  hasManualTextEdits = true;
+                  
+                  // Notify UI about manual edits
+                  emit('MANUAL_TEXT_EDITS_DETECTED', { hasEdits: true } as ManualTextEditsDetectedEvent);
+                  console.log('[Main] Emitted MANUAL_TEXT_EDITS_DETECTED event');
+
+                  // Request a standard preview recalculation from current UI state.
+                  // This keeps frame text edits in sync with the same update pipeline used by controls.
+                  emit('RECALCULATE_PREVIEW_FROM_STATE');
+                } catch (error) {
+                  console.error('[Main] Error mirroring text:', error);
+                } finally {
+                  // Reset flag after changes complete
+                  setTimeout(() => {
+                    isInternalTextUpdate = false;
+                  }, 300);
+                }
+              }, 200); // Wait 200ms after last keystroke
+            }
+          }
+        }
+      }
+    };
+  };
+  
+  // Start with the listener enabled
+  documentChangeHandler = createDocumentChangeHandler();
+  figma.on("documentchange", documentChangeHandler);
+
+  // Add a handler for UI_READY to load and send settings
+  on('UI_READY', async () => {
+    console.log('[Main] UI_READY received. Attempting to load API key.');
+    // Use the new getOpenaiApiKey helper
+    const storedApiKey = await getOpenaiApiKey();
+    console.log('[Main] Loaded API Key via helper:', storedApiKey ? storedApiKey.substring(0,5)+'...':'null');
+      emit('LOADED_SETTINGS', { apiKey: storedApiKey } as LoadedSettingsEvent);
+  });
+
+  // Handler for SHOW_LAYOUT_GUIDES_NOTIFICATION
+  on('SHOW_LAYOUT_GUIDES_NOTIFICATION', () => {
+    figma.notify("💡 Tip: Enable View → View layout guides to see the grid overlays on preview items", { 
+      timeout: 6000 // Show for 6 seconds
+    });
+  });
+
+  // --- NEW: Text generation event handlers ---
+  on('TEXT_GENERATION_START', () => {
+    console.log('[Main] ⏸️  Text generation started (flag already set synchronously)');
+    // Flag is already set by event-handlers.ts before typing starts
+  });
+
+  on('TEXT_GENERATION_COMPLETE', () => {
+    console.log('[Main] ✅ Text generation completed (flag already cleared synchronously)');
+    // Flag is already cleared by event-handlers.ts after typing completes
+    // Reset manual edits flag when new text is generated
+    hasManualTextEdits = false;
+    emit('MANUAL_TEXT_EDITS_DETECTED', { hasEdits: false } as ManualTextEditsDetectedEvent);
+  });
+
+  on('RESET_SPECIMEN_TEXT', async () => {
+    console.log('[Main] 🔄 Reset specimen text requested');
+    
+    if (!latestPreviewFrame || latestPreviewFrame.removed) {
+      console.warn('[Main] No preview frame available to reset text');
+      return;
+    }
+    
+    // Reset manual edits flag
+    hasManualTextEdits = false;
+    emit('MANUAL_TEXT_EDITS_DETECTED', { hasEdits: false } as ManualTextEditsDetectedEvent);
+    
+    // Import and call the text generation function directly
+    const { handleSmartTextCycling } = await import('../services/event-handlers');
+    
+    // Set flag and generate text (use setTextGenerationActive to update timestamp!)
+    setTextGenerationActive(true);
+    
+    try {
+      await handleSmartTextCycling(latestPreviewFrame);
+    } catch (error) {
+      console.error('[Main] Error during reset:', error);
+    } finally {
+      setTextGenerationActive(false); // Updates timestamp to block queued documentchange events
+    }
+  });
+
+  // NEW: Handler for GET_LOCAL_TEXT_STYLES
+  on('GET_LOCAL_TEXT_STYLES', async () => {
+    console.log('[Main] Received GET_LOCAL_TEXT_STYLES');
+    
+    try {
+      const localTextStyles = figma.getLocalTextStyles();
+      console.log(`[Main] Found ${localTextStyles.length} local text styles. Inspecting raw values...`);
+      
+      const figmaStyles = localTextStyles.map(style => {
+        // --- DETAILED LOGGING FOR VARIABLE DEBUGGING ---
+        console.log(`[Main] Inspecting Style: "${style.name}"`);
+        console.log(`  > Raw fontSize:`, style.fontSize);
+        console.log(`  > Raw lineHeight:`, style.lineHeight);
+        console.log(`  > Raw letterSpacing:`, style.letterSpacing);
+        // --- END LOGGING ---
+
+        // Handle line height conversion
+        let lineHeightMultiplier = 1.2; // Default fallback
+        if (style.lineHeight.unit === 'PERCENT') {
+          lineHeightMultiplier = (style.lineHeight as { unit: 'PERCENT'; value: number }).value / 100;
+        } else if (style.lineHeight.unit === 'PIXELS') {
+          lineHeightMultiplier = (style.lineHeight as { unit: 'PIXELS'; value: number }).value / style.fontSize;
+        }
+        // AUTO line height defaults to 1.2 multiplier
+        
+        // Handle letter spacing conversion
+        let letterSpacingValue = 0; // Default fallback
+        if (style.letterSpacing.unit === 'PERCENT') {
+          letterSpacingValue = (style.letterSpacing as { unit: 'PERCENT'; value: number }).value / 100;
+        } else if (style.letterSpacing.unit === 'PIXELS') {
+          letterSpacingValue = (style.letterSpacing as { unit: 'PIXELS'; value: number }).value;
+        }
+        
+        return {
+          id: style.id,
+          name: style.name,
+          fontSize: style.fontSize,
+          fontFamily: style.fontName.family,
+          fontWeight: style.fontName.style,
+          lineHeight: lineHeightMultiplier,
+          letterSpacing: letterSpacingValue,
+        };
+      });
+      
+      emit('LOCAL_TEXT_STYLES_RESPONSE', { styles: figmaStyles });
+      console.log('[Main] Sent local text styles to UI:', figmaStyles);
+      
+    } catch (error) {
+      console.error('[Main] Error getting local text styles:', error);
+      emit('LOCAL_TEXT_STYLES_RESPONSE', { styles: [] });
+    }
+  });
+
+  // NEW: Handler for GET_LOCAL_TEXT_STYLES_FOR_SCAN_DETECTION
+  on('GET_LOCAL_TEXT_STYLES_FOR_SCAN_DETECTION', async () => {
+    console.log('[Main] 🔍 Auto-detecting design system from local text styles...');
+    
+    try {
+      const localTextStyles = figma.getLocalTextStyles();
+      console.log(`[Main] Found ${localTextStyles.length} local text styles for detection`);
+      
+      const figmaStyles = localTextStyles.map(style => ({
+        id: style.id,
+        name: style.name,
+        fontSize: style.fontSize,
+        fontFamily: style.fontName.family,
+        fontWeight: style.fontName.style,
+        lineHeight: style.lineHeight.unit === 'PERCENT' 
+          ? (style.lineHeight as { value: number }).value / 100
+          : style.lineHeight.unit === 'PIXELS'
+          ? (style.lineHeight as { value: number }).value / style.fontSize  
+          : 1.2,
+        letterSpacing: style.letterSpacing.unit === 'PIXELS'
+          ? (style.letterSpacing as { value: number }).value
+          : 0
+      }));
+      
+      const detectedSystemName = detectDesignSystem(figmaStyles);
+      console.log(`[Main] 🎯 Auto-detection result: ${detectedSystemName}`);
+      
+      emit('SCAN_DETECTION_RESULT', { detectedSystem: detectedSystemName });
+      
+    } catch (error) {
+      console.error('[Main] Error during auto-detection:', error);
+      emit('SCAN_DETECTION_RESULT', { detectedSystem: 'Default Naming' });
+    }
+  });
+
+  // NEW: Handler for GET_LOCAL_TEXT_STYLES_FOR_IMPORT (Design System Import flow)
+  on('GET_LOCAL_TEXT_STYLES_FOR_IMPORT', async () => {
+    console.log('[Main] 📥 Loading local text styles for import...');
+    
+    try {
+      const localTextStyles = figma.getLocalTextStyles();
+      console.log(`[Main] Found ${localTextStyles.length} local text styles`);
+      
+      const styles = localTextStyles.map(style => ({
+        id: style.id,
+        name: style.name,
+        fontSize: style.fontSize,
+        fontFamily: style.fontName.family,
+        fontWeight: style.fontName.style === 'Regular' ? 400 : 
+                   style.fontName.style === 'Bold' ? 700 :
+                   style.fontName.style === 'Medium' ? 500 : 400
+      }));
+      
+      emit('LOCAL_TEXT_STYLES_FOR_IMPORT', { styles });
+      
+    } catch (error) {
+      console.error('[Main] Error loading text styles:', error);
+      emit('LOCAL_TEXT_STYLES_FOR_IMPORT', { styles: [] });
+    }
+  });
+
+  // NEW: Handler for APPLY_SYSTEM_TO_LOCAL_STYLES (Apply matches in import flow)
+  on('APPLY_SYSTEM_TO_LOCAL_STYLES', async (data: { 
+    mappedStyles: Array<{ 
+      id: string; 
+      name?: string;
+      fontSize: number;
+      fontFamily?: string;
+      fontWeight?: number | string;
+      mappedSystemStyle: string;
+    }>;
+    namingConvention: string;
+  }) => {
+    console.log('[Main] ✅ Applying system to local text styles...');
+    console.log('[Main] Mapped styles:', data.mappedStyles);
+    console.log('[Main] Naming convention:', data.namingConvention);
+    
+    try {
+      const processedStyles = data.mappedStyles.map(style => {
+        const systemKey = getInternalKeyForDisplayName(style.mappedSystemStyle, data.namingConvention) ||
+                          getInternalKeyForDisplayName(style.mappedSystemStyle, 'Default Naming');
+        return {
+          ...style,
+          systemKey
+        };
+      });
+
+      const stylesUpdated = processedStyles.reduce((count, style) => {
+        if (style.mappedSystemStyle && style.mappedSystemStyle !== 'None') {
+          console.log(`[Main] Would update style ${style.id} to ${style.mappedSystemStyle}`);
+          return count + 1;
+        }
+        return count;
+      }, 0);
+
+      const ratioInput = processedStyles.map(style => ({
+        mappedSystemStyle: style.mappedSystemStyle,
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        systemKey: style.systemKey || undefined
+      }));
+
+      const ratioResult = calculateScaleRatioAndSizes(ratioInput, '[Import]');
+      console.log('[Main] 📐 Import ratio calculation result:', ratioResult);
+
+      const primaryMapped = processedStyles.find(style => style.mappedSystemStyle && style.mappedSystemStyle !== 'None');
+      const primaryFontFamily = primaryMapped?.fontFamily;
+      const primaryFontStyle = typeof primaryMapped?.fontWeight === 'string' ? primaryMapped?.fontWeight : undefined;
+
+      const completionPayload: {
+        success: boolean;
+        stylesUpdated: number;
+        estimatedRatio?: number;
+        baseSizeInPx?: number;
+        largeSizeInPx?: number;
+        primaryScannedFontFamily?: string;
+        primaryScannedFontStyle?: string;
+        detectedNamingConvention: string;
+      } = {
+        success: true,
+        stylesUpdated,
+        estimatedRatio: ratioResult.estimatedRatio,
+        baseSizeInPx: ratioResult.baseSizeInPx,
+        largeSizeInPx: ratioResult.largeSizeInPx,
+        detectedNamingConvention: data.namingConvention
+      };
+
+      if (primaryFontFamily) {
+        completionPayload.primaryScannedFontFamily = primaryFontFamily;
+      }
+
+      if (primaryFontStyle) {
+        completionPayload.primaryScannedFontStyle = primaryFontStyle;
+      }
+
+      console.log(`[Main] ✅ Would update ${stylesUpdated} styles. Emitting completion payload:`, completionPayload);
+      emit('APPLY_LOCAL_STYLES_COMPLETE', completionPayload);
+      
+    } catch (error) {
+      console.error('[Main] Error applying styles:', error);
+      emit('APPLY_LOCAL_STYLES_COMPLETE', { success: false, stylesUpdated: 0, detectedNamingConvention: data.namingConvention });
+    }
+  });
+
+  // --- REMOVED: Naming convention update handler (now handled through proper data flow) ---
+
+  // <<< REQUEST_SMART_IMPORT Handler - Unified: auto-detect specimen vs regular frame >>>
+  on('REQUEST_SMART_IMPORT', async () => {
+    console.log('[Main] REQUEST_SMART_IMPORT received');
+
+    const selection = figma.currentPage.selection;
+    if (selection.length === 0) {
+      figma.notify('Select a frame on canvas first');
+      return;
+    }
+
+    // Walk up parent chain from selection to find a frame with specimen-snapshot
+    let current: BaseNode | null = selection[0];
+    while (current) {
+      if (current.type === 'FRAME' && 'getPluginData' in current) {
+        try {
+          const snapshotData = (current as FrameNode).getPluginData('specimen-snapshot');
+          if (snapshotData) {
+            const snapshot: SpecimenSnapshot = JSON.parse(snapshotData);
+            const specimenFrame = current as FrameNode;
+            console.log('[Main] 🧬 Specimen detected:', specimenFrame.name);
+
+            // Activate this frame as the preview target
+            setLatestPreviewFrameWithHighlight(specimenFrame);
+
+            // Restore node mapping from snapshot if available
+            if (snapshot.nodeMapping) {
+              const restored = new Map<string, string[]>();
+              for (const [key, ids] of Object.entries(snapshot.nodeMapping)) {
+                restored.set(key, ids as string[]);
+              }
+              previewNodeMapping = restored;
+              console.log('[Main] 🧬 Restored nodeMapping from pluginData:', restored.size, 'entries');
+            } else {
+              previewNodeMapping = null;
+              console.log('[Main] 🧬 No nodeMapping in snapshot (old specimen frame)');
+            }
+
+            // Emit SPECIMEN_DETECTED for UI to show confirmation modal
+            emit('SPECIMEN_DETECTED', { snapshot, previewExists: true } as SpecimenSampledEvent);
+            return;
+          }
+        } catch (e) {
+          console.warn('[Main] Failed to parse specimen snapshot:', e);
+        }
+      }
+      current = current.parent;
+    }
+
+    // Not a specimen — tell UI to proceed with scan flow
+    console.log('[Main] No specimen detected, telling UI to start scan flow');
+    emit('NO_SPECIMEN_START_SCAN');
+  });
+
+  // <<< ADDED: SCAN_SELECTED_FRAME Handler >>>
+  on('SCAN_SELECTED_FRAME', async () => {
+    console.log('[Main] Received SCAN_SELECTED_FRAME');
+    
+    const selection = figma.currentPage.selection;
+    if (selection.length !== 1 || (selection[0].type !== 'FRAME' && selection[0].type !== 'COMPONENT' && selection[0].type !== 'INSTANCE' && selection[0].type !== 'GROUP')) {
+      emit('FRAME_SCAN_RESULT', { success: false, message: 'Please select a single Frame, Component, Instance, or Group.', detectedStyles: [] });
+      currentScanSessionNodeCache = null; // Clear cache if no nodes found
+      scannedFrameWordCounts = null;
+      scannedFrameContainerId = null;
+      return;
+    }
+
+    const selectedContainer = selection[0];
+    let hasSpecimenSnapshot = false;
+    try {
+      if ('getPluginData' in selectedContainer) {
+        hasSpecimenSnapshot = !!selectedContainer.getPluginData('specimen-snapshot');
+      }
+    } catch {
+      hasSpecimenSnapshot = false;
+    }
+
+    // Specimen detection is handled by REQUEST_SMART_IMPORT before reaching here.
+
+    const foundTextNodes: TextNode[] = [];
+
+    function findTextNodesRecursively_Scan(node: SceneNode) {
+      // CRITICAL OPTIMIZATION: Skip hidden nodes and their entire subtrees. 
+      // Component instances often have massive hidden subtrees due to variants.
+      // Skipping them drastically speeds up scanning.
+      if ('visible' in node && !node.visible) return; 
+
+      if (node.type === 'TEXT') {
+        foundTextNodes.push(node);
+      }
+      
+      if ('children' in node) {
+        for (const child of node.children) {
+          findTextNodesRecursively_Scan(child as SceneNode);
+        }
+      }
+    }
+
+    findTextNodesRecursively_Scan(selectedContainer as SceneNode);
+
+    console.log(`[Main - Frame Scan] 🔍 Found ${foundTextNodes.length} text nodes in frame`);
+
+    if (foundTextNodes.length === 0) {
+      emit('FRAME_SCAN_RESULT', { success: false, message: 'No text layers found in the selected frame.', detectedStyles: [] });
+      currentScanSessionNodeCache = null; // Clear cache if no nodes found
+      scannedFrameWordCounts = null;
+      scannedFrameContainerId = null;
+      return;
+    }
+
+    const aggregatedStyles: { [key: string]: DetectedTextStyle } = {};
+    const nodeCacheForScan: Map<string, SceneNode[]> = new Map(); // Store nodes directly for fast hover
+    const wordCountsForScan: Map<string, number> = new Map(); // NEW: Maps nodeId to word count for "Play Text" feature
+    const loadedFontsForScanAttempt = new Set<string>();
+
+    for (const textNode of foundTextNodes) {
+      // Handle mixed styling by extracting base properties from first character
+      let figmaFontName: FontName;
+      let rawFontSize: number;
+      
+      if (textNode.fontName === figma.mixed || textNode.fontSize === figma.mixed) {
+        console.log(`[Main - Frame Scan] 🔧 Node "${textNode.name}" has mixed styling - extracting base properties from first character`);
+        
+        try {
+          // Extract font properties from first character as the representative value
+          figmaFontName = textNode.getRangeFontName(0, 1) as FontName;
+          rawFontSize = textNode.getRangeFontSize(0, 1) as number;
+          console.log(`[Main - Frame Scan] ✅ Extracted from first char: ${figmaFontName.family} ${figmaFontName.style}, size ${rawFontSize}`);
+        } catch (e) {
+          console.warn(`[Main - Frame Scan] ⚠️ Could not extract properties from node "${textNode.name}":`, e);
+          continue;
+        }
+      } else {
+        figmaFontName = textNode.fontName as FontName;
+        rawFontSize = textNode.fontSize as number;
+      }
+
+      const figmaFontSize = consolidateFontSize(rawFontSize); // CONSOLIDATE: Clean up fractional sizes
+      
+      // Get actual text style name if applied, not just layer name
+      let actualStyleName = "No Style";
+      let hasTextStyleApplied = false;
+      
+      if (textNode.textStyleId && textNode.textStyleId !== figma.mixed && typeof textNode.textStyleId === 'string') {
+        try {
+          const appliedStyle = figma.getStyleById(textNode.textStyleId);
+          if (appliedStyle && appliedStyle.type === 'TEXT') {
+            actualStyleName = appliedStyle.name;
+            hasTextStyleApplied = true;
+            console.log(`[Main - Frame Scan] Text node "${textNode.name}" uses style: "${actualStyleName}"`);
+          }
+        } catch (e) {
+          console.warn(`[Main - Frame Scan] Could not get style for textStyleId ${String(textNode.textStyleId)}:`, e);
+          actualStyleName = textNode.name; // Fallback to layer name
+        }
+      } else {
+        actualStyleName = textNode.name; // Use layer name if no style applied
+        console.log(`[Main - Frame Scan] Text node "${textNode.name}" has no text style applied`);
+      }
+
+      const fontKeyForLoading = `${figmaFontName.family}-${figmaFontName.style}`;
+      if (!loadedFontsForScanAttempt.has(fontKeyForLoading)) {
+        try {
+          await figma.loadFontAsync(figmaFontName);
+          loadedFontsForScanAttempt.add(fontKeyForLoading);
+        } catch (e) {
+          console.warn(`[Main - Frame Scan] Failed to load font: ${figmaFontName.family} - ${figmaFontName.style}. Properties will be read as reported. Error:`, e);
+          loadedFontsForScanAttempt.add(fontKeyForLoading); 
+        }
+      }
+      
+      // SMART GROUPING: If text styles applied, keep separate by style name to prevent conflicts
+      // If NO text styles applied, group by visual properties only (ignore layer names)
+      const aggregationKey = hasTextStyleApplied 
+        ? `${figmaFontName.family}-${figmaFontName.style}-${figmaFontSize}-${actualStyleName}`
+        : `${figmaFontName.family}-${figmaFontName.style}-${figmaFontSize}-UNSTYLED`;
+
+      // Populate nodeCacheForScan
+      if (!nodeCacheForScan.has(aggregationKey)) {
+        nodeCacheForScan.set(aggregationKey, []);
+      }
+      nodeCacheForScan.get(aggregationKey)!.push(textNode);
+      
+      // NEW: Store word count for "Play Text" feature
+      // Count words by splitting on whitespace, filtering empty strings
+      const textContent = textNode.characters || '';
+      const wordCount = textContent.trim().split(/\s+/).filter(w => w.length > 0).length;
+      wordCountsForScan.set(textNode.id, wordCount);
+
+      if (!aggregatedStyles[aggregationKey]) {
+        // First time seeing this font-family-style-size combination
+        // Extract its full style details to use as the representative for this group
+        const representativeStyle = await extractStyleFromTextNode(textNode, availableFontsList);
+
+        if (representativeStyle) {
+          aggregatedStyles[aggregationKey] = {
+            id: aggregationKey, // Now includes style name to prevent conflicts
+            fontFamily: representativeStyle.fontFamily || figmaFontName.family, // Fallback to figmaFontName if extract returns undefined
+            fontStyle: representativeStyle.fontStyle || figmaFontName.style,
+            fontSize: figmaFontSize, // Use consolidated size for consistency
+            // Full style details from the representative node
+            lineHeight: representativeStyle.lineHeight,
+            letterSpacing: representativeStyle.letterSpacing,
+            textCase: representativeStyle.textCase || 'Original',
+            // Tracking info
+            instanceCount: 0, // Will be incremented below
+            nodeName: hasTextStyleApplied ? actualStyleName : "", 
+            mappedSystemStyle: "None", // Default
+          };
+        } else {
+          // Fallback if extractStyleFromTextNode returns null (e.g. truly mixed content it couldn't parse)
+          // This case should be rare if the initial mixed checks are robust
+          console.warn(`[Main - Frame Scan] Could not extract representative style for ${actualStyleName}. Using basic info.`);
+          aggregatedStyles[aggregationKey] = {
+            id: aggregationKey, // Now includes style name to prevent conflicts
+            fontFamily: figmaFontName.family,
+            fontStyle: figmaFontName.style,
+            fontSize: figmaFontSize,
+            lineHeight: 1.2, // Default LH
+            letterSpacing: 0,    // Default LS
+            textCase: 'Original', // Default TC
+            instanceCount: 0,
+            nodeName: hasTextStyleApplied ? actualStyleName : "",
+            mappedSystemStyle: "None",
+          };
+        }
+      }
+      // Increment count regardless of whether it was new or existing (if new, it was init to 0)
+      if(aggregatedStyles[aggregationKey]) { // Ensure entry exists before incrementing
+        aggregatedStyles[aggregationKey].instanceCount++;
+      }
+    }
+
+    const detectedStylesArray = Object.values(aggregatedStyles);
+
+    console.log(`[Main - Frame Scan] 📊 Final aggregated styles: ${detectedStylesArray.length} unique combinations`);
+
+    let primaryScannedFontFamily: string | undefined = undefined;
+    let primaryScannedFontStyle: string | undefined = undefined;
+    let primaryScannedBaseSize: number | undefined = undefined; // NEW: For base size
+
+    if (detectedStylesArray.length > 0) {
+      // Heuristic to find the primary font
+      const bodyLikeStyles = detectedStylesArray.filter(s => s.fontSize >= 12 && s.fontSize <= 20);
+      let chosenStyle: DetectedTextStyle | undefined = undefined;
+
+      if (bodyLikeStyles.length > 0) {
+        bodyLikeStyles.sort((a, b) => b.instanceCount - a.instanceCount); // Sort by most instances
+        chosenStyle = bodyLikeStyles[0];
+        console.log("[Main Scan] Primary font chosen from body-like styles:", chosenStyle?.fontFamily, chosenStyle?.fontStyle, chosenStyle?.fontSize);
+        if (chosenStyle) { // Set base size only if chosen from body-like context
+            primaryScannedBaseSize = chosenStyle.fontSize;
+        }
+      } else {
+        // Fallback: most frequent overall if no body-like styles found
+        const sortedByInstance = [...detectedStylesArray].sort((a,b) => b.instanceCount - a.instanceCount);
+        chosenStyle = sortedByInstance[0];
+        console.log("[Main Scan] Primary font chosen from most frequent overall (base size not set from this):", chosenStyle?.fontFamily, chosenStyle?.fontStyle, chosenStyle?.fontSize);
+        // Do NOT set primaryScannedBaseSize from this fallback, as it might not be a good base
+      }
+
+      if (chosenStyle) {
+        primaryScannedFontFamily = chosenStyle.fontFamily;
+        primaryScannedFontStyle = chosenStyle.fontStyle;
+      }
+    }
+
+    latestScannedFontFamily = primaryScannedFontFamily;
+    latestScannedFontStyle = primaryScannedFontStyle;
+
+    if (detectedStylesArray.length > 0) {
+      console.log('[Main] Frame Scan Successful. Detected Styles:', JSON.stringify(detectedStylesArray, null, 2));
+      console.log('[Main] Frame Scan Node Cache:', nodeCacheForScan.size, 'keys');
+      console.log('[Main] Frame Scan Word Counts:', wordCountsForScan.size, 'nodes');
+      currentScanSessionNodeCache = nodeCacheForScan; // Store the cache
+      scannedFrameWordCounts = wordCountsForScan; // Store word counts for "Play Text" feature
+      scannedFrameContainerId = selectedContainer.id; // Store the scanned container ID
+      emit('FRAME_SCAN_RESULT', { 
+        success: true, 
+        detectedStyles: detectedStylesArray,
+        primaryScannedFontFamily: primaryScannedFontFamily,
+        primaryScannedFontStyle: primaryScannedFontStyle,
+        primaryScannedBaseSize: primaryScannedBaseSize,
+        hasSpecimenSnapshot
+        // No message needed for success
+      });
+    } else {
+      emit('FRAME_SCAN_RESULT', { success: false, message: 'Could not extract any definitive text styles from the frame.', detectedStyles: [] });
+      currentScanSessionNodeCache = null; // Clear cache on failure
+      scannedFrameWordCounts = null; // Clear word counts on failure
+      scannedFrameContainerId = null; // Clear container ID on failure
+    }
+  });
+  // <<< END ADDED HANDLER >>>
+
+  // NEW: Handler for AUTO_MATCH_STYLES
+  on('AUTO_MATCH_STYLES', async (data: AutoMatchStylesEvent) => {
+    console.log('[Main] Received AUTO_MATCH_STYLES. API Key provided:', !!data.apiKey, "Number of Styles to process:", data.stylesToMatch.length);
+
+    // Use the API key from the event data directly.
+    // The UI is responsible for fetching it from storage via LOADED_SETTINGS or user input.
+    const apiKey = data.apiKey;
+
+    if (!apiKey) {
+      emit('AUTO_MATCH_RESULTS', { 
+        success: false, 
+        message: "API Key is missing. Please provide an API key for auto-matching."
+      } as AutoMatchResultsEvent);
+      return;
+    }
+
+    if (!data.stylesToMatch || data.stylesToMatch.length === 0) {
+      emit('AUTO_MATCH_RESULTS', { 
+        success: false, 
+        message: "No styles were provided to auto-match."
+      } as AutoMatchResultsEvent);
+      return;
+    }
+
+    const OPENAI_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
+    const MODEL_ID = "gpt-4-turbo-2024-04-09"; // Set to user-specified model ID
+
+    // Generate the system prompt using the new helper function
+    const systemPrompt = getAutoMatchSystemPrompt(data.stylesToMatch);
+
+    // User prompt containing the actual data
+    const userPromptContent = JSON.stringify({ detected_styles: data.stylesToMatch });
+
+    const llmPayload = {
+      model: MODEL_ID,
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: userPromptContent
+        }
+      ],
+      max_tokens: 4096,   // Increased token limit for potentially larger style lists
+      response_format: { type: "json_object" } // Request JSON output
+    };
+
+    console.log("[Main AUTO_MATCH_STYLES] Sending payload to OpenAI:", JSON.stringify(llmPayload, null, 2));
+
+    try {
+      // 2. Make the API Call using the new helper function
+      const llmResponseData = await callOpenaiApiForAutoMatch(apiKey, systemPrompt, userPromptContent);
+      // The callOpenaiApiForAutoMatch function already handles response.ok and throws an error if not ok.
+      // It also parses the JSON and returns it.
+
+      console.log("[Main AUTO_MATCH_STYLES] Received response from OpenAI (processed by helper):", JSON.stringify(llmResponseData, null, 2));
+
+      let updatedStyles: DetectedTextStyle[] = [];
+      // Expecting llmResponseData.choices[0].message.content to be a stringified JSON like: "{\"mapped_styles\":[...]}"
+      if (llmResponseData.choices && llmResponseData.choices[0] && llmResponseData.choices[0].message && llmResponseData.choices[0].message.content) {
+        let parsedContent;
+        try {
+          parsedContent = JSON.parse(llmResponseData.choices[0].message.content);
+        } catch (parseError) {
+          console.error("[Main AUTO_MATCH_STYLES] Failed to parse LLM message content JSON:", parseError, llmResponseData.choices[0].message.content);
+          emit('AUTO_MATCH_RESULTS', { success: false, message: "AI service returned invalid JSON content." } as AutoMatchResultsEvent);
+          return;
+        }
+
+                if (parsedContent && Array.isArray(parsedContent.mapped_styles)) {
+          const llmMappedStyles = parsedContent.mapped_styles as Array<{ id: string, mappedSystemStyle: string }>; // Simpler type for LLM output parsing
+          const originalStylesMap = new Map(data.stylesToMatch.map(s => [s.id, s]));
+
+          // 🎯 SMART VALIDATION: Fix any remaining bad mappings using typography rules
+          const validatedMappedStyles = llmMappedStyles.map(llmStyle => {
+            const originalStyle = originalStylesMap.get(llmStyle.id);
+            if (!originalStyle) {
+              console.warn(`[Main AUTO_MATCH_STYLES] LLM returned mapping for unknown style ID: ${llmStyle.id}`);
+              return null;
+            }
+
+            let validatedMapping = llmStyle.mappedSystemStyle;
+            const fontSize = originalStyle.fontSize;
+            
+            // 🚨 SIZE-BASED VALIDATION RULES
+            const isValidMapping = validateTypographyMapping(fontSize, validatedMapping);
+            
+            if (!isValidMapping) {
+              const correctedMapping = suggestBetterMapping(fontSize, originalStyle);
+              console.warn(`[Main AUTO_MATCH_STYLES] ❌ Invalid mapping detected: ${fontSize}px → "${validatedMapping}". Correcting to: "${correctedMapping}"`);
+              validatedMapping = correctedMapping;
+            } else {
+              console.log(`[Main AUTO_MATCH_STYLES] ✅ Valid mapping: ${fontSize}px → "${validatedMapping}"`);
+            }
+
+            return {
+              id: llmStyle.id,
+              mappedSystemStyle: validatedMapping
+            };
+          }).filter(s => s !== null);
+
+          updatedStyles = validatedMappedStyles.map(validatedStyle => {
+            const originalStyle = originalStylesMap.get(validatedStyle.id);
+            if (originalStyle) {
+              return {
+                ...originalStyle,
+                mappedSystemStyle: validatedStyle.mappedSystemStyle
+              };
+            }
+            return null; 
+          }).filter(s => s !== null) as DetectedTextStyle[];
+
+          if (updatedStyles.length !== data.stylesToMatch.length) {
+            console.warn("[Main AUTO_MATCH_STYLES] Mismatch in style count after LLM mapping. Some original styles might be missing in LLM output.");
+          }
+        } else {
+          console.error("[Main AUTO_MATCH_STYLES] LLM response content was not in the expected format (missing mapped_styles array):", parsedContent);
+          emit('AUTO_MATCH_RESULTS', { success: false, message: "AI service response content was not in the expected format." } as AutoMatchResultsEvent);
+          return;
+      }
+    } else {
+        console.error("[Main AUTO_MATCH_STYLES] LLM response structure error. Full response:", llmResponseData);
+        if (llmResponseData.choices && llmResponseData.choices[0]) {
+          console.error("[Main AUTO_MATCH_STYLES] Content of choices[0]:", JSON.stringify(llmResponseData.choices[0], null, 2));
+          if (llmResponseData.choices[0].message) {
+            console.error("[Main AUTO_MATCH_STYLES] Content of choices[0].message:", JSON.stringify(llmResponseData.choices[0].message, null, 2));
+            if (llmResponseData.choices[0].message.content === null) {
+              console.error("[Main AUTO_MATCH_STYLES] choices[0].message.content is null.");
+            } else if (llmResponseData.choices[0].message.content === undefined) {
+              console.error("[Main AUTO_MATCH_STYLES] choices[0].message.content is undefined.");
+            } else if (llmResponseData.choices[0].message.content === "") {
+              console.error("[Main AUTO_MATCH_STYLES] choices[0].message.content is an empty string.");
+              }
+          } else {
+            console.error("[Main AUTO_MATCH_STYLES] choices[0].message is missing.");
+          }
+        } else {
+          console.error("[Main AUTO_MATCH_STYLES] choices array is missing or empty.");
+        }
+        emit('AUTO_MATCH_RESULTS', { success: false, message: "AI service response structure was not as expected (details in console)." } as AutoMatchResultsEvent);
+        return;
+      }
+
+      console.log('[Main AUTO_MATCH_STYLES] Auto Match processing complete. Sending results to UI:', updatedStyles);
+    emit('AUTO_MATCH_RESULTS', { 
+      success: true, 
+        updatedStyles: updatedStyles 
+      } as AutoMatchResultsEvent);
+
+    } catch (error) {
+      console.error("[Main AUTO_MATCH_STYLES] Error during API call or processing:", error);
+      emit('AUTO_MATCH_RESULTS', { 
+        success: false, 
+        message: `An error occurred during auto-matching: ${error instanceof Error ? error.message : String(error)}`
+    } as AutoMatchResultsEvent);
+    }
+  });
+
+  // NEW: Handler for SAVE_API_KEY
+  on('SAVE_API_KEY', async (data: SaveApiKeyEvent) => {
+    if (typeof data.apiKey === 'string') {
+      // Use the new setOpenaiApiKey helper
+      await setOpenaiApiKey(data.apiKey);
+      // Optionally, re-emit loaded settings if UI needs immediate confirmation beyond just knowing it was sent
+      // const reloadedKey = await getOpenaiApiKey();
+      // emit('LOADED_SETTINGS', { apiKey: reloadedKey } as LoadedSettingsEvent);
+    } else {
+      console.warn('[Main] SAVE_API_KEY event received without a valid apiKey string.');
+    }
+  });
+
+  // SECURITY: Removed hardcoded API key - use UI to set API key instead
+  on('FORCE_SET_API_KEY', async () => {
+    figma.notify("⚠️ Set API key through UI settings, not hardcoded", { error: true });
+    console.warn('[Main] FORCE_SET_API_KEY: Hardcoded API keys removed for security');
+  });
+
+
+
+  // NEW: Handler for NORMALIZE_FRAME_STYLES
+  on('NORMALIZE_FRAME_STYLES', async (data: NormalizeFrameStylesEvent) => {
+    console.log('[Main] Received NORMALIZE_FRAME_STYLES with:', data.representativeStyles);
+    const selection = figma.currentPage.selection;
+
+    if (selection.length !== 1 || (selection[0].type !== 'FRAME' && selection[0].type !== 'COMPONENT' && selection[0].type !== 'INSTANCE' && selection[0].type !== 'GROUP')) {
+      figma.notify("Please select a single Frame, Component, Instance, or Group to normalize.", { error: true });
+      // Optionally emit a failure event back to UI
+      return;
+    }
+    const selectedContainer = selection[0];
+    const allTextNodesInSelection: TextNode[] = [];
+
+    function findTextNodesRecursively(node: SceneNode) {
+      if (node.type === 'TEXT') {
+        allTextNodesInSelection.push(node);
+      }
+      if ('children' in node && node.type !== 'COMPONENT' && node.type !== 'INSTANCE') { // Avoid traversing into component instances for direct modification here
+        for (const child of node.children) {
+          findTextNodesRecursively(child as SceneNode);
+        }
+      }
+    }
+    findTextNodesRecursively(selectedContainer);
+
+    if (allTextNodesInSelection.length === 0) {
+      figma.notify("No text layers found in the selected item to normalize.", { error: true });
+      return;
+    }
+
+    let nodesChangedCount = 0;
+    const promises: Promise<void>[] = [];
+
+    for (const textNode of allTextNodesInSelection) {
+      // Handle mixed styling by extracting base properties from first character
+      let figmaFontName: FontName;
+      let rawFontSize: number;
+      
+      if (textNode.fontName === figma.mixed || textNode.fontSize === figma.mixed) {
+        console.log(`[Main - Normalize] 🔧 Node "${textNode.name}" has mixed styling - will normalize to uniform style`);
+        
+        try {
+          // Extract font properties from first character to determine which group this belongs to
+          figmaFontName = textNode.getRangeFontName(0, 1) as FontName;
+          rawFontSize = textNode.getRangeFontSize(0, 1) as number;
+          console.log(`[Main - Normalize] ✅ Base style: ${figmaFontName.family} ${figmaFontName.style}, size ${rawFontSize}`);
+        } catch (e) {
+          console.warn(`[Main - Normalize] ⚠️ Could not extract properties from node "${textNode.name}":`, e);
+          continue;
+        }
+      } else {
+        figmaFontName = textNode.fontName as FontName;
+        rawFontSize = textNode.fontSize as number;
+      }
+
+      const figmaFontSize = consolidateFontSize(rawFontSize); // CONSOLIDATE: Match scan logic
+      
+      // CRITICAL FIX: Get actual text style name to match scan logic aggregation key
+      let actualStyleName = "No Style";
+      let hasTextStyleApplied = false;
+      
+      if (textNode.textStyleId && textNode.textStyleId !== figma.mixed && typeof textNode.textStyleId === 'string') {
+        try {
+          const appliedStyle = figma.getStyleById(textNode.textStyleId);
+          if (appliedStyle && appliedStyle.type === 'TEXT') {
+            actualStyleName = appliedStyle.name;
+            hasTextStyleApplied = true;
+          }
+        } catch (e) {
+          console.warn(`[Main - Normalize] Could not get style for textStyleId ${String(textNode.textStyleId)}:`, e);
+          actualStyleName = textNode.name; // Fallback to layer name
+        }
+      } else {
+        actualStyleName = textNode.name; // Use layer name if no style applied
+      }
+      
+      // SMART GROUPING: Match the scan logic aggregation key format
+      const aggregationKey = hasTextStyleApplied 
+        ? `${figmaFontName.family}-${figmaFontName.style}-${figmaFontSize}-${actualStyleName}`
+        : `${figmaFontName.family}-${figmaFontName.style}-${figmaFontSize}-UNSTYLED`;
+
+      const styleDefinitionToApply = data.representativeStyles.find(style => style.id === aggregationKey);
+
+      if (styleDefinitionToApply) {
+        console.log(`[Main - Normalize] Applying representative style for group ${aggregationKey} to node ${textNode.name}`);
+        
+        // Create a TypographyStyle object from DetectedTextStyle for applyTextStyleToNode
+        const styleForNodeToApply: TypographyStyle = {
+          size: styleDefinitionToApply.fontSize, // Map fontSize to size
+          lineHeight: styleDefinitionToApply.lineHeight,
+          letterSpacing: styleDefinitionToApply.letterSpacing,
+          fontFamily: styleDefinitionToApply.fontFamily,
+          fontStyle: styleDefinitionToApply.fontStyle,
+          textCase: styleDefinitionToApply.textCase,
+          // customName is optional in TypographyStyle and not strictly needed for applying style properties
+        };
+
+        promises.push(
+          applyTextStyleToNode(
+            textNode,
+            styleForNodeToApply, // Pass the correctly shaped TypographyStyle object
+            { family: styleDefinitionToApply.fontFamily, style: styleDefinitionToApply.fontStyle },
+            availableFontsList, 
+            `Normalize-${textNode.name}`
+          ).then(() => { nodesChangedCount++; })
+        );
+      } else {
+        console.log(`[Main - Normalize] No representative style found for node ${textNode.name} with key ${aggregationKey}. Skipping.`);
+      }
+    }
+    
+    await Promise.all(promises);
+
+    if (nodesChangedCount > 0) {
+      figma.notify(`Normalization applied to ${nodesChangedCount} text node(s).`);
+    } else {
+      figma.notify("No text nodes required normalization based on detected styles.");
+    }
+    // Optionally emit a completion event to UI
+    // emit('NORMALIZE_FRAME_COMPLETE', { success: true, nodesChanged: nodesChangedCount });
+  });
+
+  // NEW: Handler for APPLY_SYSTEM_STYLES_TO_FRAME
+  on('APPLY_SYSTEM_STYLES_TO_FRAME', async (data: ApplySystemStylesToFrameEvent) => {
+    try {
+      console.log('[Main] Received APPLY_SYSTEM_STYLES_TO_FRAME with naming convention:', data.namingConvention);
+      console.log('[Main] Detected ratio from scan:', data.detectedRatio);
+      
+      let effectiveTargetSystem = data.targetSystemDefinition;
+      
+      // Find body text size from Text Main mapping
+      const textMainMapping = data.mappedDetectedStyles.find(s => 
+        !!s.mappedSystemStyle &&
+        getInternalKeyForDisplayName(s.mappedSystemStyle, data.namingConvention) === STYLE_KEYS.TEXT_MAIN
+      );
+      const bodySize = textMainMapping?.fontSize || 
+        data.mappedDetectedStyles
+          .filter(s => s.fontSize >= 12 && s.fontSize <= 20)
+          .sort((a, b) => (b.instanceCount || 1) - (a.instanceCount || 1))[0]?.fontSize || 16;
+      
+      // Use ratio from scan (already validated against ALL detected sizes)
+      const finalRatio = data.detectedRatio || 1.333;
+      const finalBaseSize = bodySize;
+      const shouldApplyToFrame = data.applyToFrame !== false;
+      
+      console.log(`[Main] 📊 Using scan-detected ratio: ${finalRatio}, baseSize: ${finalBaseSize}px`);
+      
+      console.log(`[Main] 📊 Final values: ratio=${finalRatio.toFixed(4)}, baseSize=${finalBaseSize}px`);
+      
+      // Build effectiveTargetSystem from ACTUAL detected sizes (not ratio math)
+      if (data.mappedDetectedStyles.length > 0) {
+        const detectedSystem: TypographySystem = {};
+
+        for (const detected of data.mappedDetectedStyles) {
+          if (!detected.mappedSystemStyle || detected.mappedSystemStyle === 'None') continue;
+          const key =
+            getInternalKeyForDisplayName(detected.mappedSystemStyle, data.namingConvention)
+            || getInternalKeyForDisplayName(detected.mappedSystemStyle, 'Default Naming');
+          if (!key) continue;
+
+          detectedSystem[key] = {
+            fontFamily: detected.fontFamily || 'Inter',
+            fontStyle: detected.fontStyle || 'Regular',
+            size: detected.fontSize,
+            lineHeight: detected.lineHeight || 1.2,
+            letterSpacing: detected.letterSpacing || 0,
+            textCase: detected.textCase || 'ORIGINAL',
+          };
+          console.log(`[Main] 📐 ${key}: ${detected.fontSize}px (actual detected size)`);
+        }
+
+        effectiveTargetSystem = { ...data.targetSystemDefinition, ...detectedSystem };
+        console.log('[Main] ✅ Target system built from actual detected sizes');
+      } else {
+        console.log('[Main] ⚠️ No valid mappings, using pre-calculated target system');
+      }
+      
+    let nodesAppliedCount = 0;
+    const shouldNormalizeAutoWidth = data.autoWidth !== false;
+    const promises: Promise<void>[] = [];
+    const newNodeMappings: Array<{ nodeId: string; systemStyleKey: string }> = []; // For live tweaking context
+    let selectedContainer: SceneNode | null = null;
+
+    if (shouldApplyToFrame) {
+      const selection = figma.currentPage.selection;
+
+      if (selection.length !== 1 || (selection[0].type !== 'FRAME' && selection[0].type !== 'COMPONENT' && selection[0].type !== 'INSTANCE' && selection[0].type !== 'GROUP')) {
+        figma.notify("Please select a single Frame, Component, Instance, or Group to apply styles to.", { error: true });
+        emit('OPERATION_COMPLETE'); // Ensure loading state is cleared on early exit
+        emit('APPLY_MATCHES_COMPLETE', {
+          success: false,
+          nodesChanged: 0,
+          appliedToFrame: true
+        } as ApplyMatchesCompleteMessage);
+        return;
+      }
+      selectedContainer = selection[0];
+      const allTextNodesInSelection: TextNode[] = [];
+
+      const findTextNodesRecursively = (node: SceneNode) => {
+        // OPTIMIZATION: Skip hidden nodes to speed up processing of complex component instances
+        if ('visible' in node && !node.visible) return;
+
+        if (node.type === 'TEXT') {
+          allTextNodesInSelection.push(node);
+        }
+        if ('children' in node) {
+          for (const child of node.children) {
+            findTextNodesRecursively(child as SceneNode);
+          }
+        }
+      };
+      findTextNodesRecursively(selectedContainer);
+
+      if (allTextNodesInSelection.length === 0) {
+        figma.notify("No text layers found in the selected item to apply styles to.", { error: true });
+        emit('OPERATION_COMPLETE'); // Ensure loading state is cleared on early exit
+        emit('APPLY_MATCHES_COMPLETE', {
+          success: false,
+          nodesChanged: 0,
+          appliedToFrame: true
+        } as ApplyMatchesCompleteMessage);
+        return;
+      }
+
+      for (const textNode of allTextNodesInSelection) {
+      // Handle mixed styling by extracting base properties from first character
+      let figmaFontName: FontName;
+      let rawFontSize: number;
+      
+      if (textNode.fontName === figma.mixed || textNode.fontSize === figma.mixed) {
+        console.log(`[Main - ApplyMatches] 🔧 Node "${textNode.name}" has mixed styling - will harmonize to matched system style`);
+        
+        try {
+          // Extract font properties from first character to determine which group this belongs to
+          figmaFontName = textNode.getRangeFontName(0, 1) as FontName;
+          rawFontSize = textNode.getRangeFontSize(0, 1) as number;
+          console.log(`[Main - ApplyMatches] ✅ Base style: ${figmaFontName.family} ${figmaFontName.style}, size ${rawFontSize}`);
+        } catch (e) {
+          console.warn(`[Main - ApplyMatches] ⚠️ Could not extract properties from node "${textNode.name}":`, e);
+          continue;
+        }
+      } else {
+        figmaFontName = textNode.fontName as FontName;
+        rawFontSize = textNode.fontSize as number;
+      }
+
+      if (shouldNormalizeAutoWidth && textNode.textAutoResize !== 'WIDTH_AND_HEIGHT') {
+        try {
+          textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
+        } catch (error) {
+          console.warn(`[Main - ApplyMatches] Failed to set auto width for node ${textNode.name}:`, error);
+        }
+      }
+
+      const figmaFontSize = consolidateFontSize(rawFontSize); // CONSOLIDATE: Match scan logic
+      
+      // CRITICAL FIX: Get actual text style name to match scan logic aggregation key
+      let actualStyleName = "No Style";
+      let hasTextStyleApplied = false;
+      
+      if (textNode.textStyleId && textNode.textStyleId !== figma.mixed && typeof textNode.textStyleId === 'string') {
+        try {
+          const appliedStyle = figma.getStyleById(textNode.textStyleId);
+          if (appliedStyle && appliedStyle.type === 'TEXT') {
+            actualStyleName = appliedStyle.name;
+            hasTextStyleApplied = true;
+          }
+        } catch (e) {
+          console.warn(`[Main - ApplyMatches] Could not get style for textStyleId ${String(textNode.textStyleId)}:`, e);
+          actualStyleName = textNode.name; // Fallback to layer name
+        }
+      } else {
+        actualStyleName = textNode.name; // Use layer name if no style applied
+      }
+      
+      // SMART GROUPING: Match the scan logic aggregation key format
+      const originalStyleId = hasTextStyleApplied 
+        ? `${figmaFontName.family}-${figmaFontName.style}-${figmaFontSize}-${actualStyleName}`
+        : `${figmaFontName.family}-${figmaFontName.style}-${figmaFontSize}-UNSTYLED`;
+
+      // Find this original style group in the data sent from the UI
+      const detectedStyleMapping = data.mappedDetectedStyles.find(style => style.id === originalStyleId);
+
+      if (detectedStyleMapping && detectedStyleMapping.mappedSystemStyle && detectedStyleMapping.mappedSystemStyle !== "None") {
+        const uiMappedStyleName = detectedStyleMapping.mappedSystemStyle; // e.g., "H1", "Main", "Display"
+        const systemKeyToLookup =
+          getInternalKeyForDisplayName(uiMappedStyleName, data.namingConvention)
+          || getInternalKeyForDisplayName(uiMappedStyleName, 'Default Naming');
+        if (!systemKeyToLookup) {
+          continue;
+        }
+
+        const stylePropsToApply = effectiveTargetSystem[systemKeyToLookup];
+
+        if (stylePropsToApply) {
+          console.log(`[Main - ApplyMatches] Applying system style "${systemKeyToLookup}" (from UI's "${uiMappedStyleName}") to node ${textNode.name} (Original ID: ${originalStyleId})`);
+          
+          // Ensure target font properties are valid before trying to create FontName
+          const targetFamily = stylePropsToApply.fontFamily;
+          const targetStyle = stylePropsToApply.fontStyle;
+
+          if (targetFamily && targetStyle) {
+            promises.push(
+              applyTextStyleToNode(
+                textNode,
+                stylePropsToApply, // This is a TypographyStyle object
+                { family: targetFamily, style: targetStyle },
+                availableFontsList, // Global in main.ts scope
+                `LiveUpdate-ApplyMatch-${textNode.name}` // Force override even if a text style is applied
+              ).then(() => { 
+                nodesAppliedCount++; 
+                newNodeMappings.push({ nodeId: textNode.id, systemStyleKey: systemKeyToLookup }); // Store mapping
+              })
+            );
+          } else {
+            console.warn(`[Main - ApplyMatches] Target system style "${systemKeyToLookup}" is missing fontFamily or fontStyle. Skipping node ${textNode.name}.`);
+          }
+        } else {
+          console.log(`[Main - ApplyMatches] No definition found for system style "${systemKeyToLookup}" for node ${textNode.name}. Skipping.`);
+        }
+      } else {
+        // console.log(`[Main - ApplyMatches] Node ${textNode.name} (ID: ${originalStyleId}) was not mapped or mapped to "None". Skipping.`);
+      }
+      }
+      
+      await Promise.all(promises);
+
+      if (nodesAppliedCount > 0) {
+        figma.notify(`Applied matched system styles to ${nodesAppliedCount} text node(s).`);
+        // Set the context for live tweaking
+        liveTweakingTargetFrameId = selectedContainer!.id;
+        liveTweakingNodeMappings = newNodeMappings;
+        console.log(`[Main - ApplyMatches] Set live tweaking context. Frame ID: ${liveTweakingTargetFrameId}, Mappings:`, liveTweakingNodeMappings);
+      } else {
+        figma.notify("No text nodes were updated. Ensure styles are mapped.");
+        // Clear any previous live tweaking context if no nodes were updated in this attempt
+        liveTweakingTargetFrameId = null;
+        liveTweakingNodeMappings = null;
+      }
+    } else {
+      // UI-only import mode for scan flow: update plugin state metadata only,
+      // do not mutate any frame and do not establish live-tweaking context.
+      liveTweakingTargetFrameId = null;
+      liveTweakingNodeMappings = null;
+    }
+
+    // Use scan-detected values directly (already validated against all detected sizes)
+    const estimatedScaleRatio: number | undefined = finalRatio;
+    const baseSizeInPx: number | undefined = finalBaseSize;
+    const allDetectedSizes = data.mappedDetectedStyles.map(s => s.fontSize).sort((a, b) => b - a);
+    const largeSizeInPx: number | undefined = allDetectedSizes[0];
+    
+    console.log(`[Main - ApplyMatches] Final values for UI: ratio=${estimatedScaleRatio?.toFixed(4)}, base=${baseSizeInPx}px, large=${largeSizeInPx}px`);
+
+    // CRITICAL ISSUE: If estimatedScaleRatio is undefined, the preview will use wrong ratio!
+    // For now, we DON'T update the preview if ratio estimation failed
+    // After applying to the design frame, update the preview frame if it exists
+    if (shouldApplyToFrame && latestPreviewFrame && !latestPreviewFrame.removed) {
+      if (!estimatedScaleRatio) {
+        console.warn(`[Main - ApplyMatches] ⚠️ WARNING: Scale ratio estimation FAILED. Not updating preview to avoid applying wrong sizes. User's frame has correct sizes, but preview won't match.`);
+        // TODO: Either skip preview update or use scanned sizes directly without regenerating
+      } else {
+        console.log(`[Main - ApplyMatches] Updating latest preview frame with estimated ratio ${estimatedScaleRatio}`);
+        try {
+          await updateGivenFrame(
+            latestPreviewFrame,
+            effectiveTargetSystem, // CRITICAL FIX: Use recalculated system with detected ratio
+            latestSelectedStyle,         // Use stored latest value
+            latestShowSpecLabels,        // Use stored latest value
+            {},                          // <<< ADDED: Pass empty object for styleVisibility
+            [],                          // Pass empty array for availableStyles for now
+            currentColorMode,            // Global mode
+            availableFontsList,          // Pass availableFontsList for the FontInfo[] parameter
+            latestActiveMode,            // Use stored latest value
+            estimatedScaleRatio          // CRITICAL FIX: Use calculated ratio from scan (NO fallback!)
+          );
+          console.log("[Main - ApplyMatches] Preview frame updated successfully.");
+        } catch (error) {
+          console.error("[Main - ApplyMatches] Error updating preview frame:", error);
+        }
+      }
+    }
+
+    const mappedStylesWithInternalKeys = data.mappedDetectedStyles
+      .filter((style) => !!style.mappedSystemStyle && style.mappedSystemStyle !== 'None')
+      .map((style) => ({
+        style,
+        systemKey:
+          getInternalKeyForDisplayName(style.mappedSystemStyle, data.namingConvention)
+          || getInternalKeyForDisplayName(style.mappedSystemStyle, 'Default Naming'),
+      }))
+      .filter((entry) => !!entry.systemKey);
+
+    const headingKeys = new Set<string>([
+      STYLE_KEYS.DISPLAY,
+      STYLE_KEYS.H1,
+      STYLE_KEYS.H2,
+      STYLE_KEYS.H3,
+      STYLE_KEYS.H4,
+      STYLE_KEYS.H5,
+      STYLE_KEYS.H6,
+    ]);
+
+    const textKeys = new Set<string>([
+      STYLE_KEYS.TEXT_LARGE,
+      STYLE_KEYS.TEXT_MAIN,
+      STYLE_KEYS.TEXT_SMALL,
+      STYLE_KEYS.MICRO,
+    ]);
+
+    const chooseDominantFont = (
+      entries: Array<{ style: DetectedTextStyle; systemKey: string | null }>,
+    ): { family: string; style: string } | undefined => {
+      const bucket = new Map<string, { family: string; style: string; count: number }>();
+      entries.forEach(({ style }) => {
+        const family = style.fontFamily || '';
+        const fontStyle = style.fontStyle || 'Regular';
+        if (!family) return;
+        const signature = `${family}:::${fontStyle}`;
+        const existing = bucket.get(signature);
+        const weight = style.instanceCount || 1;
+        if (existing) {
+          existing.count += weight;
+        } else {
+          bucket.set(signature, {
+            family,
+            style: fontStyle,
+            count: weight,
+          });
+        }
+      });
+
+      const sorted = Array.from(bucket.values()).sort((a, b) => b.count - a.count);
+      if (sorted.length === 0) return undefined;
+      return { family: sorted[0].family, style: sorted[0].style };
+    };
+
+    const headingCandidates = mappedStylesWithInternalKeys.filter((entry) =>
+      entry.systemKey ? headingKeys.has(entry.systemKey) : false,
+    );
+    const textCandidates = mappedStylesWithInternalKeys.filter((entry) =>
+      entry.systemKey ? textKeys.has(entry.systemKey) : false,
+    );
+
+    const detectedPrimaryFont = chooseDominantFont(textCandidates) || chooseDominantFont(mappedStylesWithInternalKeys);
+    const detectedSecondaryFont = chooseDominantFont(headingCandidates);
+
+    const primaryScannedFontFamilyForUi = detectedPrimaryFont?.family || latestScannedFontFamily;
+    const primaryScannedFontStyleForUi = detectedPrimaryFont?.style || latestScannedFontStyle;
+
+    const hasDistinctSecondaryFont =
+      !!detectedSecondaryFont
+      && (
+        detectedSecondaryFont.family !== primaryScannedFontFamilyForUi
+        || detectedSecondaryFont.style !== primaryScannedFontStyleForUi
+      );
+
+    emit('APPLY_MATCHES_COMPLETE', {
+      success: true,
+      nodesChanged: nodesAppliedCount,
+      appliedToFrame: shouldApplyToFrame,
+      estimatedRatio: estimatedScaleRatio, // This will be undefined if not successfully estimated
+      baseSizeInPx: baseSizeInPx,
+      largeSizeInPx: largeSizeInPx,
+      primaryScannedFontFamily: primaryScannedFontFamilyForUi,
+      primaryScannedFontStyle: primaryScannedFontStyleForUi,
+      secondaryScannedFontFamily: hasDistinctSecondaryFont ? detectedSecondaryFont?.family : undefined,
+      secondaryScannedFontStyle: hasDistinctSecondaryFont ? detectedSecondaryFont?.style : undefined,
+      detectedNamingConvention: data.namingConvention // ADDED: Pass the detected naming convention to UI
+    } as ApplyMatchesCompleteMessage);
+    } catch (error) {
+      console.error('[Main - ApplyMatches] Unexpected error applying styles:', error);
+      figma.notify("An error occurred while applying styles.", { error: true });
+      emit('OPERATION_COMPLETE');
+      emit('APPLY_MATCHES_COMPLETE', {
+        success: false,
+        nodesChanged: 0,
+        appliedToFrame: data.applyToFrame !== false
+      } as ApplyMatchesCompleteMessage);
+    }
+  });
+
+  // <<< ADDED: Handler for processing unformatted text >>>
+  on('PROCESS_UNFORMATTED_TEXT_REQUEST', async (data: ProcessUnformattedTextRequestEvent) => {
+    console.log("[Main] Received PROCESS_UNFORMATTED_TEXT_REQUEST from UI.");
+    await handleProcessUnformattedText(
+      data, 
+      stateAccessors.setLatestPreviewFrame, 
+      stateAccessors.getLatestPreviewFrame,
+      () => currentColorMode, // Pass a function to get the current color mode
+      stateAccessors.setPreviewNodeMapping // <<< ADDED
+    );
+  });
+
+  // --- NEW: Handler for preview style highlighting ---
+  on('HIGHLIGHT_PREVIEW_STYLE_GROUP', async (data: { styleName: string }) => {
+    if (!previewNodeMapping) {
+      console.log("[Main] No preview node mapping available for highlighting.");
+      return;
+    }
+    const nodeIdsToHighlight = previewNodeMapping.get(data.styleName);
+    if (!nodeIdsToHighlight || nodeIdsToHighlight.length === 0) {
+      console.log(`[Main] No nodes found in preview mapping for style: ${data.styleName}`);
+      return;
+    }
+
+    if (!originalSelectionBeforeHighlight) {
+      originalSelectionBeforeHighlight = [...figma.currentPage.selection];
+    }
+    
+    const nodesToSelect: SceneNode[] = [];
+    for (const nodeId of nodeIdsToHighlight) {
+      const node = await figma.getNodeByIdAsync(nodeId);
+      if (node && ('visible' in node && node.visible)) {
+        nodesToSelect.push(node as SceneNode);
+      }
+    }
+    
+    if (nodesToSelect.length > 0) {
+      figma.currentPage.selection = nodesToSelect;
+    }
+  });
+
+  // Helper function to convert UI display names to internal system keys
+  function convertUIDisplayNameToSystemKey(uiDisplayName: string, systemName: string): string {
+    const resolved =
+      getInternalKeyForDisplayName(uiDisplayName, systemName)
+      || getInternalKeyForDisplayName(uiDisplayName, 'Default Naming');
+    if (resolved) {
+      return resolved;
+    }
+    console.warn(`[Main] Could not convert UI display name "${uiDisplayName}" to system key for ${systemName}`);
+    return uiDisplayName;
+  }
+
+  // NEW: Handler for IMPORT_DESIGN_SYSTEM
+  on('IMPORT_DESIGN_SYSTEM', async (data: ImportDesignSystemEvent) => {
+    console.log('[Main] Received IMPORT_DESIGN_SYSTEM with:', data.figmaStyles, data.targetSystem);
+    
+    // Get the appropriate design system handler
+    const systemHandler = getDesignSystemHandler(data.targetSystem);
+    
+    if (systemHandler) {
+      console.log(`[Main] Using ${systemHandler.name} handler for import`);
+    
+      // Process the import manually (design system handler validates the structure)
+      const importResult = {
+        estimatedRatio: undefined as number | undefined,
+        primaryFontFamily: data.figmaStyles.find(s => s.mappedSystemStyle !== "None")?.fontFamily,
+        primaryFontStyle: data.figmaStyles.find(s => s.mappedSystemStyle !== "None")?.fontWeight,
+        baseSizeInPx: data.figmaStyles.find(s => 
+          s.mappedSystemStyle === "Text Main" || s.mappedSystemStyle === "textMain" || s.mappedSystemStyle === "Main"
+        )?.fontSize,
+        largeSizeInPx: data.figmaStyles.find(s => 
+          s.mappedSystemStyle === "H1" || s.mappedSystemStyle === "h1" ||
+          s.mappedSystemStyle === "H0" || s.mappedSystemStyle === "Display" || s.mappedSystemStyle === "display"
+        )?.fontSize
+      };
+      
+             // --- Scale Ratio Estimation Logic (using shared function) ---
+       const calculationResult = calculateScaleRatioAndSizes(data.figmaStyles, "[DesignSystemImport]");
+       importResult.estimatedRatio = calculationResult.estimatedRatio;
+       importResult.baseSizeInPx = calculationResult.baseSizeInPx;
+       importResult.largeSizeInPx = calculationResult.largeSizeInPx;
+       // Update primary font weight if found
+       if (calculationResult.primaryFontWeight) {
+         importResult.primaryFontStyle = calculationResult.primaryFontWeight;
+       }
+       // --- End Scale Ratio Estimation Logic ---
+      
+      // Store the mapping from Figma style names to system keys (FIXED: Figma -> System direction)
+      figmaStyleNameMapping = new Map();
+    for (const figmaStyle of data.figmaStyles) {
+      if (figmaStyle.mappedSystemStyle && figmaStyle.mappedSystemStyle !== "None") {
+        if (figmaStyle.originalFigmaStyleName) {
+          // CRITICAL FIX: Convert UI display name to internal system key
+          const internalSystemKey = convertUIDisplayNameToSystemKey(figmaStyle.mappedSystemStyle, data.targetSystem);
+          // FIXED: Store Figma -> System (allows multiple Figma styles to map to same system key)
+          figmaStyleNameMapping.set(figmaStyle.originalFigmaStyleName, internalSystemKey);
+          console.log(`[Main] 🎯 SCAN MAPPING DEBUG:`);
+          console.log(`[Main] 🎯   - originalFigmaStyleName: "${figmaStyle.originalFigmaStyleName}"`);
+          console.log(`[Main] 🎯   - mappedSystemStyle (UI): "${figmaStyle.mappedSystemStyle}"`);
+          console.log(`[Main] 🎯   - converted to systemKey: "${internalSystemKey}"`);
+          console.log(`[Main] 🎯   - final stored mapping: "${figmaStyle.originalFigmaStyleName}" -> "${internalSystemKey}"`);
+        }
+        }
+    }
+    
+    // Store font information for UI population
+      latestScannedFontFamily = importResult.primaryFontFamily;
+      latestScannedFontStyle = importResult.primaryFontStyle;
+      
+      // DEBUG: Confirm mappings are stored
+      console.log('[Main] 🎯 IMPORT_DESIGN_SYSTEM COMPLETE - figmaStyleNameMapping size:', figmaStyleNameMapping ? figmaStyleNameMapping.size : 'null');
+      if (figmaStyleNameMapping && figmaStyleNameMapping.size > 0) {
+        console.log('[Main] 🎯 Stored mappings confirmed:');
+        for (const [key, value] of Array.from(figmaStyleNameMapping.entries())) {
+          console.log(`[Main] 🎯   "${key}" -> "${value}"`);
+        }
+      }
+    
+    console.log("[Main - ImportDesignSystem] Sending navigation data to UI:", {
+        estimatedRatio: importResult.estimatedRatio,
+        baseSizeInPx: importResult.baseSizeInPx,
+        largeSizeInPx: importResult.largeSizeInPx,
+        primaryScannedFontFamily: importResult.primaryFontFamily,
+        primaryScannedFontStyle: importResult.primaryFontStyle
+    });
+    
+      // Emit completion event with extracted data for UI population
+    emit('APPLY_MATCHES_COMPLETE', {
+      success: true,
+      nodesChanged: 0, // No nodes were changed, just importing data
+        appliedToFrame: false,
+        estimatedRatio: importResult.estimatedRatio,
+        baseSizeInPx: importResult.baseSizeInPx,
+        largeSizeInPx: importResult.largeSizeInPx,
+        primaryScannedFontFamily: importResult.primaryFontFamily,
+        primaryScannedFontStyle: importResult.primaryFontStyle,
+        detectedNamingConvention: data.targetSystem
+    } as ApplyMatchesCompleteMessage);
+      
+    } else {
+      console.error(`[Main] No handler found for system: ${data.targetSystem}`);
+      emit('APPLY_MATCHES_COMPLETE', {
+        success: false,
+        nodesChanged: 0,
+        appliedToFrame: false
+      } as ApplyMatchesCompleteMessage);
+    }
+  });
+
+  on('CREATE_STYLES', async (request: CreateStylesRequest) => {
+    console.log('[Main] Received CREATE_STYLES request:', request);
+    // Store UI rounding preferences for downstream helpers
+    (globalThis as any).lastRoundingGridSize = request.roundingGridSize ?? 0;
+    (globalThis as any).lastLineHeightUnit = request.lineHeightUnit || 'percent';
+    const resolvedStyleIds = await createFigmaTextStyles(
+      request.typeSystem,
+      request.selectedStyle,
+      request.activeMode,
+      availableFontsList,
+      request.selectedPresetProfile,
+      request.namingConvention,
+      { roundingGridSize: request.roundingGridSize, lineHeightUnit: request.lineHeightUnit }
+    );
+
+    // Keep Create flow aligned with Update flow:
+    // apply resolved style IDs to active context (live scan context first, then preview mapping fallback).
+    if (Object.keys(resolvedStyleIds).length > 0) {
+      try {
+        await applyMappedStyleIdsToActiveContext(resolvedStyleIds, {
+          typeSystem: request.typeSystem,
+          selectedStyle: request.selectedStyle,
+          activeMode: request.activeMode,
+          namingConvention: request.namingConvention,
+        });
+      } catch (applyError) {
+        console.error('[Main] Error applying created style IDs to active context:', applyError);
+        // Do not fail the create operation if context apply fails.
+      }
+    }
+    
+    emit('OPERATION_COMPLETE');
+  });
+
+  on('SMART_MATCH_STYLES', async (data: any) => {
+    console.log('[Main] Received SMART_MATCH_STYLES with:', data);
+    const apiKey = await getOpenaiApiKey();
+    if (!apiKey) {
+      figma.notify('OpenAI API key not set.', { error: true });
+      emit('OPERATION_COMPLETE');
+      return;
+    }
+
+    const systemPrompt = getRelumeSmartMatchPrompt(data.figmaStyles);
+    const userPromptContent = JSON.stringify(data.figmaStyles);
+
+    try {
+      const llmResponseData = await callOpenaiApiForAutoMatch(apiKey, systemPrompt, userPromptContent);
+      if (llmResponseData.choices && llmResponseData.choices[0] && llmResponseData.choices[0].message && llmResponseData.choices[0].message.content) {
+        const parsedContent = JSON.parse(llmResponseData.choices[0].message.content);
+        if (parsedContent && Array.isArray(parsedContent.mapped_styles)) {
+          const llmMappedStyles = parsedContent.mapped_styles;
+          // For now, just log the mapped styles
+          console.log('[Main] LLM-mapped styles for Relume:', llmMappedStyles);
+          emit('SMART_MATCH_RESULTS', { mappedStyles: llmMappedStyles });
+        }
+      }
+    } catch (error) {
+      console.error('[Main] Error during smart matching:', error);
+      figma.notify('Error during smart matching. Check console for details.', { error: true });
+      emit('OPERATION_COMPLETE');
+    }
+  });
+
+  on('APPLY_SMART_MATCH_STYLES', async (data: any) => {
+    console.log('[Main] Received APPLY_SMART_MATCH_STYLES with:', data);
+    const { mappedStyles, headlineWeight } = data;
+    const typeSystem: TypographySystem = {};
+
+    for (const style of mappedStyles) {
+      const { id, mappedSystemStyle, fontFamily, fontSize, lineHeight, letterSpacing } = style;
+      let fontStyle = style.fontStyle || 'Regular';
+
+      if (mappedSystemStyle.startsWith('Desktop/H') || mappedSystemStyle.startsWith('Mobile/H')) {
+        fontStyle = headlineWeight;
+      }
+      
+      typeSystem[mappedSystemStyle] = {
+        size: fontSize,
+        lineHeight: lineHeight,
+        letterSpacing: letterSpacing,
+        fontFamily: fontFamily,
+        fontStyle: fontStyle
+      };
+    }
+
+    await createFigmaTextStyles(typeSystem, 'Regular', 'desktop', availableFontsList);
+    emit('OPERATION_COMPLETE');
+  });
+
+  // NEW: Helper function to apply Figma text styles to preview frame nodes
+  async function applyStylesToPreviewFrame(
+    typeSystem: TypographySystem, 
+    selectedStyle: string, 
+    activeMode: 'desktop' | 'mobile',
+    namingConvention: string
+  ): Promise<void> {
+    console.log('[Main] 🔍 DEBUGGING applyStylesToPreviewFrame...');
+    
+    const latestPreviewFrame = stateAccessors.getLatestPreviewFrame();
+    if (!latestPreviewFrame || latestPreviewFrame.removed) {
+      console.log('[Main] No preview frame found for auto-apply — skipping.');
+      return;
+    }
+    
+    const previewNodeMapping = stateAccessors.getPreviewNodeMapping();
+    if (!previewNodeMapping || previewNodeMapping.size === 0) {
+      console.log('[Main] No node mapping for auto-apply — skipping.');
+      return;
+    }
+    
+    console.log(`[Main] applyStylesToPreviewFrame: frame="${latestPreviewFrame.name}", mapping keys=[${Array.from(previewNodeMapping.keys()).join(', ')}]`);
+    console.log(`[Main] typeSystem keys=[${Object.keys(typeSystem).join(', ')}]`);
+    
+    const localStyles = figma.getLocalTextStyles();
+    const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+    console.log(`[Main] Found ${localStyles.length} local text styles`);
+    
+    let stylesApplied = 0;
+    let stylesFailed = 0;
+    const failedNames: string[] = [];
+    
+    for (const [styleKey, nodeIds] of Array.from(previewNodeMapping.entries())) {
+      const styleData = typeSystem[styleKey];
+      if (!styleData) {
+        console.warn(`[Main] No style data for key: "${styleKey}"`);
+        stylesFailed++;
+        continue;
+      }
+
+      const specificFamily = styleData.fontFamily || typeSystem.textMain?.fontFamily || 'Inter';
+      const displayName = styleData.customName?.trim() || getDisplayNameWithConvention(styleKey, namingConvention);
+      const modePrefix = getStyleFolderPrefix(activeMode);
+      const figmaStyleName = `${modePrefix} / ${specificFamily} / ${displayName}`;
+      
+      const figmaStyle = localStyleMap.get(figmaStyleName);
+      if (!figmaStyle) {
+        console.warn(`[Main] ❌ Could not find Figma text style: "${figmaStyleName}"`);
+        failedNames.push(figmaStyleName);
+        stylesFailed++;
+        continue;
+      }
+      
+      for (const nodeId of nodeIds) {
+        try {
+          const textNode = await figma.getNodeByIdAsync(nodeId) as TextNode;
+          if (textNode && textNode.type === 'TEXT' && !textNode.removed) {
+            textNode.textStyleId = figmaStyle.id;
+            stylesApplied++;
+          }
+        } catch (error) {
+          console.error(`[Main] ❌ Error applying style to node ${nodeId}:`, error);
+          stylesFailed++;
+        }
+      }
+    }
+    
+    if (stylesApplied > 0) {
+      figma.notify(`Applied ${stylesApplied} style(s) to preview frame`);
+    } else if (stylesFailed > 0) {
+      figma.notify(`⚠ Could not match ${stylesFailed} style(s). First: ${failedNames[0] || 'unknown'}`, { error: true });
+    } else {
+      figma.notify('⚠ No styles to apply', { error: true });
+    }
+  }
+
+  // Normalize a style label/key to internal system key (display, h1, ...).
+  function resolveInternalStyleKeyFromAnyLabel(
+    rawLabel: string,
+    preferredConvention?: string
+  ): string {
+    const label = (rawLabel || '').trim();
+    if (!label) return rawLabel;
+
+    // Already internal key
+    if (Object.prototype.hasOwnProperty.call(STYLE_KEYS, label.toUpperCase().replace(/[^A-Z]/g, '_'))) {
+      return label;
+    }
+    const knownInternal = new Set(Object.values(STYLE_KEYS));
+    if (knownInternal.has(label as any)) {
+      return label;
+    }
+
+    const conventions = [
+      preferredConvention,
+      'Default Naming',
+      'Lumos',
+      'Tailwind',
+      'Bootstrap',
+      'Relume',
+      'Material 3',
+      'Material',
+    ].filter(Boolean) as string[];
+
+    for (const convention of conventions) {
+      const resolved = getInternalKeyForDisplayName(label, convention);
+      if (resolved) return resolved;
+    }
+    return rawLabel;
+  }
+
+  // Build a best-effort node mapping from current frame text node names.
+  // This rehydrates stale/missing preview mappings for imported specimen frames.
+  async function rehydratePreviewNodeMappingFromFrame(
+    frame: FrameNode,
+    preferredConvention?: string
+  ): Promise<Map<string, string[]>> {
+    const rebuilt = new Map<string, string[]>();
+    const textNodes = frame.findAllWithCriteria({ types: ['TEXT'] }) as TextNode[];
+
+    for (const node of textNodes) {
+      const name = (node.name || '').trim();
+      if (!name.startsWith('Example Text -')) continue;
+      const displayLabel = name.replace('Example Text -', '').trim();
+      if (!displayLabel) continue;
+
+      const internalKey = resolveInternalStyleKeyFromAnyLabel(displayLabel, preferredConvention);
+      if (!rebuilt.has(internalKey)) rebuilt.set(internalKey, []);
+      rebuilt.get(internalKey)!.push(node.id);
+    }
+
+    console.log(`[Main] Rehydrated preview mapping from frame: ${rebuilt.size} keys`);
+    return rebuilt;
+  }
+
+  // Apply mapped style IDs directly to active context.
+  // This avoids brittle name reconstruction when update mapping targets arbitrary local style structures.
+  async function applyMappedStyleIdsToActiveContext(
+    systemKeyToStyleId: { [systemKey: string]: string },
+    fallbackRefresh?: {
+      typeSystem: TypographySystem;
+      selectedStyle: string;
+      activeMode: 'desktop' | 'mobile';
+      namingConvention?: string;
+    }
+  ): Promise<void> {
+    const liveFrameId = stateAccessors.getLiveTweakingTargetFrameId();
+    const liveNodeMappings = stateAccessors.getLiveTweakingNodeMappings();
+    const mappedStyleCount = Object.keys(systemKeyToStyleId).length;
+    console.log(
+      `[Main] applyMappedStyleIdsToActiveContext start: mappedStyles=${mappedStyleCount}, liveContext=${Boolean(liveFrameId && liveNodeMappings && liveNodeMappings.length > 0)}`
+    );
+
+    // Prefer live scan context when available.
+    if (liveFrameId && liveNodeMappings && liveNodeMappings.length > 0) {
+      let applied = 0;
+      for (const mapping of liveNodeMappings) {
+        const styleId = systemKeyToStyleId[mapping.systemStyleKey];
+        if (!styleId) continue;
+        try {
+          const textNode = await figma.getNodeByIdAsync(mapping.nodeId) as TextNode | null;
+          if (textNode && textNode.type === 'TEXT' && !textNode.removed) {
+            textNode.textStyleId = styleId;
+            applied++;
+          }
+        } catch (error) {
+          console.error(`[Main] Failed applying mapped style ID to live node ${mapping.nodeId}:`, error);
+        }
+      }
+      if (applied > 0) {
+        console.log(`[Main] Applied mapped style IDs to ${applied} live context node(s).`);
+        return;
+      }
+      console.log('[Main] Live context existed but no nodes were updated via mapped style IDs.');
+    }
+
+    // Fallback: preview/specimen mapping context.
+    const latestPreviewFrame = stateAccessors.getLatestPreviewFrame();
+    const previewNodeMapping = stateAccessors.getPreviewNodeMapping();
+    if (!latestPreviewFrame || latestPreviewFrame.removed || !previewNodeMapping || previewNodeMapping.size === 0) {
+      console.log(
+        `[Main] No preview mapping context for ID-apply (frame=${Boolean(latestPreviewFrame && !latestPreviewFrame.removed)}, mappingSize=${previewNodeMapping?.size ?? 0}).`
+      );
+      if (fallbackRefresh && latestPreviewFrame && !latestPreviewFrame.removed) {
+        try {
+          console.log('[Main] Running fallback specimen refresh via updateGivenFrame.');
+          await updateGivenFrame(
+            latestPreviewFrame,
+            fallbackRefresh.typeSystem,
+            fallbackRefresh.selectedStyle,
+            latestShowSpecLabels,
+            {},
+            [],
+            currentColorMode,
+            availableFontsList,
+            fallbackRefresh.activeMode,
+            latestActiveScaleRatio
+          );
+        } catch (error) {
+          console.error('[Main] Fallback specimen refresh failed:', error);
+        }
+      }
+      return;
+    }
+
+    const applyToMapping = async (mappingToUse: Map<string, string[]>, sourceLabel: string): Promise<number> => {
+      let appliedCount = 0;
+      for (const [mappingKey, nodeIds] of Array.from(mappingToUse.entries())) {
+        const normalizedKey = resolveInternalStyleKeyFromAnyLabel(mappingKey, fallbackRefresh?.namingConvention);
+        const styleId = systemKeyToStyleId[normalizedKey] || systemKeyToStyleId[mappingKey];
+        if (!styleId) continue;
+        for (const nodeId of nodeIds) {
+          try {
+            const textNode = await figma.getNodeByIdAsync(nodeId) as TextNode | null;
+            if (textNode && textNode.type === 'TEXT' && !textNode.removed) {
+              textNode.textStyleId = styleId;
+              appliedCount++;
+            }
+          } catch (error) {
+            console.error(`[Main] Failed applying mapped style ID to ${sourceLabel} node ${nodeId}:`, error);
+          }
+        }
+      }
+      return appliedCount;
+    };
+
+    let applied = await applyToMapping(previewNodeMapping, 'preview');
+    if (applied > 0) {
+      console.log(`[Main] Applied mapped style IDs to ${applied} preview context node(s).`);
+      return;
+    }
+
+    // Rehydrate preview mapping from frame node names when restored mapping is stale or convention-labeled.
+    const rebuiltMapping = await rehydratePreviewNodeMappingFromFrame(
+      latestPreviewFrame,
+      fallbackRefresh?.namingConvention
+    );
+    if (rebuiltMapping.size > 0) {
+      stateAccessors.setPreviewNodeMapping(rebuiltMapping);
+      applied = await applyToMapping(rebuiltMapping, 'rehydrated preview');
+    }
+
+    if (applied > 0) {
+      console.log(`[Main] Applied mapped style IDs to ${applied} rehydrated preview node(s).`);
+      return;
+    }
+
+    if (fallbackRefresh && latestPreviewFrame && !latestPreviewFrame.removed) {
+      try {
+        console.log('[Main] ID-apply mapped 0 nodes; running fallback specimen refresh via updateGivenFrame.');
+        await updateGivenFrame(
+          latestPreviewFrame,
+          fallbackRefresh.typeSystem,
+          fallbackRefresh.selectedStyle,
+          latestShowSpecLabels,
+          {},
+          [],
+          currentColorMode,
+          availableFontsList,
+          fallbackRefresh.activeMode,
+          latestActiveScaleRatio
+        );
+      } catch (error) {
+        console.error('[Main] Fallback specimen refresh after ID-apply miss failed:', error);
+      }
+    }
+  }
+
+  on('UPDATE_STYLES', async (request: CreateStylesRequest) => {
+    console.log('[Main] Received UPDATE_STYLES request:', request);
+
+    (globalThis as any).lastRoundingGridSize = request.roundingGridSize ?? 0;
+    (globalThis as any).lastLineHeightUnit = request.lineHeightUnit || 'percent';
+
+    const localStyles = figma.getLocalTextStyles();
+    const namingConvention = request.namingConvention || 'Default Naming';
+
+    // Build list of plugin system styles with their target values
+    const systemStyleKeys = ['display', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'textLarge', 'textMain', 'textSmall', 'micro'];
+    const pluginStyles = systemStyleKeys
+      .filter(key => request.typeSystem[key])
+      .map(key => {
+        const style = request.typeSystem[key];
+        return {
+          systemKey: key,
+          displayName: getDisplayNameWithConvention(key, namingConvention),
+          size: Math.round(style.size),
+          fontFamily: style.fontFamily || 'Inter',
+          fontStyle: style.fontStyle || 'Regular',
+        };
+      });
+
+    // Build list of all Figma local text styles
+    const pluginOrder = ['display', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'textLarge', 'textMain', 'textSmall', 'micro'];
+    const figmaStyles = localStyles
+      .map(style => {
+        const inferredSystemKey = findSystemKeyForStyle(style.name, namingConvention);
+        const orderIndex = inferredSystemKey ? pluginOrder.indexOf(inferredSystemKey) : -1;
+        return {
+          styleId: style.id,
+          styleName: style.name,
+          fontSize: Math.round(style.fontSize as number),
+          fontFamily: (style.fontName as FontName).family,
+          inferredSystemKey,
+          orderIndex,
+        };
+      })
+      .sort((a, b) => {
+        const aMatched = a.orderIndex >= 0;
+        const bMatched = b.orderIndex >= 0;
+        if (aMatched && bMatched) {
+          if (a.orderIndex !== b.orderIndex) return a.orderIndex - b.orderIndex;
+          if (b.fontSize !== a.fontSize) return b.fontSize - a.fontSize;
+          return a.styleName.localeCompare(b.styleName);
+        }
+        if (aMatched !== bMatched) return aMatched ? -1 : 1;
+        if (b.fontSize !== a.fontSize) return b.fontSize - a.fontSize;
+        return a.styleName.localeCompare(b.styleName);
+      });
+
+    // Auto-match: try to pair each plugin style to a Figma style
+    const autoMapping: { [systemKey: string]: string } = {};
+    for (const ps of pluginStyles) {
+      const matchedFigmaStyle = figmaStyles.find(fs => {
+        const systemKey = findSystemKeyForStyle(fs.styleName, namingConvention);
+        return systemKey === ps.systemKey;
+      });
+      if (matchedFigmaStyle) {
+        autoMapping[ps.systemKey] = matchedFigmaStyle.styleId;
+      }
+    }
+
+    console.log(`[Main] Plugin styles: ${pluginStyles.length}, Figma styles: ${figmaStyles.length}, Auto-matched: ${Object.keys(autoMapping).length}`);
+
+    emit('STYLE_MAPPING_REQUIRED', {
+      pluginStyles,
+      figmaStyles,
+      autoMapping,
+      originalRequest: request,
+    });
+  });
+
+  on('APPLY_STYLE_MAPPING', async (data: ApplyStyleMappingEvent) => {
+    console.log('[Main] Received APPLY_STYLE_MAPPING:', data);
+    const { mapping, originalRequest } = data;
+    const variableHandlingMode = data.variableHandlingMode || 'disconnect';
+    const localStyles = figma.getLocalTextStyles();
+    const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+    const ADD_NEW_STYLE_SENTINEL = "__add_new_style__";
+    let updated = 0;
+    let created = 0;
+    let failed = 0;
+    let lastError = '';
+    const resolvedStyleIds: { [systemKey: string]: string } = {};
+    const namingConvention = originalRequest.namingConvention || 'Default Naming';
+    const modePrefix = getStyleFolderPrefix(originalRequest.activeMode);
+    const localVariables = await figma.variables.getLocalVariablesAsync();
+    const localVariableIds = new Set(localVariables.map(v => v.id));
+
+    // Detect bound font-family/font-style variables in mapped local styles.
+    const detectedVariableMap = new Map<string, {
+      variableId: string;
+      variableName: string;
+      property: 'fontFamily' | 'fontStyle' | 'fontSize';
+      usedByStyles: string[];
+    }>();
+
+    for (const [systemKey, mappedId] of Object.entries(mapping)) {
+      if (!mappedId || mappedId === ADD_NEW_STYLE_SENTINEL) continue;
+      const mappedStyle = localStyles.find((s) => s.id === mappedId);
+      const targetValues = originalRequest.typeSystem[systemKey];
+      if (!mappedStyle || !targetValues) continue;
+
+      if (!hasVariableBindings(mappedStyle, localVariableIds)) continue;
+      const bindings = extractVariableBindings(mappedStyle, localVariableIds);
+
+      for (const property of ['fontFamily', 'fontStyle', 'fontSize'] as const) {
+        const variableId = bindings[property];
+        if (!variableId) continue;
+        const variable = await figma.variables.getVariableByIdAsync(variableId);
+        if (!variable) continue;
+
+        if (!detectedVariableMap.has(variableId)) {
+          detectedVariableMap.set(variableId, {
+            variableId,
+            variableName: variable.name,
+            property,
+            usedByStyles: [mappedStyle.name],
+          });
+        } else {
+          const existing = detectedVariableMap.get(variableId)!;
+          if (!existing.usedByStyles.includes(mappedStyle.name)) {
+            existing.usedByStyles.push(mappedStyle.name);
+          }
+        }
+      }
+    }
+
+    // If user chose "update variables", write bound font variables first.
+    if (variableHandlingMode === 'update' && detectedVariableMap.size > 0) {
+      const variableUpdatePlan = new Map<string, { property: 'fontFamily' | 'fontStyle' | 'fontSize'; newValue: string | number; sourceStyle: string }>();
+      const conflictingVariables = new Set<string>();
+
+      for (const [systemKey, mappedId] of Object.entries(mapping)) {
+        if (!mappedId || mappedId === ADD_NEW_STYLE_SENTINEL) continue;
+        const mappedStyle = localStyles.find((s) => s.id === mappedId);
+        const targetValues = originalRequest.typeSystem[systemKey];
+        if (!mappedStyle || !targetValues) continue;
+
+        if (!hasVariableBindings(mappedStyle, localVariableIds)) continue;
+        const bindings = extractVariableBindings(mappedStyle, localVariableIds);
+
+        for (const property of ['fontFamily', 'fontStyle', 'fontSize'] as const) {
+          const variableId = bindings[property];
+          if (!variableId) continue;
+          const nextValue = property === 'fontFamily'
+            ? (targetValues.fontFamily || 'Inter')
+            : property === 'fontStyle'
+              ? (targetValues.fontStyle || 'Regular')
+              : targetValues.size;
+
+          if (nextValue === undefined || nextValue === null) continue;
+
+          const existingPlan = variableUpdatePlan.get(variableId);
+          if (!existingPlan) {
+            variableUpdatePlan.set(variableId, { property, newValue: nextValue, sourceStyle: mappedStyle.name });
+            continue;
+          }
+
+          if (existingPlan.newValue !== nextValue) {
+            conflictingVariables.add(variableId);
+            console.warn(
+              `[Main] Variable "${variableId}" is shared across mapped styles with conflicting ${property} values. ` +
+              `Keeping first value "${existingPlan.newValue}" from "${existingPlan.sourceStyle}", ignoring "${nextValue}" from "${mappedStyle.name}".`
+            );
+          }
+        }
+      }
+
+      for (const [variableId, updatePlan] of Array.from(variableUpdatePlan.entries())) {
+        try {
+          const figmaVariable = await figma.variables.getVariableByIdAsync(variableId);
+          if (!figmaVariable) continue;
+          const collection = await figma.variables.getVariableCollectionByIdAsync(figmaVariable.variableCollectionId);
+          if (!collection) continue;
+          const modeId = collection.defaultModeId;
+          figmaVariable.setValueForMode(modeId, updatePlan.newValue as any);
+        } catch (error) {
+          console.warn(`[Main] Failed to update bound ${updatePlan.property} variable "${variableId}":`, error);
+        }
+      }
+
+      if (conflictingVariables.size > 0) {
+        figma.notify(
+          `Some shared variables had conflicting target values; kept first mapped value for ${conflictingVariables.size} variable(s).`,
+          { timeout: 5000 }
+        );
+      }
+    }
+
+    // Derive target folder context from the styles user mapped in this update run.
+    // This prevents "Add new style" from being created as an isolated outlier folder.
+    const parentPathCounts = new Map<string, number>();
+    Object.values(mapping).forEach((mappedId) => {
+      if (!mappedId || mappedId === ADD_NEW_STYLE_SENTINEL) return;
+      const mappedStyle = localStyles.find((s) => s.id === mappedId);
+      if (!mappedStyle) return;
+      const parts = mappedStyle.name.split('/').map((p) => p.trim()).filter(Boolean);
+      const parentPath = parts.length > 1 ? parts.slice(0, -1).join(' / ') : '';
+      parentPathCounts.set(parentPath, (parentPathCounts.get(parentPath) ?? 0) + 1);
+    });
+
+    let preferredParentPath = '';
+    let preferredParentCount = -1;
+    for (const [path, count] of Array.from(parentPathCounts.entries())) {
+      if (count > preferredParentCount) {
+        preferredParentPath = path;
+        preferredParentCount = count;
+      }
+    }
+
+    for (const [systemKey, figmaStyleId] of Object.entries(mapping)) {
+      if (!figmaStyleId) continue;
+      const targetValues = originalRequest.typeSystem[systemKey];
+      if (!targetValues) { console.warn(`[Main] No target values for ${systemKey}`); failed++; continue; }
+
+      let figmaStyle: TextStyle | undefined;
+      let createdFromMapping = false;
+      if (figmaStyleId === ADD_NEW_STYLE_SENTINEL) {
+        const displayName = targetValues.customName?.trim() || getDisplayNameWithConvention(systemKey, namingConvention);
+        const fallbackParentPath = `${modePrefix} / ${targetValues.fontFamily || 'Inter'}`;
+        const parentPathToUse = preferredParentPath || fallbackParentPath;
+        const targetStyleName = parentPathToUse ? `${parentPathToUse} / ${displayName}` : displayName;
+
+        const existingStyleByName = localStyleMap.get(targetStyleName);
+        if (existingStyleByName) {
+          figmaStyle = existingStyleByName;
+        } else {
+          figmaStyle = figma.createTextStyle();
+          figmaStyle.name = targetStyleName;
+          localStyles.push(figmaStyle);
+          localStyleMap.set(targetStyleName, figmaStyle);
+          createdFromMapping = true;
+        }
+      } else {
+        figmaStyle = localStyles.find(s => s.id === figmaStyleId);
+      }
+
+      if (!figmaStyle) { console.warn(`[Main] Figma style not found for mapping target: ${figmaStyleId}`); failed++; continue; }
+
+      try {
+        if (variableHandlingMode === 'disconnect' && figmaStyleId !== ADD_NEW_STYLE_SENTINEL) {
+          const bindings = extractVariableBindings(figmaStyle, localVariableIds);
+          const propsToDetach = ['fontFamily', 'fontStyle', 'fontSize', 'lineHeight', 'letterSpacing'] as const;
+          for (const prop of propsToDetach) {
+            if (bindings[prop]) {
+              try {
+                (figmaStyle as any).setBoundVariable(prop, null);
+              } catch (e) {
+                console.warn(`[Main] Could not detach ${prop} variable from "${figmaStyle.name}":`, e);
+              }
+            }
+          }
+        }
+
+        const fontFamily = targetValues.fontFamily || 'Inter';
+        const fontStyle = targetValues.fontStyle || 'Regular';
+        const fontName: FontName = { family: fontFamily, style: fontStyle };
+        await figma.loadFontAsync(fontName);
+        figmaStyle.fontName = fontName;
+        figmaStyle.fontSize = targetValues.size;
+
+        const lhUnit = originalRequest.lineHeightUnit || 'percent';
+        if (lhUnit === 'px') {
+          const lhPx = targetValues.size * (targetValues.lineHeight ?? 1.2);
+          figmaStyle.lineHeight = { value: Math.round(lhPx * 10) / 10, unit: 'PIXELS' };
+        } else {
+          // Keep UPDATE_MAPPING parity with the rest of the style pipeline and grid display:
+          // percent line-height is written as an integer percent.
+          figmaStyle.lineHeight = { value: Math.round((targetValues.lineHeight ?? 1.2) * 100), unit: 'PERCENT' };
+        }
+
+        const lsRounded = Math.round((targetValues.letterSpacing ?? 0) / 0.25) * 0.25;
+        figmaStyle.letterSpacing = { value: lsRounded, unit: 'PERCENT' };
+
+        try { figmaStyle.leadingTrim = 'CAP_HEIGHT'; } catch (_) { /* unsupported API */ }
+
+        if (targetValues.textCase) {
+          const caseMap: { [key: string]: TextCase } = {
+            'Original': 'ORIGINAL',
+            'Uppercase': 'UPPER',
+            'Lowercase': 'LOWER',
+            'Title Case': 'TITLE',
+            'ORIGINAL': 'ORIGINAL',
+            'UPPER': 'UPPER',
+            'LOWER': 'LOWER',
+            'TITLE': 'TITLE',
+          };
+          const mapped = caseMap[targetValues.textCase];
+          if (mapped) {
+            try { figmaStyle.textCase = mapped; } catch (_) { /* unsupported */ }
+          }
+        }
+
+        if (createdFromMapping) {
+          created++;
+          console.log(`[Main] Created "${figmaStyle.name}" from ${systemKey} values (${targetValues.size}px)`);
+        } else {
+          updated++;
+          console.log(`[Main] Updated "${figmaStyle.name}" with ${systemKey} values (${targetValues.size}px)`);
+        }
+        resolvedStyleIds[systemKey] = figmaStyle.id;
+      } catch (error: any) {
+        console.error(`[Main] Failed to update "${figmaStyle.name}" (${systemKey}):`, error?.message || error);
+        lastError = error?.message || String(error);
+        failed++;
+      }
+    }
+
+    // Keep Update flow behavior aligned with Create flow:
+    // after successful style updates/creates, apply mapped style IDs to active context.
+    if (updated > 0 || created > 0) {
+      try {
+        await applyMappedStyleIdsToActiveContext(resolvedStyleIds, {
+          typeSystem: originalRequest.typeSystem,
+          selectedStyle: originalRequest.selectedStyle,
+          activeMode: originalRequest.activeMode,
+          namingConvention: originalRequest.namingConvention,
+        });
+      } catch (applyError) {
+        console.error('[Main] Error applying mapped style IDs to active context:', applyError);
+        // Do not fail the update operation if context apply fails.
+      }
+    }
+
+    if (failed > 0) {
+      figma.notify(`Updated ${updated}, created ${created}, ${failed} failed${lastError ? ': ' + lastError : ''}`, { error: true, timeout: 8000 });
+    } else if (updated > 0 || created > 0) {
+      figma.notify(`Updated ${updated}, created ${created} text styles`);
+    } else {
+      figma.notify('No styles were updated', { timeout: 3000 });
+    }
+
+    emit('OPERATION_COMPLETE');
+  });
+
+  on('APPLY_TEXT_STYLE_WEIGHT_MAPPING', async (data: ApplyTextStyleWeightMappingEvent) => {
+    console.log('[Main] Received APPLY_TEXT_STYLE_WEIGHT_MAPPING:', data);
+    
+    // Apply the weight mapping and continue with the update
+    const { weightMapping, selectedSizeGroups, originalRequest } = data;
+    
+    if (originalRequest.namingConvention === 'Relume' && figmaStyleNameMapping) {
+      await updateStylesFromBlueprintWithWeightMapping(originalRequest, figmaStyleNameMapping, availableFontsList, weightMapping, selectedSizeGroups);
+    } else {
+      // Fallback
+      await updateStylesStandard(originalRequest, availableFontsList);
+    }
+    
+    emit('OPERATION_COMPLETE');
+  });
+
+  // NEW: Handler for unified update (combines variables + weight variations)
+  on('APPLY_UNIFIED_UPDATE', async (data: ApplyUnifiedUpdateEvent) => {
+    console.log('[Main] Received APPLY_UNIFIED_UPDATE:', data);
+    
+    const { variableMapping, newVariables, weightMapping, selectedWeightGroups, originalRequest } = data;
+    
+    try {
+      // STEP 1: Create new variables if any
+      if (newVariables && newVariables.length > 0) {
+        console.log('[Main] 🆕 Creating new variables:', newVariables);
+        
+        // Find the collection that contains the existing font family variable
+        const localVariableCollections = await figma.variables.getLocalVariableCollectionsAsync();
+        let targetCollection = null;
+        
+        // Look for the collection containing the primary-family variable
+        for (const collection of localVariableCollections) {
+          const variables = collection.variableIds.map(id => figma.variables.getVariableById(id)).filter(Boolean);
+          const hasFontFamilyVar = variables.some(v => v && v.name.includes('family'));
+          if (hasFontFamilyVar) {
+            targetCollection = collection;
+            console.log(`[Main] Found existing font family collection: "${collection.name}"`);
+            break;
+          }
+        }
+        
+        // If no collection with font family variables exists, use the first one or create new
+        if (!targetCollection) {
+          targetCollection = localVariableCollections[0];
+          if (!targetCollection) {
+            targetCollection = figma.variables.createVariableCollection('Typography Variables');
+            console.log('[Main] Created new variable collection');
+          }
+        }
+        
+        for (const newVar of newVariables) {
+          try {
+            const variable = figma.variables.createVariable(
+              newVar.variableName,
+              targetCollection.id,
+              'STRING'
+            );
+            
+            // Set the variable value for ALL modes in the collection
+            for (const mode of targetCollection.modes) {
+              variable.setValueForMode(mode.modeId, newVar.targetValue);
+            }
+            console.log(`[Main] ✅ Created variable: ${newVar.variableName} = ${newVar.targetValue} (set for ${targetCollection.modes.length} modes)`);
+          } catch (error) {
+            console.error(`[Main] ❌ Failed to create variable ${newVar.variableName}:`, error);
+          }
+        }
+      }
+      
+      // STEP 2: Use the new clean pipeline with user's choices
+      const results = await updateDesignSystem(originalRequest, availableFontsList, weightMapping, variableMapping);
+      
+      // Notify user of results
+      if (results.stylesFailed > 0) {
+        figma.notify(results.message, { error: true });
+      } else if (results.stylesUpdated > 0 || results.variablesUpdated > 0 || results.stylesDeleted > 0) {
+        figma.notify(results.message);
+      } else {
+        figma.notify('No changes were needed.', { timeout: 3000 });
+      }
+      
+      // Apply to live tweaking frame if available
+      try {
+        await applyStylesToLiveTweakingFrame(
+          originalRequest.typeSystem,
+          originalRequest.selectedStyle,
+          originalRequest.activeMode,
+          originalRequest.namingConvention || 'Default Naming'
+        );
+      } catch (error) {
+        console.error('[Main] Error applying styles to live tweaking frame:', error);
+      }
+      
+    } catch (error) {
+      console.error('[Main] Error in unified update:', error);
+      figma.notify('Error updating styles. Check console for details.', { error: true });
+    }
+    
+    emit('OPERATION_COMPLETE');
+  });
+
+  // NEW: Handler for typography variable mapping
+  on('APPLY_TYPOGRAPHY_VARIABLE_MAPPING', async (data: ApplyTypographyVariableMappingEvent) => {
+    console.log('[Main] Received APPLY_TYPOGRAPHY_VARIABLE_MAPPING:', data);
+    
+    const { variableMapping, originalRequest } = data;
+    
+    try {
+      // Apply font variable updates
+      let updatedCount = 0;
+      let failedCount = 0;
+      
+      // Get local variables for font loading context
+      const localVariables = await figma.variables.getLocalVariablesAsync();
+      
+      for (const [variableId, mapping] of Object.entries(variableMapping)) {
+        if (mapping.action === 'update' && mapping.newValue) {
+          try {
+            const figmaVariable = await figma.variables.getVariableByIdAsync(variableId);
+            if (!figmaVariable) {
+              console.warn(`[Main] Variable not found: ${variableId}`);
+              failedCount++;
+              continue;
+            }
+            
+            // Get the collection and default mode
+            const collection = await figma.variables.getVariableCollectionByIdAsync(figmaVariable.variableCollectionId);
+            if (!collection) {
+              console.warn(`[Main] Collection not found for variable: ${figmaVariable.name}`);
+              failedCount++;
+              continue;
+            }
+            
+            const modeId = collection.defaultModeId;
+            const currentValue = figmaVariable.valuesByMode[modeId] as string;
+            
+            console.log(`[Main] 🔄 Updating variable "${figmaVariable.name}" from "${currentValue}" to "${mapping.newValue}"`);
+            
+            // For font variables, we need to load fonts first
+            if (figmaVariable.name.includes('font') || figmaVariable.name.includes('Font')) {
+              // Load current font combinations if this might affect existing text styles
+              if (figmaVariable.name.includes('family') || figmaVariable.name.includes('Family')) {
+                // For font family variables, try to load potential font combinations
+                const potentialWeights = ['Regular', 'Medium', 'Bold', 'Semi Bold', 'Light', 'Black'];
+                for (const weight of potentialWeights) {
+                  try {
+                    await figma.loadFontAsync({ family: currentValue, style: weight });
+                    console.log(`[Main] 🔤 Loaded existing font: ${currentValue} ${weight}`);
+                  } catch (e) {
+                    // Expected - not all weights exist for all fonts
+                  }
+                  
+                  try {
+                    await figma.loadFontAsync({ family: mapping.newValue, style: weight });
+                    console.log(`[Main] 🔤 Loaded new font: ${mapping.newValue} ${weight}`);
+                  } catch (e) {
+                    // Expected - not all weights exist for all fonts
+                  }
+                }
+              } else if (figmaVariable.name.includes('style') || figmaVariable.name.includes('weight')) {
+                // For font style/weight variables, we need to know the family
+                // Try to find the family variable to get the current family
+                let fontFamily = 'Inter'; // Default fallback
+                for (const otherVariable of localVariables) {
+                  if (otherVariable.name.includes('family') || otherVariable.name.includes('Family')) {
+                    const otherCollection = await figma.variables.getVariableCollectionByIdAsync(otherVariable.variableCollectionId);
+                    if (otherCollection) {
+                      const otherModeId = otherCollection.defaultModeId;
+                      fontFamily = otherVariable.valuesByMode[otherModeId] as string;
+                      break;
+                    }
+                  }
+                }
+                
+                try {
+                  await figma.loadFontAsync({ family: fontFamily, style: currentValue });
+                  console.log(`[Main] 🔤 Loaded existing font: ${fontFamily} ${currentValue}`);
+                } catch (e) {
+                  console.warn(`[Main] Could not load existing font: ${fontFamily} ${currentValue}`);
+                }
+                
+                try {
+                  await figma.loadFontAsync({ family: fontFamily, style: mapping.newValue });
+                  console.log(`[Main] 🔤 Loaded new font: ${fontFamily} ${mapping.newValue}`);
+                } catch (e) {
+                  console.warn(`[Main] Could not load new font: ${fontFamily} ${mapping.newValue}`);
+                }
+              }
+            }
+            
+            // Update the variable value with the new font family or weight
+            figmaVariable.setValueForMode(modeId, mapping.newValue);
+            updatedCount++;
+            
+            console.log(`[Main] ✅ Updated variable "${figmaVariable.name}" to "${mapping.newValue}"`);
+            
+          } catch (error) {
+            console.error(`[Main] Failed to update variable ${variableId}:`, error);
+            failedCount++;
+          }
+        }
+      }
+      
+      if (updatedCount > 0) {
+        figma.notify(`Updated ${updatedCount} typography variable(s) with new font settings.`);
+        console.log('[Main] ✅ Variable updates complete. Now updating existing text styles with typography system values...');
+        
+        // Update existing text styles (by their current names) with typography system values
+        // while preserving variable connections
+        await updateExistingStylesWithVariables(originalRequest, availableFontsList);
+        
+        // 🎯 CRITICAL FIX: Apply updated text styles to scanned frame nodes
+        console.log('[Main] 🎯 Now applying updated text styles to scanned frame nodes...');
+        try {
+          await applyStylesToLiveTweakingFrame(
+            originalRequest.typeSystem,
+            originalRequest.selectedStyle,
+            originalRequest.activeMode,
+            originalRequest.namingConvention || 'Lumos'
+          );
+        } catch (error) {
+          console.error('[Main] Error applying styles to live tweaking frame:', error);
+          // Don't fail the entire operation if auto-apply fails
+        }
+    } else {
+        console.log('[Main] No variables were updated. Proceeding with standard style updates.');
+        // Only call updateStylesStandard if no variables were updated
+      await updateStylesStandard(originalRequest, availableFontsList);
+        
+        // Also apply to live tweaking frame for standard updates
+        try {
+          await applyStylesToLiveTweakingFrame(
+            originalRequest.typeSystem,
+            originalRequest.selectedStyle,
+            originalRequest.activeMode,
+            originalRequest.namingConvention || 'Lumos'
+          );
+        } catch (error) {
+          console.error('[Main] Error applying styles to live tweaking frame:', error);
+        }
+      }
+      
+      if (failedCount > 0) {
+        console.warn(`[Main] ${failedCount} variable(s) failed to update`);
+      }
+      
+    } catch (error) {
+      console.error('[Main] Error applying variable mapping:', error);
+      figma.notify('Error updating variables. Check console for details.', { error: true });
+    }
+    
+    emit('OPERATION_COMPLETE');
+  });
+
+  // Helper function for the standard update logic
+  async function updateStylesStandard(request: CreateStylesRequest, availableFontsList: FontInfo[]) {
+    const { typeSystem, selectedStyle, activeMode } = request;
+    const localStyles = figma.getLocalTextStyles();
+    const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+    
+    let stylesUpdated = 0;
+    let stylesFailed = 0;
+    let stylesCreated = 0;
+
+    // Default font info
+    const defaultFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+    const defaultFontStyle = selectedStyle || 'Regular';
+
+    console.log(`[Main] updateStylesStandard: Updating ${Object.keys(typeSystem).length} styles for mode: ${activeMode}`);
+
+    for (const [styleName, styleData] of Object.entries(typeSystem)) {
+      if (styleName.toLowerCase() === 'displayx8') continue; // Skip decorative styles
+      
+      const specificFamily = styleData.fontFamily || defaultFontFamily;
+      const specificStyle = styleData.fontStyle || defaultFontStyle;
+      
+      // Generate the expected Figma style name (matching the creation logic)
+      const modePrefix = getStyleFolderPrefix(activeMode);
+      const displayName = styleData.customName?.trim() || getDisplayName(styleName);
+      const expectedStyleName = `${modePrefix} / ${specificFamily} / ${displayName}`;
+      
+      console.log(`[Main] Processing style: ${styleName} -> ${expectedStyleName}`);
+
+      // Look for existing style
+      const existingStyle = localStyleMap.get(expectedStyleName);
+      
+      if (existingStyle) {
+        // Update existing style
+        try {
+          await updateSingleStyle(existingStyle, styleData, false);
+          stylesUpdated++;
+          console.log(`[Main] Updated existing style: ${expectedStyleName}`);
+        } catch (error) {
+          console.error(`[Main] Failed to update style ${expectedStyleName}:`, error);
+          stylesFailed++;
+        }
+      } else {
+        // Create new style if it doesn't exist
+        try {
+          const newStyle = figma.createTextStyle();
+          newStyle.name = expectedStyleName;
+          await updateSingleStyle(newStyle, styleData, true);
+          stylesCreated++;
+          console.log(`[Main] Created new style: ${expectedStyleName}`);
+        } catch (error) {
+          console.error(`[Main] Failed to create style ${expectedStyleName}:`, error);
+          stylesFailed++;
+        }
+      }
+    }
+
+    // Provide user feedback
+    let message = '';
+    if (stylesUpdated > 0) message += `Updated ${stylesUpdated} style(s)`;
+    if (stylesCreated > 0) {
+      if (message) message += ', ';
+      message += `created ${stylesCreated} new style(s)`;
+    }
+    if (stylesFailed > 0) {
+      if (message) message += ', ';
+      message += `${stylesFailed} style(s) failed`;
+    }
+    
+    if (message) {
+      message += '.';
+      console.log(`[Main] ${message}`);
+      figma.notify(message, stylesFailed > 0 ? { error: true } : undefined);
+    } else {
+      figma.notify("No styles were updated or created.", { error: true });
+    }
+  }
+
+  // Helper function to check for text style weight mismatches
+  async function checkTextStyleWeightMismatches(request: CreateStylesRequest, blueprint: Map<string, string>, availableFontsList: FontInfo[]) {
+    const { typeSystem } = request;
+    const localStyles = figma.getLocalTextStyles();
+    
+    // Find all unique weights used in Relume text styles by examining actual file contents
+    const relumeWeights = new Set<string>();
+    const textSizeGroups = new Set<string>();
+    
+    // Scan ALL local text styles, not just the blueprint mapping
+    for (const style of localStyles) {
+      if (style.name.startsWith('Text/')) {
+        const parts = style.name.split('/');
+        if (parts.length >= 3) {
+          const baseName = `${parts[0]}/${parts[1]}`; // e.g., "Text/Large"
+          const weight = parts[2]; // e.g., "Normal", "Bold", "Light", etc.
+          textSizeGroups.add(baseName);
+          relumeWeights.add(weight);
+          console.log(`[Main] Found Relume text style: ${baseName} with weight: ${weight}`);
+        }
+      }
+    }
+
+    // Get available weights in the new font
+    const newFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+    const allStylesForFont = availableFontsList
+      .filter(f => f.family === newFontFamily)
+      .map(f => f.style);
+    const newFontStyles = allStylesForFont.length > 0 ? allStylesForFont : ['Regular'];
+    
+    console.log('[Main] Relume weights found:', Array.from(relumeWeights));
+    console.log('[Main] Text size groups found:', Array.from(textSizeGroups));
+    console.log('[Main] Available new font weights:', newFontStyles);
+
+    // Check if any Relume weights are missing in the new font
+    const missingWeights = Array.from(relumeWeights).filter(w => !newFontStyles.includes(w));
+    
+    return {
+      hasMismatches: true, // FORCE MAPPING SCREEN FOR TESTING: missingWeights.length > 0,
+      missingWeights: Array.from(relumeWeights), // Send all weights for mapping
+      availableWeights: newFontStyles,
+      textSizeGroups: Array.from(textSizeGroups),
+      newFontFamily: newFontFamily // Add the actual font family being changed to
+    };
+  }
+
+  // Helper function for the new Relume blueprint-driven update logic with weight mapping
+  async function updateStylesFromBlueprintWithWeightMapping(
+    request: CreateStylesRequest, 
+    blueprint: Map<string, string>, 
+    availableFontsList: FontInfo[], 
+    weightMapping: { [relumeWeight: string]: string },
+    selectedSizeGroups: string[]
+  ) {
+    const { typeSystem, activeMode } = request;
+    const localStyles = figma.getLocalTextStyles();
+    const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+    const localVariables = await figma.variables.getLocalVariablesAsync('FLOAT');
+    const variableMap = new Map(localVariables.map(v => [v.name, v]));
+    
+    let variablesUpdated = 0;
+    let stylesUpdated = 0;
+    let stylesDeleted = 0;
+    let stylesFailed = 0;
+
+    // Determine the new font family
+    const newFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+
+    // STEP 1: Update heading styles (not text styles like "Text Large")
+    for (const [systemName, blueprintName] of Array.from(blueprint.entries())) {
+      if (systemName.startsWith('var_') || systemName.startsWith('Text ')) continue; // Skip variables and text styles (UI names like "Text Large")
+
+      // Convert UI display names to internal system keys
+      let internalSystemKey = systemName;
+      switch (systemName) {
+        case "H0": internalSystemKey = "display"; break;
+        case "H1": internalSystemKey = "h1"; break;
+        case "H2": internalSystemKey = "h2"; break;
+        case "H3": internalSystemKey = "h3"; break;
+        case "H4": internalSystemKey = "h4"; break;
+        case "H5": internalSystemKey = "h5"; break;
+        case "H6": internalSystemKey = "h6"; break;
+      }
+
+      const styleData = typeSystem[internalSystemKey];
+      if (!styleData) {
+        console.warn(`[Main] No style data found for system key: ${internalSystemKey} (from UI name: ${systemName})`);
+        continue;
+      }
+      
+      console.log(`[Main] Processing heading style: ${systemName} -> ${internalSystemKey}, data:`, styleData);
+
+      // Variable update logic
+      const variableName = blueprint.get(`var_${internalSystemKey}`);
+      if (variableName && variableMap.has(variableName)) {
+        const variable = variableMap.get(variableName);
+        if (variable) {
+          console.log(`[Main] Updating variable: ${variable.name} to ${styleData.size}px`);
+          const modeId = Object.keys(variable.valuesByMode)[0];
+          variable.setValueForMode(modeId, styleData.size);
+          variablesUpdated++;
+        }
+      } else {
+        console.log(`[Main] No size variable found for style: ${internalSystemKey} - using direct fontSize update (normal for Relume)`);
+      }
+
+      // Handle heading styles (single weight)
+      const figmaStyle = localStyleMap.get(blueprintName);
+      if (figmaStyle) {
+        try {
+          await updateSingleStyle(figmaStyle, styleData, false);
+          stylesUpdated++;
+        } catch (error) {
+          console.error(`[Main] Failed to update heading style ${blueprintName}:`, error);
+          stylesFailed++;
+        }
+      } else {
+        try {
+          const newStyle = figma.createTextStyle();
+          newStyle.name = blueprintName;
+          await updateSingleStyle(newStyle, styleData, true);
+          stylesUpdated++;
+        } catch (error) {
+          console.error(`[Main] Failed to create heading style ${blueprintName}:`, error);
+          stylesFailed++;
+        }
+      }
+    }
+
+    // STEP 2: Update text styles with weight mapping - NEW LOGIC
+    // Map size groups to internal keys
+    const sizeGroupToInternalKey: { [key: string]: string } = {
+      'Text/Large': 'textLarge',
+      'Text/Medium': 'textLarge', // In case there's a Medium variant
+      'Text/Regular': 'textMain',
+      'Text/Small': 'textSmall',
+      'Text/Tiny': 'micro'
+    };
+
+    // Process each selected size group with each weight mapping
+    for (const sizeGroup of selectedSizeGroups) {
+      const internalKey = sizeGroupToInternalKey[sizeGroup];
+      if (!internalKey) {
+        console.warn(`[Main] No internal key mapping found for size group: ${sizeGroup}`);
+        continue;
+      }
+
+      const styleData = typeSystem[internalKey];
+      if (!styleData) {
+        console.warn(`[Main] No style data found for internal key: ${internalKey}`);
+        continue;
+      }
+
+      console.log(`[Main] Processing text size group: ${sizeGroup} (${internalKey})`);
+
+      // Variable update logic for this size group
+      const variableName = blueprint.get(`var_${internalKey}`);
+      if (variableName && variableMap.has(variableName)) {
+        const variable = variableMap.get(variableName);
+        if (variable) {
+          console.log(`[Main] Updating variable: ${variable.name} to ${styleData.size}px`);
+          const modeId = Object.keys(variable.valuesByMode)[0];
+          variable.setValueForMode(modeId, styleData.size);
+          variablesUpdated++;
+        }
+      } else {
+        console.log(`[Main] No size variable found for: ${internalKey} - using direct fontSize update (normal for Relume)`);
+      }
+
+      // Update ALL weights for this size group
+      for (const [relumeWeight, mappedWeight] of Object.entries(weightMapping)) {
+        // Look for the EXISTING style with the original weight
+        const originalStyleName = `${sizeGroup}/${relumeWeight}`;
+        const existingStyle = localStyleMap.get(originalStyleName);
+
+        console.log(`[Main] Processing ${sizeGroup} weight: ${relumeWeight} -> ${mappedWeight} (style: ${originalStyleName})`);
+
+        if (existingStyle) {
+          if (mappedWeight === 'Delete') {
+            // Delete the style
+            try {
+              existingStyle.remove();
+              stylesDeleted++;
+              console.log(`[Main] Successfully deleted style: ${originalStyleName}`);
+            } catch (error) {
+              console.error(`[Main] Failed to delete style ${originalStyleName}:`, error);
+              stylesFailed++;
+            }
+          } else {
+            // Update the existing style (this changes its font but keeps the same name)
+            const styleWithNewWeight = { ...styleData, fontStyle: mappedWeight, fontFamily: newFontFamily };
+            try {
+              await updateSingleStyle(existingStyle, styleWithNewWeight, false);
+              stylesUpdated++;
+              console.log(`[Main] Successfully updated existing style: ${originalStyleName}`);
+            } catch (error) {
+              console.error(`[Main] Failed to update style ${originalStyleName}:`, error);
+              stylesFailed++;
+            }
+          }
+        } else {
+          console.warn(`[Main] Original style not found: ${originalStyleName} - skipping weight mapping for this style`);
+        }
+      }
+    }
+    
+    // Notification logic with deletion support
+    if (variablesUpdated > 0 || stylesUpdated > 0 || stylesDeleted > 0 || stylesFailed > 0) {
+      let message = '';
+      
+      if (stylesUpdated > 0) {
+        message += `Updated ${stylesUpdated} text style(s)`;
+      }
+      
+      if (stylesDeleted > 0) {
+        if (message) message += ', ';
+        message += `deleted ${stylesDeleted} text style(s)`;
+      }
+      
+      if (variablesUpdated > 0) {
+        if (message) message += ', and ';
+        message += `updated ${variablesUpdated} size variable(s)`;
+      }
+      
+      message += '.';
+      
+      if (stylesFailed > 0) {
+        message += ` ${stylesFailed} style(s) failed to process.`;
+      }
+      
+      console.log(`[Main] ${message}`);
+      figma.notify(message, stylesFailed > 0 ? { error: true } : undefined);
+      
+      if (variablesUpdated > 0) {
+        console.log(`[Main] Note: Variable updates may require manual refresh or reopening the file to display properly.`);
+        figma.notify("Size variables updated. Changes may require a manual refresh to display.", { timeout: 4000 });
+      }
+      
+      if (stylesFailed > 0) {
+        console.log(`[Main] Note: ${stylesFailed} style(s) failed, likely due to font loading issues. Check console for details.`);
+        figma.notify("Some styles failed to update. Check console for font loading errors.", { timeout: 6000, error: true });
+      }
+    } else {
+      figma.notify("No styles or variables were updated.", { error: true });
+    }
+  }
+
+  // Helper function to apply updated text styles to live tweaking frame (from abandoned branch)
+  async function applyStylesToLiveTweakingFrame(
+    typeSystem: TypographySystem, 
+    selectedStyle: string, 
+    activeMode: 'desktop' | 'mobile',
+    namingConvention: string
+  ): Promise<void> {
+    console.log('[Main] 🔄 Applying updated text styles to live tweaking frame...');
+    console.log('[Main] 🔍 DEBUG - typeSystem keys:', Object.keys(typeSystem));
+    console.log('[Main] 🔍 DEBUG - selectedStyle:', selectedStyle);
+    console.log('[Main] 🔍 DEBUG - activeMode:', activeMode);
+    console.log('[Main] 🔍 DEBUG - namingConvention:', namingConvention);
+    
+    // Check if we have an active live tweaking context
+    const liveFrameId = stateAccessors.getLiveTweakingTargetFrameId();
+    const liveNodeMappings = stateAccessors.getLiveTweakingNodeMappings();
+    
+    if (!liveFrameId || !liveNodeMappings || liveNodeMappings.length === 0) {
+      console.log('[Main] No active live tweaking context. Skipping auto-apply to live frame.');
+      console.log('[Main] 🔍 DEBUG - liveFrameId:', liveFrameId);
+      console.log('[Main] 🔍 DEBUG - liveNodeMappings:', liveNodeMappings);
+      return;
+    }
+    
+    console.log(`[Main] 🎯 Found live tweaking context: Frame ID ${liveFrameId}, ${liveNodeMappings.length} node mappings`);
+    console.log('[Main] 🔍 DEBUG - Node mappings:', liveNodeMappings);
+    
+    try {
+      const userDesignFrame = figma.getNodeById(liveFrameId);
+      if (!userDesignFrame || userDesignFrame.removed) {
+        console.log('[Main] Live tweaking frame not found or removed. Clearing context.');
+        stateAccessors.setLiveTweakingTargetFrameId(null);
+        stateAccessors.setLiveTweakingNodeMappings(null);
+        return;
+      }
+      
+      console.log(`[Main] 🔍 DEBUG - Found live frame: "${userDesignFrame.name}"`);
+      
+      // Get all local text styles to find the updated ones
+      const localStyles = figma.getLocalTextStyles();
+      const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+      
+      console.log('[Main] 🔍 DEBUG - Available text styles:');
+      localStyles.forEach(style => {
+        console.log(`[Main] 🔍   - "${style.name}" (id: ${style.id})`);
+      });
+      
+      let stylesApplied = 0;
+      let stylesFailed = 0;
+      
+      // For each node mapping, apply the updated text style
+      for (const mapping of liveNodeMappings) {
+        console.log(`[Main] 🔍 DEBUG - Processing mapping: nodeId=${mapping.nodeId}, systemStyleKey=${mapping.systemStyleKey}`);
+        
+        try {
+          const textNode = (userDesignFrame as any).findOne?.((n: SceneNode) => n.id === mapping.nodeId && n.type === 'TEXT') as TextNode | null;
+          
+          if (textNode && !textNode.removed) {
+            console.log(`[Main] 🔍 DEBUG - Found text node: "${textNode.name}" (${textNode.id})`);
+            
+            const styleData = typeSystem[mapping.systemStyleKey];
+            if (!styleData) {
+              console.warn(`[Main] No style data found for system key: ${mapping.systemStyleKey}`);
+              console.warn(`[Main] 🔍 DEBUG - Available typeSystem keys: ${Object.keys(typeSystem).join(', ')}`);
+              continue;
+            }
+            
+            console.log(`[Main] 🔍 DEBUG - Found style data for ${mapping.systemStyleKey}:`, styleData);
+            
+            // Generate the Figma style name using the detected naming convention (not hardcoded format)
+            const specificFamily = styleData.fontFamily || typeSystem.textMain?.fontFamily || 'Inter';
+            const displayName = styleData.customName?.trim() || getDisplayNameWithConvention(mapping.systemStyleKey, namingConvention);
+            
+            // For different naming conventions, use different style name formats
+            let figmaStyleName: string;
+            if (namingConvention === 'Lumos' || namingConvention === 'Bootstrap' || namingConvention === 'Tailwind') {
+              // Flat naming - just the display name (e.g., "H6", "display-large")
+              figmaStyleName = displayName;
+            } else if (namingConvention === 'Relume') {
+              // Relume has folder structure like "Heading/H1" or "Text/Large/Normal"
+              // This should already be handled by the UPDATE_STYLES handler, but for consistency:
+              figmaStyleName = displayName; // The display name should already include proper structure
+            } else {
+              // Default Naming uses Desktop/Mobile folder structure
+            const modePrefix = getStyleFolderPrefix(activeMode);
+              figmaStyleName = `${modePrefix} / ${specificFamily} / ${displayName}`;
+            }
+            
+            console.log(`[Main] 🔍 DEBUG - Generated figmaStyleName: "${figmaStyleName}"`);
+            
+            // Find the updated text style
+            const figmaStyle = localStyleMap.get(figmaStyleName);
+            if (figmaStyle) {
+              console.log(`[Main] ✅ Applying updated style "${figmaStyleName}" to node "${textNode.name}" (${textNode.id})`);
+              textNode.textStyleId = figmaStyle.id;
+              stylesApplied++;
+            } else {
+              console.warn(`[Main] ❌ Could not find updated text style: "${figmaStyleName}"`);
+              console.warn(`[Main] 🔍 DEBUG - Looking for exact matches containing "${displayName}":`);
+              localStyles.forEach(style => {
+                if (style.name.includes(displayName)) {
+                  console.warn(`[Main] 🔍   - Found candidate: "${style.name}"`);
+                }
+              });
+              stylesFailed++;
+            }
+          } else {
+            console.warn(`[Main] ❌ Text node ${mapping.nodeId} not found or removed in frame "${userDesignFrame.name}"`);
+            stylesFailed++;
+          }
+        } catch (error) {
+          console.error(`[Main] Error applying style to node ${mapping.nodeId}:`, error);
+          stylesFailed++;
+        }
+      }
+      
+      console.log(`[Main] 📊 FINAL RESULTS: ${stylesApplied} applied, ${stylesFailed} failed`);
+      
+      if (stylesApplied > 0) {
+        console.log(`[Main] 🎉 Successfully applied ${stylesApplied} updated text style(s) to live tweaking frame`);
+        figma.notify(`Applied updated styles to ${stylesApplied} node(s) in your design frame`);
+      }
+      
+      if (stylesFailed > 0) {
+        console.warn(`[Main] ⚠️ Failed to apply ${stylesFailed} style(s) to live tweaking frame`);
+      }
+      
+    } catch (error) {
+      console.error('[Main] Error accessing live tweaking frame:', error);
+      // Clear stale context
+      stateAccessors.setLiveTweakingTargetFrameId(null);
+      stateAccessors.setLiveTweakingNodeMappings(null);
+    }
+  }
+
+  // Helper function to auto-apply newly created text styles to preview frame nodes
+  async function autoApplyCreatedStylesToPreview(typeSystem: TypographySystem, selectedStyle: string, activeMode: 'desktop' | 'mobile'): Promise<void> {
+    console.log('[Main] Auto-applying newly created styles to preview frame nodes...');
+    
+    // Find the latest preview frame
+    const latestPreviewFrame = stateAccessors.getLatestPreviewFrame();
+    if (!latestPreviewFrame || latestPreviewFrame.removed) {
+      console.log('[Main] No preview frame found for auto-apply. Skipping auto-apply.');
+      return;
+    }
+    
+    console.log(`[Main] Found preview frame for auto-apply: "${latestPreviewFrame.name}"`);
+    
+    // Get all newly created text styles
+    const localStyles = figma.getLocalTextStyles();
+    const modePrefix = getStyleFolderPrefix(activeMode);
+    
+    // Create a map of internal keys to text style IDs
+    const styleMap = new Map<string, string>();
+    
+    for (const [internalKey, styleData] of Object.entries(typeSystem)) {
+      const defaultFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+      const specificFamily = styleData.fontFamily || defaultFontFamily;
+      const displayName = styleData.customName?.trim() || getDisplayName(internalKey);
+      const expectedStyleName = `${modePrefix} / ${specificFamily} / ${displayName}`;
+      
+      // Find the matching text style
+      const matchingStyle = localStyles.find(style => style.name === expectedStyleName);
+      if (matchingStyle) {
+        styleMap.set(internalKey, matchingStyle.id);
+        console.log(`[Main] Mapped ${internalKey} -> Style ID: ${matchingStyle.id} (${expectedStyleName})`);
+      } else {
+        console.warn(`[Main] Could not find text style for ${internalKey}: ${expectedStyleName}`);
+      }
+    }
+    
+    if (styleMap.size === 0) {
+      console.warn('[Main] No text styles found for auto-apply. Skipping.');
+      return;
+    }
+    
+    // Find all text nodes in the preview frame that should get styles applied
+    const textNodes: TextNode[] = [];
+    
+    function findTextNodesRecursively(node: SceneNode) {
+      if (node.type === 'TEXT') {
+        textNodes.push(node as TextNode);
+      } else if ('children' in node) {
+        for (const child of node.children) {
+          findTextNodesRecursively(child);
+        }
+      }
+    }
+    
+    findTextNodesRecursively(latestPreviewFrame);
+    console.log(`[Main] Found ${textNodes.length} text nodes in preview frame for auto-apply`);
+    
+    let stylesApplied = 0;
+    
+         // Apply styles to text nodes based on their naming pattern
+     for (const textNode of textNodes) {
+       // Skip spec labels and other UI elements - only apply to "Example Text" nodes
+       if (textNode.name.includes('Style Label') || textNode.name.includes('Spec') || textNode.name.includes('Font Display Name')) {
+         console.log(`[Main] Skipping UI element: ${textNode.name}`);
+         continue;
+       }
+       
+       // Skip nodes that already have a text style applied (preserve existing manual applications)
+       if (textNode.textStyleId && textNode.textStyleId !== figma.mixed && typeof textNode.textStyleId === 'string') {
+         console.log(`[Main] Skipping ${textNode.name} - already has style applied: ${textNode.textStyleId}`);
+         continue;
+       }
+      
+      // Try to match the text node to an internal key based on its name or parent container
+      let matchedInternalKey: string | null = null;
+      
+             // Check if the text node name contains a style identifier
+       for (const internalKey of Object.keys(typeSystem)) {
+         const displayName = getDisplayName(internalKey);
+         
+         // Debug: Log what we're looking for
+         console.log(`[Main] Checking ${textNode.name} against internalKey="${internalKey}" displayName="${displayName}"`);
+         
+         // Look for text node with style identifier patterns (more flexible matching)
+         if (textNode.name.includes(`- ${internalKey}`) || 
+             textNode.name.includes(`- ${displayName}`) ||
+             textNode.name.includes(`${internalKey}`) ||
+             textNode.name.includes(`${displayName}`)) {
+           matchedInternalKey = internalKey;
+           console.log(`[Main] ✅ Matched text node "${textNode.name}" to internal key "${internalKey}"`);
+           break;
+         }
+         
+         // Also check parent container names for patterns like "Item - display"
+         if (textNode.parent && (textNode.parent.name.includes(`- ${internalKey}`) || 
+             textNode.parent.name.includes(`- ${displayName}`) ||
+             textNode.parent.name.includes(`${internalKey}`) ||
+             textNode.parent.name.includes(`${displayName}`))) {
+           matchedInternalKey = internalKey;
+           console.log(`[Main] ✅ Matched parent "${textNode.parent.name}" to internal key "${internalKey}"`);
+           break;
+         }
+         
+         // For article/structured content, match based on container hierarchy
+         let currentParent = textNode.parent;
+         while (currentParent && !matchedInternalKey) {
+           if (currentParent.name.includes(`- ${internalKey}`) || 
+               currentParent.name.includes(`- ${displayName}`) ||
+               currentParent.name.includes(`${internalKey}`) ||
+               currentParent.name.includes(`${displayName}`)) {
+             matchedInternalKey = internalKey;
+             console.log(`[Main] ✅ Matched ancestor "${currentParent.name}" to internal key "${internalKey}"`);
+             break;
+           }
+           currentParent = currentParent.parent;
+         }
+         
+         if (matchedInternalKey) break;
+       }
+      
+      if (matchedInternalKey && styleMap.has(matchedInternalKey)) {
+        const styleId = styleMap.get(matchedInternalKey)!;
+        try {
+          await textNode.setRangeTextStyleIdAsync(0, textNode.characters.length, styleId);
+          stylesApplied++;
+          console.log(`[Main] ✅ Applied ${matchedInternalKey} style to "${textNode.name}"`);
+        } catch (error) {
+          console.error(`[Main] Failed to apply style to ${textNode.name}:`, error);
+        }
+      } else {
+        console.log(`[Main] No style mapping found for text node: "${textNode.name}"`);
+      }
+    }
+    
+    if (stylesApplied > 0) {
+      console.log(`[Main] ✅ Auto-applied ${stylesApplied} text styles to preview frame nodes`);
+      figma.notify(`Applied styles to ${stylesApplied} preview nodes`, { timeout: 3000 });
+    } else {
+      console.log(`[Main] No styles were auto-applied to preview frame nodes`);
+    }
+  }
+
+  // Helper function to update existing text styles while preserving variable connections
+  async function updateExistingStylesWithVariables(request: CreateStylesRequest, availableFontsList: FontInfo[]) {
+    const { typeSystem } = request;
+    const localStyles = figma.getLocalTextStyles();
+    const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+    
+    let stylesUpdated = 0;
+    let stylesFailed = 0;
+    
+    console.log(`[Main] updateExistingStylesWithVariables: Updating ${Object.keys(typeSystem).length} styles while preserving variable connections`);
+    
+    // Get current variable values to determine effective fonts
+    const localVariables = await figma.variables.getLocalVariablesAsync();
+    const variableValues = new Map<string, any>();
+    
+    for (const variable of localVariables) {
+      const collection = await figma.variables.getVariableCollectionByIdAsync(variable.variableCollectionId);
+      if (collection) {
+        const modeId = collection.defaultModeId;
+        const value = variable.valuesByMode[modeId];
+        variableValues.set(variable.id, value);
+        console.log(`[Main] Variable "${variable.name}" (${variable.id}) = "${value}"`);
+      }
+    }
+    
+    for (const [styleName, styleData] of Object.entries(typeSystem)) {
+      if (styleName.toLowerCase() === 'displayx8') continue; // Skip decorative styles
+      
+      // Find existing style by current name (e.g., "H1", "Display", "Text Main")
+      const displayName = getDisplayNameWithConvention(styleName, request.namingConvention || 'Lumos');
+      const existingStyle = localStyleMap.get(displayName);
+      
+      if (existingStyle) {
+        console.log(`[Main] Updating existing style: "${displayName}" with typography system values`);
+        
+        try {
+          // Load the current effective font (considering variable values)
+          let effectiveFontFamily = existingStyle.fontName.family;
+          let effectiveFontStyle = existingStyle.fontName.style;
+          
+          const boundVars = existingStyle.boundVariables;
+          
+          // Resolve fontFamily variable if connected
+          if (boundVars?.fontFamily && typeof boundVars.fontFamily === 'object' && 'id' in boundVars.fontFamily) {
+            const familyValue = variableValues.get(boundVars.fontFamily.id);
+            if (familyValue && typeof familyValue === 'string') {
+              effectiveFontFamily = familyValue;
+            }
+          }
+          
+          // Resolve fontStyle variable if connected
+          if (boundVars?.fontStyle && typeof boundVars.fontStyle === 'object' && 'id' in boundVars.fontStyle) {
+            const styleValue = variableValues.get(boundVars.fontStyle.id);
+            if (styleValue && typeof styleValue === 'string') {
+              effectiveFontStyle = styleValue;
+            }
+          }
+          
+          console.log(`[Main] Effective font for "${displayName}": ${effectiveFontFamily} ${effectiveFontStyle}`);
+          
+          // Load the effective font before making any changes
+          try {
+            await figma.loadFontAsync({ family: effectiveFontFamily, style: effectiveFontStyle });
+            console.log(`[Main] Successfully loaded font: ${effectiveFontFamily} ${effectiveFontStyle}`);
+          } catch (fontError) {
+            console.warn(`[Main] Failed to load font ${effectiveFontFamily} ${effectiveFontStyle}, trying fallback...`);
+            // Try fallback to Inter Regular
+            await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+            console.log(`[Main] Using fallback font: Inter Regular`);
+          }
+          
+          // Only update properties that aren't connected to variables
+          
+          // Always update fontSize with UI rounding parity
+          const sizePx = Math.round(styleData.size);
+          existingStyle.fontSize = sizePx;
+          
+          // Update lineHeight only if not connected to a variable
+          if (!boundVars?.lineHeight) {
+            const grid = request.roundingGridSize || 0;
+            let lhPercent: number;
+            if ((request.lineHeightUnit || 'percent') === 'px') {
+              const lhPxRaw = (styleData.lineHeight ?? 1.2) * sizePx;
+              const lhPx = grid > 0 ? Math.round(lhPxRaw / grid) * grid : Math.round(lhPxRaw);
+              lhPercent = Math.round((lhPx / sizePx) * 100);
+            } else {
+              lhPercent = Math.round((styleData.lineHeight ?? 1.2) * 100);
+            }
+            existingStyle.lineHeight = { unit: 'PERCENT', value: lhPercent };
+          } else {
+            console.log(`[Main] Skipping lineHeight update for "${displayName}" - connected to variable`);
+          }
+          
+          // Update letterSpacing only if not connected to a variable
+          if (!boundVars?.letterSpacing) {
+            const lsRoundedUpdate = Math.round((styleData.letterSpacing ?? 0) / 0.25) * 0.25;
+            existingStyle.letterSpacing = { unit: 'PERCENT', value: lsRoundedUpdate };
+          } else {
+            console.log(`[Main] Skipping letterSpacing update for "${displayName}" - connected to variable`);
+          }
+          
+          // DO NOT update fontName - it's controlled by variables
+          console.log(`[Main] ✅ Updated existing style: "${displayName}" (preserved variable connections)`);
+          stylesUpdated++;
+          
+        } catch (error) {
+          console.error(`[Main] Failed to update style ${displayName}:`, error);
+          stylesFailed++;
+        }
+      } else {
+        console.log(`[Main] Style "${displayName}" not found - skipping`);
+      }
+    }
+    
+    if (stylesUpdated > 0) {
+      figma.notify(`Updated ${stylesUpdated} text style(s) while preserving variable connections.`);
+    }
+    
+    if (stylesFailed > 0) {
+      console.warn(`[Main] ${stylesFailed} style(s) failed to update`);
+    }
+  }
+
+  // Helper function for the new Relume blueprint-driven update logic
+  async function updateStylesFromBlueprint(request: CreateStylesRequest, blueprint: Map<string, string>, availableFontsList: FontInfo[]) {
+    const { typeSystem, activeMode } = request;
+    const localStyles = figma.getLocalTextStyles();
+    const localStyleMap = new Map(localStyles.map(style => [style.name, style]));
+    const localVariables = await figma.variables.getLocalVariablesAsync('FLOAT');
+    const variableMap = new Map(localVariables.map(v => [v.name, v]));
+    
+    let variablesUpdated = 0;
+    let stylesUpdated = 0;
+    let stylesFailed = 0;
+
+    // Find all weights for each text style in the original blueprint
+    const originalTextWeights = new Map<string, string[]>();
+    for (const [systemName, figmaName] of Array.from(blueprint.entries())) {
+      if (systemName.startsWith('text')) {
+        const parts = figmaName.split('/');
+        if (parts.length === 3) {
+          const baseName = `${parts[0]}/${parts[1]}`; // e.g., "Text/Large"
+          if (!originalTextWeights.has(baseName)) {
+            originalTextWeights.set(baseName, []);
+          }
+          originalTextWeights.get(baseName)?.push(parts[2]); // e.g., "Normal"
+        }
+      }
+    }
+
+    // Determine the weights available in the new font
+    const newFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+    // Collect ALL styles for this font family (availableFontsList has separate entries per style)
+    const allStylesForFont = availableFontsList
+      .filter(f => f.family === newFontFamily)
+      .map(f => f.style);
+    const newFontStyles = allStylesForFont.length > 0 ? allStylesForFont : ['Regular'];
+
+    for (const [systemName, blueprintName] of Array.from(blueprint.entries())) {
+      if (systemName.startsWith('var_')) continue; // Skip variable names in this loop
+
+      // Convert UI display names to internal system keys
+      let internalSystemKey = systemName;
+      switch (systemName) {
+        case "Text Main": internalSystemKey = "textMain"; break;
+        case "Text Large": internalSystemKey = "textLarge"; break;
+        case "Text Small": internalSystemKey = "textSmall"; break;
+        case "Text Tiny": internalSystemKey = "micro"; break;
+        case "H0": internalSystemKey = "display"; break;
+        case "H1": internalSystemKey = "h1"; break;
+        case "H2": internalSystemKey = "h2"; break;
+        case "H3": internalSystemKey = "h3"; break;
+        case "H4": internalSystemKey = "h4"; break;
+        case "H5": internalSystemKey = "h5"; break;
+        case "H6": internalSystemKey = "h6"; break;
+        // If no mapping found, assume it's already an internal key
+      }
+
+      const styleData = typeSystem[internalSystemKey];
+      if (!styleData) {
+        console.warn(`[Main] No style data found for system key: ${internalSystemKey} (from UI name: ${systemName})`);
+        continue;
+      }
+      
+      console.log(`[Main] Processing style: ${systemName} -> ${internalSystemKey}, data:`, styleData);
+
+      // --- NEW: Variable-first update logic ---
+      // For Relume, size variables may not exist - styles use direct fontSize
+      const variableName = blueprint.get(`var_${internalSystemKey}`);
+      if (variableName && variableMap.has(variableName)) {
+        const variable = variableMap.get(variableName);
+        if (variable) {
+          console.log(`[Main] Updating variable: ${variable.name} to ${styleData.size}px`);
+          const modeId = Object.keys(variable.valuesByMode)[0];
+          variable.setValueForMode(modeId, styleData.size);
+          variablesUpdated++;
+        }
+      } else {
+        console.log(`[Main] No size variable found for style: ${internalSystemKey} - using direct fontSize update (normal for Relume)`);
+      }
+      // --- End NEW ---
+
+      if (internalSystemKey.startsWith('text')) {
+        // Handle text styles with multiple weights
+        const parts = blueprintName.split('/');
+        if (parts.length === 3) {
+          const baseName = `${parts[0]}/${parts[1]}`; // e.g., "Text/Large"
+          const originalWeights = originalTextWeights.get(baseName) || [];
+
+          // Find intersection of original weights and new font's available weights
+          const weightsToGenerate = originalWeights.filter(w => newFontStyles.includes(w));
+
+          for (const weight of weightsToGenerate) {
+            const figmaStyleName = `${baseName}/${weight}`;
+            const figmaStyle = localStyleMap.get(figmaStyleName);
+            const styleWithNewWeight = { ...styleData, fontStyle: weight, fontFamily: newFontFamily };
+
+            if (figmaStyle) {
+              // Update existing style
+              try {
+                await updateSingleStyle(figmaStyle, styleWithNewWeight, false);
+                stylesUpdated++;
+              } catch (error) {
+                console.error(`[Main] Failed to update style ${figmaStyleName}:`, error);
+                stylesFailed++;
+              }
+            } else {
+              // Create new style if it doesn't exist
+              try {
+                const newStyle = figma.createTextStyle();
+                newStyle.name = figmaStyleName;
+                await updateSingleStyle(newStyle, styleWithNewWeight, true);
+                stylesUpdated++;
+              } catch (error) {
+                console.error(`[Main] Failed to create style ${figmaStyleName}:`, error);
+                stylesFailed++;
+              }
+            }
+          }
+        }
+      } else {
+        // Handle heading styles (single weight)
+        const figmaStyle = localStyleMap.get(blueprintName);
+        if (figmaStyle) {
+          try {
+            await updateSingleStyle(figmaStyle, styleData, false);
+            stylesUpdated++;
+          } catch (error) {
+            console.error(`[Main] Failed to update heading style ${blueprintName}:`, error);
+            stylesFailed++;
+          }
+        } else {
+          try {
+            const newStyle = figma.createTextStyle();
+            newStyle.name = blueprintName;
+            await updateSingleStyle(newStyle, styleData, true);
+            stylesUpdated++;
+          } catch (error) {
+            console.error(`[Main] Failed to create heading style ${blueprintName}:`, error);
+            stylesFailed++;
+          }
+        }
+      }
+    }
+    
+    // --- NEW: Comprehensive update notification ---
+    if (variablesUpdated > 0 || stylesUpdated > 0 || stylesFailed > 0) {
+      let message = `Updated ${stylesUpdated} text style(s) and ${variablesUpdated} size variable(s).`;
+      if (stylesFailed > 0) {
+        message += ` ${stylesFailed} style(s) failed to update.`;
+      }
+      console.log(`[Main] ${message}`);
+      figma.notify(message, stylesFailed > 0 ? { error: true } : undefined);
+      
+      // Add specific note about variables if they were updated
+      if (variablesUpdated > 0) {
+        console.log(`[Main] Note: Variable updates may require manual refresh or reopening the file to display properly.`);
+        figma.notify("Size variables updated. Changes may require a manual refresh to display.", { timeout: 4000 });
+      }
+      
+      // Add specific note about font failures
+      if (stylesFailed > 0) {
+        console.log(`[Main] Note: ${stylesFailed} style(s) failed, likely due to font loading issues. Check console for details.`);
+        figma.notify("Some styles failed to update. Check console for font loading errors.", { timeout: 6000, error: true });
+      }
+    } else {
+      figma.notify("No styles or variables were updated.", { error: true });
+    }
+  }
+
+  async function updateSingleStyle(figmaStyle: TextStyle, styleData: TypographyStyle, isNew: boolean) {
+    const newFont: FontName = { family: styleData.fontFamily || 'Inter', style: styleData.fontStyle || 'Regular' };
+    
+    console.log(`[Main] updateSingleStyle: ${figmaStyle.name}, new font: ${newFont.family} ${newFont.style}`);
+    
+    try {
+      // Load existing font first if not new
+      if (!isNew) {
+        console.log(`[Main] Loading existing font: ${figmaStyle.fontName.family} ${figmaStyle.fontName.style}`);
+        await figma.loadFontAsync(figmaStyle.fontName);
+      }
+      
+      // Load new font
+      console.log(`[Main] Loading new font: ${newFont.family} ${newFont.style}`);
+      await figma.loadFontAsync(newFont);
+
+      // Apply font changes
+      console.log(`[Main] Applying font: ${newFont.family} ${newFont.style} to ${figmaStyle.name}`);
+      figmaStyle.fontName = newFont;
+      
+      // Apply other style properties with UI rounding parity
+      const sizePx = Math.round(styleData.size);
+      figmaStyle.fontSize = sizePx;
+      const grid = (typeof (globalThis as any).lastRoundingGridSize === 'number') ? (globalThis as any).lastRoundingGridSize : (0);
+      const lhPxRaw = (styleData.lineHeight ?? 1.2) * sizePx;
+      const lhUnit: 'percent' | 'px' = (globalThis as any).lastLineHeightUnit || 'percent';
+      let lhPercent = Math.round((styleData.lineHeight ?? 1.2) * 100);
+      if (lhUnit === 'px') {
+        const lhPx = grid > 0 ? Math.round(lhPxRaw / grid) * grid : Math.round(lhPxRaw);
+        lhPercent = Math.round((lhPx / sizePx) * 100);
+      }
+      figmaStyle.lineHeight = { unit: 'PERCENT', value: lhPercent };
+      const lsRoundedStyle = Math.round((styleData.letterSpacing ?? 0) / 0.25) * 0.25;
+      figmaStyle.letterSpacing = { unit: 'PERCENT', value: lsRoundedStyle };
+      
+      // Apply vertical trim (cap height) to match preview specimens
+      figmaStyle.leadingTrim = 'CAP_HEIGHT';
+      
+      console.log(`[Main] Successfully updated style: ${figmaStyle.name}`);
+      
+    } catch (e) {
+      console.error(`[Main] Error processing style ${figmaStyle.name}:`, e);
+      
+      // Try fallback to Inter Regular if the font failed to load
+      const fallbackFont: FontName = { family: 'Inter', style: 'Regular' };
+      try {
+        console.log(`[Main] Attempting fallback to Inter Regular for ${figmaStyle.name}`);
+        await figma.loadFontAsync(fallbackFont);
+        figmaStyle.fontName = fallbackFont;
+        const sizePx = Math.round(styleData.size);
+        figmaStyle.fontSize = sizePx;
+        const grid = (globalThis as any).lastRoundingGridSize ?? 0;
+        const lhUnit: 'percent' | 'px' = (globalThis as any).lastLineHeightUnit || 'percent';
+        let lhPercent = Math.round((styleData.lineHeight ?? 1.2) * 100);
+        if (lhUnit === 'px') {
+          const lhPxRaw = (styleData.lineHeight ?? 1.2) * sizePx;
+          const lhPx = grid > 0 ? Math.round(lhPxRaw / grid) * grid : Math.round(lhPxRaw);
+          lhPercent = Math.round((lhPx / sizePx) * 100);
+        }
+        figmaStyle.lineHeight = { unit: 'PERCENT', value: lhPercent };
+        const lsRoundedFallback = Math.round((styleData.letterSpacing ?? 0) / 0.25) * 0.25;
+        figmaStyle.letterSpacing = { unit: 'PERCENT', value: lsRoundedFallback };
+        figmaStyle.leadingTrim = 'CAP_HEIGHT'; // Apply vertical trim to match preview
+        console.log(`[Main] Fallback successful for ${figmaStyle.name}`);
+      } catch (fallbackError) {
+        console.error(`[Main] Fallback also failed for ${figmaStyle.name}:`, fallbackError);
+        throw fallbackError; // Re-throw so the calling function knows it failed
+      }
+    }
+  }
+
+  on('SMART_IMPORT_RELUME', async () => {
+    console.log('[Main] Received SMART_IMPORT_RELUME');
+    
+    // Get the Relume handler
+    const relumeHandler = getDesignSystemHandler('Relume');
+    
+    if (relumeHandler && relumeHandler.smartImport) {
+      console.log('[Main] Using Relume handler smart import');
+      
+      const localStyles = figma.getLocalTextStyles();
+      const styleNames = localStyles.map(style => style.name);
+      const result = await relumeHandler.smartImport(styleNames);
+      
+      if (result.success) {
+        // Create blueprint mapping manually using our handler
+        const blueprint = relumeHandler.createBlueprint(localStyles);
+        figmaStyleNameMapping = blueprint;
+        console.log("[Main] Stored Relume blueprint mappings:", figmaStyleNameMapping);
+        
+        // Extract settings from styles manually  
+        let baseSize = 16;
+        let scaleRatio = 1.25;
+        let fontFamily = 'Inter';
+        
+        // Find textMain style for base size and font
+        const textMainStyle = localStyles.find(s => s.name.startsWith('Text/Regular/'));
+        if (textMainStyle) {
+          baseSize = textMainStyle.fontSize;
+          fontFamily = textMainStyle.fontName.family;
+        }
+        
+        // Calculate scale ratio from h1 and textMain
+        const h1Style = localStyles.find(s => s.name.startsWith('Heading/H1'));
+        if (h1Style && textMainStyle) {
+      const h1Exponent = TYPOGRAPHY_SCALE_POINTS.h1;
+      const textMainExponent = TYPOGRAPHY_SCALE_POINTS.textMain;
+          scaleRatio = Math.pow(h1Style.fontSize / baseSize, 1 / (h1Exponent - textMainExponent));
+    }
+    
+        // Send the preset to UI
+    emit('APPLY_RELUME_PRESET', {
+      desktop: {
+            baseSize: baseSize,
+            scaleRatio: scaleRatio,
+        headlineMinLineHeight: 120,
+        headlineMaxLineHeight: 120,
+        textMinLineHeight: 150,
+        textMaxLineHeight: 150,
+        letterSpacing: 0,
+        maxLetterSpacing: 0,
+        minSize: 12,
+        maxSize: 112,
+        interpolationType: 'linear'
+      },
+      mobile: {
+            baseSize: baseSize,
+            scaleRatio: 1.200,
+        headlineMinLineHeight: 120,
+        headlineMaxLineHeight: 120,
+        textMinLineHeight: 150,
+        textMaxLineHeight: 150,
+        letterSpacing: 0,
+        maxLetterSpacing: 0,
+        minSize: 12,
+        maxSize: 80,
+        interpolationType: 'linear'
+      },
+          fontFamily: fontFamily,
+      namingConvention: 'Relume'
+    });
+        console.log('[Main] Relume smart import successful');
+      } else {
+        console.error('[Main] Relume smart import failed:', result.message);
+        figma.notify(`Relume import failed: ${result.message || 'Unknown error'}`, { error: true });
+      }
+    } else {
+      console.error('[Main] Relume handler not found or smart import not available');
+      figma.notify('Relume smart import not available', { error: true });
+    }
+  });
+
+  // Helper function to discover existing styles and create a blueprint for any system
+  async function discoverExistingStylesBlueprint(): Promise<Map<string, string>> {
+    const blueprint = new Map<string, string>();
+    const localStyles = figma.getLocalTextStyles();
+    
+    console.log('[Main] Discovering existing styles from', localStyles.length, 'text styles');
+    
+    // Group styles by organization level and detect Relume patterns
+    const looseStyles: TextStyle[] = [];
+    const organizedStyles: TextStyle[] = [];
+    const relumeHeadingStyles = new Map<string, TextStyle>(); // h1 -> Heading/H1 style
+    const relumeTextStyles = new Map<string, TextStyle[]>(); // textLarge -> [Text/Large/Normal, Text/Large/Bold, etc.]
+    
+    for (const style of localStyles) {
+      if (style.name.includes('/')) {
+        organizedStyles.push(style);
+        
+        // Detect Relume heading patterns: Heading/H1, Heading/H2, etc.
+        if (style.name.startsWith('Heading/H')) {
+          const headingMatch = style.name.match(/Heading\/H(\d+)/);
+          if (headingMatch) {
+            const systemKey = `h${headingMatch[1]}`;
+            relumeHeadingStyles.set(systemKey, style);
+            console.log('[Main] Found Relume heading:', systemKey, '->', style.name);
+          }
+        }
+        
+        // Detect Relume text patterns: Text/Large/Normal, Text/Small/Bold, etc.
+        if (style.name.startsWith('Text/')) {
+          const textMatch = style.name.match(/Text\/(Large|Regular|Small|Tiny)(?:\/(.+))?/);
+          if (textMatch) {
+            const sizeCategory = textMatch[1].toLowerCase();
+            let systemKey = '';
+            switch (sizeCategory) {
+              case 'large': systemKey = 'textLarge'; break;
+              case 'regular': systemKey = 'textMain'; break;
+              case 'small': systemKey = 'textSmall'; break;
+              case 'tiny': systemKey = 'micro'; break;
+            }
+            
+            if (systemKey) {
+              if (!relumeTextStyles.has(systemKey)) {
+                relumeTextStyles.set(systemKey, []);
+              }
+              relumeTextStyles.get(systemKey)!.push(style);
+              console.log('[Main] Found Relume text style:', systemKey, '->', style.name);
+            }
+          }
+        }
+      } else {
+        looseStyles.push(style);
+      }
+    }
+    
+    console.log('[Main] Found', looseStyles.length, 'loose styles,', organizedStyles.length, 'organized styles');
+    console.log('[Main] Found', relumeHeadingStyles.size, 'Relume headings,', relumeTextStyles.size, 'Relume text categories');
+    
+    // PRIORITY 1: Use Relume organized styles if found
+    if (relumeHeadingStyles.size > 0 || relumeTextStyles.size > 0) {
+      console.log('[Main] Using Relume organized styles');
+      
+      // Add Relume heading styles (use UI display names as keys)
+      for (const [systemKey, style] of Array.from(relumeHeadingStyles.entries())) {
+        const uiDisplayName = systemKey.toUpperCase(); // h1 -> H1, h2 -> H2, etc.
+        blueprint.set(uiDisplayName, style.name);
+        console.log('[Main] Mapped Relume heading:', uiDisplayName, '->', style.name);
+      }
+      
+      // Add Relume text styles (use UI display names as keys)
+      for (const [systemKey, styleArray] of Array.from(relumeTextStyles.entries())) {
+        if (styleArray.length > 0) {
+          let uiDisplayName = systemKey;
+          // Convert internal keys to UI display names that weight mapping expects
+          switch (systemKey) {
+            case 'textMain': uiDisplayName = 'Text Main'; break;
+            case 'textLarge': uiDisplayName = 'Text Large'; break;
+            case 'textSmall': uiDisplayName = 'Text Small'; break;
+            case 'micro': uiDisplayName = 'Text Tiny'; break;
+          }
+          blueprint.set(uiDisplayName, styleArray[0].name);
+          console.log('[Main] Mapped Relume text:', uiDisplayName, '->', styleArray[0].name, `(${styleArray.length} variants)`);
+        }
+      }
+      
+      return blueprint;
+    }
+    
+    // PRIORITY 2: Use loose styles if no Relume found
+    const stylesToProcess = looseStyles.length > 0 ? looseStyles : organizedStyles;
+    console.log('[Main] Processing', stylesToProcess.length, stylesToProcess === looseStyles ? 'loose' : 'organized', 'styles');
+    
+    for (const style of stylesToProcess) {
+      const styleName = style.name;
+      console.log('[Main] Analyzing style:', styleName);
+      
+      // Try to extract meaningful parts from the style name
+      let systemKey = '';
+      
+      // For loose styles, use the full name; for organized styles, use the last part
+      const identifier = styleName.includes('/') 
+        ? styleName.split('/').pop()?.trim() || '' 
+        : styleName.trim();
+      
+      // Map common style names to internal keys
+      switch (identifier.toLowerCase()) {
+        case 'display':
+        case 'h0':
+          systemKey = 'display';
+          break;
+        case 'h1':
+          systemKey = 'h1';
+          break;
+        case 'h2':
+          systemKey = 'h2';
+          break;
+        case 'h3':
+          systemKey = 'h3';
+          break;
+        case 'h4':
+          systemKey = 'h4';
+          break;
+        case 'h5':
+          systemKey = 'h5';
+          break;
+        case 'h6':
+          systemKey = 'h6';
+          break;
+        case 'text main':
+        case 'text-main':
+        case 'body':
+        case 'paragraph':
+          systemKey = 'textMain';
+          break;
+        case 'text large':
+        case 'text-large':
+        case 'large':
+          systemKey = 'textLarge';
+          break;
+        case 'text small':
+        case 'text-small':
+        case 'small':
+        case 'caption':
+          systemKey = 'textSmall';
+          break;
+        case 'text tiny':
+        case 'text-tiny':
+        case 'tiny':
+        case 'micro':
+          systemKey = 'micro';
+          break;
+      }
+      
+      // Also handle Relume-style patterns for backward compatibility
+      if (styleName.startsWith('Text/')) {
+        const relumeMatch = styleName.match(/Text\/(Large|Regular|Small|Tiny)(?:\/(.+))?/);
+        if (relumeMatch) {
+          const sizeCategory = relumeMatch[1].toLowerCase();
+          const weight = relumeMatch[2];
+          
+          switch (sizeCategory) {
+            case 'large': systemKey = weight ? `textLarge_${weight}` : 'textLarge'; break;
+            case 'regular': systemKey = weight ? `textMain_${weight}` : 'textMain'; break;
+            case 'small': systemKey = weight ? `textSmall_${weight}` : 'textSmall'; break;
+            case 'tiny': systemKey = weight ? `micro_${weight}` : 'micro'; break;
+          }
+        }
+      } else if (styleName.startsWith('Heading/')) {
+        const headingMatch = styleName.match(/Heading\/H(\d+)/);
+        if (headingMatch) {
+          systemKey = `h${headingMatch[1]}`;
+        }
+      }
+      
+      if (systemKey) {
+        // Convert internal keys to UI display names that weight mapping expects
+        let uiDisplayName = systemKey;
+        if (systemKey.startsWith('h') && systemKey.length === 2) {
+          uiDisplayName = systemKey.toUpperCase(); // h1 -> H1, h2 -> H2, etc.
+        } else if (systemKey === 'display') {
+          uiDisplayName = 'H0';
+        }
+        
+        blueprint.set(uiDisplayName, styleName);
+        console.log('[Main] Mapped system key:', uiDisplayName, '->', styleName);
+      } else {
+        console.log('[Main] Could not map style:', styleName);
+      }
+    }
+    
+    console.log('[Main] Discovered blueprint with', blueprint.size, 'mappings');
+    return blueprint;
+  }
+
+// --- OpenAI API Integration Helpers (Adapted from zzz-matching/code.js) ---
+// MOVED TO openai-utils.ts
+// --- END OpenAI API Integration Helpers ---
+
+// Helper function to detect ACTUAL font weight variations (NOT individual styles)
+function detectWeightVariations(textStyles: TextStyle[]): Array<{
+  baseGroup: string; 
+  weights: string[]; 
+  styles: { weight: string; styleName: string }[]; 
+}> {
+  console.log('[Main] 🔍 Detecting ACTUAL weight variations in', textStyles.length, 'text styles...');
+  
+  const weightGroups = new Map<string, { weight: string; styleName: string }[]>();
+  
+  // Only look for ACTUAL font weight patterns
+  const WEIGHT_KEYWORDS = ['Light', 'Regular', 'Normal', 'Medium', 'Semi Bold', 'Bold', 'Extra Bold', 'Black', 'Thin', 'Heavy'];
+  
+  for (const style of textStyles) {
+    const styleName = style.name;
+    const parts = styleName.split('/');
+    
+    if (parts.length >= 3) {
+      // Relume pattern: "Text/Large/Normal" -> base="Text/Large", weight="Normal"
+      const lastPart = parts[parts.length - 1];
+      const baseGroup = parts.slice(0, -1).join('/');
+      
+      // Only include if the last part is actually a weight keyword
+      if (WEIGHT_KEYWORDS.includes(lastPart)) {
+        if (!weightGroups.has(baseGroup)) {
+          weightGroups.set(baseGroup, []);
+        }
+        weightGroups.get(baseGroup)!.push({ weight: lastPart, styleName });
+        console.log(`[Main] ✅ Found weight variation: "${baseGroup}" / "${lastPart}"`);
+      }
+    } else {
+      // Flat naming patterns with weight suffixes
+      const flatWeightPatterns = [
+        /^(.+?)\s+(Light|Regular|Medium|Semi Bold|Bold|Extra Bold|Black)$/i,
+        /^(.+?)\s+(Thin|Normal|Heavy)$/i,
+        /^(.+?)\-(Light|Regular|Medium|Bold|Black)$/i
+      ];
+      
+      for (const pattern of flatWeightPatterns) {
+        const match = styleName.match(pattern);
+        if (match) {
+          const baseGroup = match[1].trim();
+          const weight = match[2];
+          
+          if (!weightGroups.has(baseGroup)) {
+            weightGroups.set(baseGroup, []);
+          }
+          weightGroups.get(baseGroup)!.push({ weight, styleName });
+          console.log(`[Main] ✅ Found flat weight variation: "${baseGroup}" / "${weight}"`);
+          break;
+        }
+      }
+    }
+  }
+  
+  // Only return groups that have multiple weights (actual variations)
+  const actualVariations: Array<{
+    baseGroup: string; 
+    weights: string[]; 
+    styles: { weight: string; styleName: string }[]; 
+  }> = [];
+  
+  for (const [baseGroup, styles] of Array.from(weightGroups.entries())) {
+    if (styles.length > 1) { // Must have multiple weights to be a variation
+      const weights = Array.from(new Set(styles.map((s: { weight: string; styleName: string }) => s.weight)));
+      actualVariations.push({
+        baseGroup,
+        weights,
+        styles
+      });
+      console.log(`[Main] ✅ Weight variation group: "${baseGroup}" has weights: ${weights.join(', ')}`);
+    }
+  }
+  
+  console.log(`[Main] 📊 Found ${actualVariations.length} actual weight variation groups`);
+  return actualVariations;
+}
+
+// NEW: Helper function to detect if the design system uses variables for typography
+async function detectTypographyVariableUsage(textStyles: TextStyle[]): Promise<{
+  usesVariables: boolean;
+  variableStats: {
+    [property: string]: number;
+    totalStyles: number;
+  };
+  detectedVariables: Array<{
+    variableId: string;
+    variableName: string;
+    property: string;
+    usedByStyles: string[];
+    isLocal: boolean;
+  }>;
+}> {
+  console.log('[Main] 🔍 Detecting typography variable usage across', textStyles.length, 'text styles...');
+  
+  const variableMap = new Map<string, {
+    variableId: string;
+    variableName: string;
+    property: string;
+    usedByStyles: string[];
+    isLocal: boolean;
+  }>();
+  
+  const propertyStats: { [property: string]: number } = {};
+  
+  // Get local variables to determine which are local
+  const localVariables = await figma.variables.getLocalVariablesAsync();
+  const localVariableIds = new Set(localVariables.map(v => v.id));
+  
+  // FIRST: Add ALL font-related variables (family, weight, style)
+  // But NOT size variables - those will be added only if bound to text styles
+  for (const variable of localVariables) {
+    // Only include STRING variables (for font family, weight, style)
+    // Size variables (FLOAT) will only be added if bound to text styles
+    if (variable.resolvedType === 'STRING') {
+      const varName = variable.name.toLowerCase();
+      
+      // Detect font-related variables by name pattern
+      const isFontVariable = 
+        varName.includes('font-family') ||
+        varName.includes('font-weight') ||
+        varName.includes('font-style') ||
+        (varName.startsWith('primary-') && (varName.includes('regular') || varName.includes('medium') || varName.includes('bold') || varName.includes('light') || varName.includes('black') || varName.includes('semibold'))) ||
+        (varName.startsWith('secondary-') && (varName.includes('regular') || varName.includes('medium') || varName.includes('bold') || varName.includes('light') || varName.includes('black') || varName.includes('semibold'))) ||
+        (varName.startsWith('heading-') && (varName.includes('weight') || varName.includes('style') || varName.includes('family')));
+      
+      if (isFontVariable && !variableMap.has(variable.id)) {
+        // Determine property type based on name
+        let property = 'fontStyle'; // Default for weight variables
+        if (varName.includes('family')) property = 'fontFamily';
+        
+        variableMap.set(variable.id, {
+          variableId: variable.id,
+          variableName: variable.name,
+          property: property,
+          usedByStyles: [],
+          isLocal: true
+        });
+        console.log(`[Main] 🎯 Added font variable: ${variable.name} (property: ${property})`);
+      }
+    }
+    // Size variables (FLOAT) will ONLY be added if actually bound to text styles below
+  }
+  
+  for (const style of textStyles) {
+    console.log(`[Main] 🔍 Checking style: "${style.name}"`);
+    console.log(`[Main] 🔍 Raw boundVariables content:`, JSON.stringify(style.boundVariables, null, 2));
+    
+    if ('boundVariables' in style && style.boundVariables) {
+      const boundVars = style.boundVariables;
+      
+      // Check ALL properties in boundVariables
+      for (const [property, binding] of Object.entries(boundVars)) {
+        if (!binding) continue;
+        
+        console.log(`[Main] 🎯 Found ${property} variable binding:`, binding);
+        
+        let varId: string | undefined;
+        
+        // Handle both array format (fontSize, lineHeight, letterSpacing) and direct format (fontFamily, fontStyle)
+        if (Array.isArray(binding) && binding.length > 0) {
+          const varAlias = binding[0];
+          if (varAlias && typeof varAlias === 'object' && 'type' in varAlias && varAlias.type === 'VARIABLE_ALIAS') {
+            varId = varAlias.id;
+          }
+        } else if (typeof binding === 'object' && 'type' in binding && binding.type === 'VARIABLE_ALIAS') {
+          varId = binding.id;
+        }
+        
+        if (varId && !variableMap.has(varId)) {
+          try {
+            const variable = await figma.variables.getVariableByIdAsync(varId);
+            if (variable) {
+              const isLocal = localVariableIds.has(varId);
+              console.log(`[Main] ✅ Found ${property} variable: ${variable.name} (${isLocal ? 'LOCAL' : 'EXTERNAL'})`);
+              
+              // Only include local variables
+              if (isLocal) {
+                variableMap.set(varId, {
+                  variableId: varId,
+                  variableName: variable.name,
+                  property: property,
+                  usedByStyles: [],
+                  isLocal: true
+                });
+              }
+            }
+          } catch (e) {
+            console.warn(`[Main] Could not fetch ${property} variable:`, varId, e);
+          }
+        }
+        
+        if (varId && variableMap.has(varId)) {
+          variableMap.get(varId)!.usedByStyles.push(style.name);
+          propertyStats[property] = (propertyStats[property] || 0) + 1;
+        }
+      }
+    }
+  }
+  
+  const detectedVariables = Array.from(variableMap.values());
+  const totalVariableBindings = Object.values(propertyStats).reduce((sum, count) => sum + count, 0);
+  const usesVariables = totalVariableBindings > 0;
+  
+  console.log('[Main] 📊 Typography variable usage detected:');
+  Object.entries(propertyStats).forEach(([property, count]) => {
+    console.log(`  - ${property} variables: ${count}`);
+  });
+  console.log(`  - Total variable bindings: ${totalVariableBindings}`);
+  console.log(`  - Unique variables found: ${detectedVariables.length}`);
+  console.log(`  - Uses variables: ${usesVariables}`);
+  
+  if (detectedVariables.length > 0) {
+    console.log('[Main] 🎯 Detected typography variables:');
+    detectedVariables.forEach(variable => {
+      console.log(`  - ${variable.variableName} (${variable.property}): used by ${variable.usedByStyles.length} styles`);
+    });
+  } else {
+    console.log('[Main] ❌ No LOCAL typography variables detected');
+  }
+  
+  return {
+    usesVariables,
+    variableStats: {
+      ...propertyStats,
+      totalStyles: textStyles.length
+    },
+    detectedVariables
+  };
+}
+
+// NEW: Helper function to create variable mapping suggestions
+async function createVariableMappingSuggestions(
+  detectedVariables: Array<{
+    variableId: string;
+    variableName: string;
+    property: string;
+    usedByStyles: string[];
+    isLocal: boolean;
+  }>,
+  typeSystem: TypographySystem
+): Promise<Array<{
+  variableId: string;
+  variableName: string;
+  property: string;
+  usedByStyles: string[];
+  currentValue: number | string;
+  suggestedMapping: string;
+  isLocal: boolean;
+}>> {
+  console.log('[Main] 🔍 Creating variable mapping suggestions...');
+  
+  const variablesWithSuggestions = [];
+  
+  for (const variable of detectedVariables) {
+    try {
+      const figmaVariable = await figma.variables.getVariableByIdAsync(variable.variableId);
+      if (!figmaVariable) {
+        console.warn(`[Main] Variable not found: ${variable.variableId}`);
+        continue;
+      }
+      
+      // Get current value from the variable
+      const collection = await figma.variables.getVariableCollectionByIdAsync(figmaVariable.variableCollectionId);
+      const modeId = collection?.defaultModeId;
+      const currentValue = modeId ? (figmaVariable.valuesByMode[modeId] as number) : 0;
+      
+      // Suggest mapping based on variable name and property
+      let suggestedMapping = 'textMain'; // Default fallback
+      
+      const variableLower = variable.variableName.toLowerCase();
+      
+      // Smart mapping based on variable name patterns
+      if (variableLower.includes('display') || variableLower.includes('h0')) {
+        suggestedMapping = 'display';
+      } else if (variableLower.includes('h1')) {
+        suggestedMapping = 'h1';
+      } else if (variableLower.includes('h2')) {
+        suggestedMapping = 'h2';
+      } else if (variableLower.includes('h3')) {
+        suggestedMapping = 'h3';
+      } else if (variableLower.includes('h4')) {
+        suggestedMapping = 'h4';
+      } else if (variableLower.includes('h5')) {
+        suggestedMapping = 'h5';
+      } else if (variableLower.includes('h6')) {
+        suggestedMapping = 'h6';
+      } else if (variableLower.includes('large') || variableLower.includes('subtitle')) {
+        suggestedMapping = 'textLarge';
+      } else if (variableLower.includes('small') || variableLower.includes('caption')) {
+        suggestedMapping = 'textSmall';
+      } else if (variableLower.includes('tiny') || variableLower.includes('micro')) {
+        suggestedMapping = 'micro';
+      } else if (variableLower.includes('body') || variableLower.includes('text') || variableLower.includes('main')) {
+        suggestedMapping = 'textMain';
+      }
+      
+      // Ensure the suggested mapping exists in the type system
+      if (!typeSystem[suggestedMapping]) {
+        suggestedMapping = Object.keys(typeSystem)[0] || 'textMain';
+      }
+      
+      variablesWithSuggestions.push({
+        variableId: variable.variableId,
+        variableName: variable.variableName,
+        property: variable.property,
+        usedByStyles: variable.usedByStyles,
+        currentValue: currentValue,
+        suggestedMapping: suggestedMapping,
+        isLocal: variable.isLocal
+      });
+      
+      console.log(`[Main] Variable "${variable.variableName}" (${variable.property}): ${currentValue} -> suggested mapping to "${suggestedMapping}"`);
+      
+    } catch (error) {
+      console.error(`[Main] Failed to process variable ${variable.variableName}:`, error);
+    }
+  }
+  
+  console.log(`[Main] 📊 Created suggestions for ${variablesWithSuggestions.length} variables`);
+  return variablesWithSuggestions;
+}
+
+// NEW: Helper function to apply user's variable mapping choices
+async function applyVariableMappings(
+  variableMapping: { 
+    [variableId: string]: {
+      action: 'preserve' | 'update' | 'disconnect';
+      mapToProperty?: string;
+      mapToStyleKey?: string;
+    }
+  },
+  typeSystem: TypographySystem
+): Promise<{ updated: number; failed: number; disconnected: number }> {
+  console.log('[Main] 🔧 Applying user variable mappings...');
+  
+  let updatedCount = 0;
+  let failedCount = 0;
+  let disconnectedCount = 0;
+  
+  for (const [variableId, mapping] of Object.entries(variableMapping)) {
+    try {
+      const figmaVariable = await figma.variables.getVariableByIdAsync(variableId);
+      if (!figmaVariable) {
+        console.warn(`[Main] Variable not found: ${variableId}`);
+        failedCount++;
+        continue;
+      }
+      
+      console.log(`[Main] Processing variable "${figmaVariable.name}" with action: ${mapping.action}`);
+      
+      if (mapping.action === 'update' && mapping.mapToStyleKey) {
+        const targetStyle = typeSystem[mapping.mapToStyleKey];
+        if (!targetStyle) {
+          console.warn(`[Main] Target style "${mapping.mapToStyleKey}" not found in type system`);
+          failedCount++;
+          continue;
+        }
+        
+        // Get the collection and default mode
+        const collection = await figma.variables.getVariableCollectionByIdAsync(figmaVariable.variableCollectionId);
+        if (!collection) {
+          console.warn(`[Main] Collection not found for variable: ${figmaVariable.name}`);
+          failedCount++;
+          continue;
+        }
+        
+        const modeId = collection.defaultModeId;
+        let newValue: number;
+        
+        // Extract value based on the property this variable represents
+        // For now, assume fontSize variables (we could make this more sophisticated)
+        if (mapping.mapToProperty === 'fontSize') {
+          newValue = targetStyle.size;
+        } else if (mapping.mapToProperty === 'lineHeight') {
+          // For line height variables, check if they expect pixels or multiplier
+          // This is a heuristic - real implementation might need more detection
+          const currentValue = figmaVariable.valuesByMode[modeId] as number;
+          if (currentValue > 10) {
+            // Likely pixels
+            newValue = targetStyle.lineHeight * targetStyle.size;
+          } else {
+            // Likely multiplier
+            newValue = targetStyle.lineHeight;
+          }
+        } else if (mapping.mapToProperty === 'letterSpacing') {
+          newValue = targetStyle.letterSpacing;
+        } else {
+          // Default to fontSize
+          newValue = targetStyle.size;
+        }
+        
+        figmaVariable.setValueForMode(modeId, newValue);
+        updatedCount++;
+        console.log(`[Main] ✅ Updated variable "${figmaVariable.name}" to ${newValue}`);
+        
+      } else if (mapping.action === 'disconnect') {
+        // For disconnect, we don't update the variable value, but we'll need to
+        // update text styles to use direct values instead of variables
+        disconnectedCount++;
+        console.log(`[Main] 📎 Variable "${figmaVariable.name}" marked for disconnection`);
+        
+      } else if (mapping.action === 'preserve') {
+        // Do nothing - keep variable as-is
+        console.log(`[Main] 💾 Preserving variable "${figmaVariable.name}" unchanged`);
+      }
+      
+    } catch (error) {
+      console.error(`[Main] Failed to process variable mapping for ${variableId}:`, error);
+      failedCount++;
+    }
+  }
+  
+  console.log(`[Main] 📊 Variable mapping complete: ${updatedCount} updated, ${disconnectedCount} disconnected, ${failedCount} failed`);
+  return { updated: updatedCount, failed: failedCount, disconnected: disconnectedCount };
+}
+
+// NEW: Helper function to update styles while respecting variable mappings
+async function updateStylesWithVariableMapping(
+  request: CreateStylesRequest,
+  variableMapping: { 
+    [variableId: string]: {
+      action: 'preserve' | 'update' | 'disconnect';
+      mapToProperty?: string;
+      mapToStyleKey?: string;
+    }
+  },
+  availableFontsList: FontInfo[]
+) {
+  console.log('[Main] 🎨 Updating text styles with variable mapping considerations...');
+  
+  const { typeSystem, selectedStyle, activeMode } = request;
+  const localStyles = figma.getLocalTextStyles();
+  
+  let stylesUpdated = 0;
+  let stylesFailed = 0;
+  
+  // Create a set of variable IDs that should be disconnected
+  const variablesToDisconnect = new Set<string>();
+  for (const [variableId, mapping] of Object.entries(variableMapping)) {
+    if (mapping.action === 'disconnect') {
+      variablesToDisconnect.add(variableId);
+    }
+  }
+  
+  // Default font info
+  const defaultFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+  const defaultFontStyle = selectedStyle || 'Regular';
+  
+  for (const style of localStyles) {
+    try {
+      const specificFamily = defaultFontFamily; // For now, apply same font to all
+      const specificStyle = defaultFontStyle;
+      
+      // Load existing and new fonts
+      await figma.loadFontAsync(style.fontName);
+      const newFont: FontName = { family: specificFamily, style: specificStyle };
+      await figma.loadFontAsync(newFont);
+      
+      // Update font family and style
+      style.fontName = newFont;
+      
+      // Handle variable-connected properties carefully
+      const boundVars = style.boundVariables;
+      
+      // For fontSize: Only update if not connected to a variable we're preserving/updating
+      if (!boundVars?.fontSize?.id || variablesToDisconnect.has(boundVars.fontSize.id)) {
+        // Find which typography style this text style should use
+        // This is a heuristic - could be made more sophisticated
+        const styleData = findMatchingTypographyStyle(style.name, typeSystem);
+        if (styleData) {
+          style.fontSize = styleData.size;
+          
+          // If we're disconnecting, remove the variable binding
+          if (boundVars?.fontSize?.id && variablesToDisconnect.has(boundVars.fontSize.id)) {
+            (style.boundVariables as any) = { ...boundVars, fontSize: undefined };
+          }
+        }
+      }
+      
+      // Similar logic for lineHeight and letterSpacing...
+      if (!boundVars?.lineHeight?.id || variablesToDisconnect.has(boundVars.lineHeight.id)) {
+        const styleData = findMatchingTypographyStyle(style.name, typeSystem);
+        if (styleData) {
+          style.lineHeight = { unit: 'PERCENT', value: Math.round(styleData.lineHeight * 100) };
+          
+          if (boundVars?.lineHeight?.id && variablesToDisconnect.has(boundVars.lineHeight.id)) {
+            (style.boundVariables as any) = { ...boundVars, lineHeight: undefined };
+          }
+        }
+      }
+      
+      if (!boundVars?.letterSpacing?.id || variablesToDisconnect.has(boundVars.letterSpacing.id)) {
+        const styleData = findMatchingTypographyStyle(style.name, typeSystem);
+        if (styleData) {
+          const lsRoundedPlanned = Math.round((styleData.letterSpacing ?? 0) / 0.25) * 0.25;
+          style.letterSpacing = { unit: 'PERCENT', value: lsRoundedPlanned };
+          
+          if (boundVars?.letterSpacing?.id && variablesToDisconnect.has(boundVars.letterSpacing.id)) {
+            (style.boundVariables as any) = { ...boundVars, letterSpacing: undefined };
+          }
+        }
+      }
+      
+      stylesUpdated++;
+      
+    } catch (error) {
+      console.error(`[Main] Failed to update style ${style.name}:`, error);
+      stylesFailed++;
+    }
+  }
+  
+  const message = `Updated ${stylesUpdated} text style(s) while preserving variable connections.`;
+  console.log(`[Main] ${message}`);
+  figma.notify(message, stylesFailed > 0 ? { timeout: 4000 } : undefined);
+  
+  if (stylesFailed > 0) {
+    console.warn(`[Main] ${stylesFailed} style(s) failed to update`);
+  }
+}
+
+// Helper function to find matching typography style for a text style name
+function findMatchingTypographyStyle(styleName: string, typeSystem: TypographySystem): TypographyStyle | null {
+  // Simple heuristic to match style names to typography system keys
+  const nameLower = styleName.toLowerCase();
+  
+  for (const [key, style] of Object.entries(typeSystem)) {
+    const displayName = getDisplayName(key).toLowerCase();
+    if (nameLower.includes(displayName) || nameLower.includes(key.toLowerCase())) {
+      return style;
+    }
+  }
+  
+  // Fallback to textMain if no match found
+  return typeSystem.textMain || Object.values(typeSystem)[0] || null;
+}
+
+// NEW: Helper function to update typography variables instead of style properties
+async function updateTypographyVariables(
+  detectedVariables: Array<{
+    variableId: string;
+    variableName: string;
+    property: string;
+    usedByStyles: string[];
+    isLocal: boolean;
+  }>,
+  typeSystem: TypographySystem,
+  styleMapping: Map<string, string> // Maps style names to internal keys
+): Promise<{ updated: number; failed: number }> {
+  console.log('[Main] 🔧 Starting variable-aware update for', detectedVariables.length, 'variables...');
+  
+  let updatedCount = 0;
+  let failedCount = 0;
+  
+  for (const variable of detectedVariables) {
+    console.log(`[Main] Processing variable: ${variable.variableName} (${variable.property})`);
+    
+    try {
+      const figmaVariable = await figma.variables.getVariableByIdAsync(variable.variableId);
+      if (!figmaVariable) {
+        console.warn(`[Main] Variable not found: ${variable.variableId}`);
+        failedCount++;
+        continue;
+      }
+      
+      // Find which style this variable should be updated based on
+      // This is a simplified approach - in reality we'd need more sophisticated mapping
+      let targetStyle: TypographyStyle | undefined;
+      let targetStyleName = '';
+      
+      // Try to match variable name or usage to our type system
+      for (const [internalKey, style] of Object.entries(typeSystem)) {
+        // Simple heuristic: if variable name contains style indicators
+        const variableLower = variable.variableName.toLowerCase();
+        const internalLower = internalKey.toLowerCase();
+        
+        if (variableLower.includes(internalLower) || 
+            variableLower.includes(internalKey) ||
+            variable.usedByStyles.some(styleName => 
+              styleMapping.get(styleName) === internalKey
+            )) {
+          targetStyle = style;
+          targetStyleName = internalKey;
+          break;
+        }
+      }
+      
+      if (!targetStyle) {
+        console.log(`[Main] No matching style found for variable: ${variable.variableName}`);
+        // Could fall back to first style or skip
+        continue;
+      }
+      
+      // Get the collection and default mode
+      const collection = await figma.variables.getVariableCollectionByIdAsync(figmaVariable.variableCollectionId);
+      if (!collection) {
+        console.warn(`[Main] Collection not found for variable: ${variable.variableName}`);
+        failedCount++;
+        continue;
+      }
+      
+      const modeId = collection.defaultModeId;
+      let newValue: number;
+      
+      // Extract the appropriate value from our typography style
+      switch (variable.property) {
+        case 'fontSize':
+          newValue = targetStyle.size;
+          break;
+        case 'lineHeight':
+          // Convert multiplier to pixels if the variable expects pixels
+          newValue = targetStyle.lineHeight * targetStyle.size;
+          break;
+        case 'letterSpacing':
+          newValue = targetStyle.letterSpacing;
+          break;
+        default:
+          console.warn(`[Main] Unknown property: ${variable.property}`);
+          failedCount++;
+          continue;
+      }
+      
+      // Update the variable value
+      figmaVariable.setValueForMode(modeId, newValue);
+      updatedCount++;
+      
+      console.log(`[Main] ✅ Updated ${variable.variableName}: ${variable.property} = ${newValue}`);
+      
+    } catch (error) {
+      console.error(`[Main] Failed to update variable ${variable.variableName}:`, error);
+      failedCount++;
+    }
+  }
+  
+  console.log(`[Main] 📊 Variable update complete: ${updatedCount} updated, ${failedCount} failed`);
+  return { updated: updatedCount, failed: failedCount };
+}
+
+// --- CLEAN UPDATE PIPELINE IMPLEMENTATION ---
+
+/**
+ * SHARED: Calculate scale ratio and extract key sizes from mapped styles
+ */
+function calculateScaleRatioAndSizes(
+  mappedStyles: Array<{ mappedSystemStyle: string; fontSize: number; fontWeight?: string | number; fontStyle?: string; systemKey?: string | null }>,
+  logPrefix: string = "[ScaleRatio]"
+): { 
+  estimatedRatio?: number; 
+  baseSizeInPx?: number; 
+  largeSizeInPx?: number;
+  keyStyleSizes: { textMain?: number; h1?: number; display?: number };
+  primaryFontWeight?: string;
+} {
+  const keyStyleSizes: { textMain?: number; h1?: number; display?: number } = {};
+  let primaryFontWeight: string | undefined = undefined;
+
+  // Extract key style sizes from mapped styles
+  const normalizeProvidedKey = (key?: string | null): string | null => {
+    if (!key) return null;
+
+    const candidate = key.toString();
+    const candidateLower = candidate.toLowerCase();
+
+    for (const canonicalKey of Object.values(STYLE_KEYS)) {
+      if (candidate === canonicalKey || candidateLower === canonicalKey.toLowerCase()) {
+        return canonicalKey;
+      }
+    }
+
+    return null;
+  };
+
+  const deriveSystemKey = (mappedName: string, providedKey?: string | null): string | null => {
+    const canonicalFromProvided = normalizeProvidedKey(providedKey);
+    if (canonicalFromProvided) {
+      return canonicalFromProvided;
+    }
+    return (
+      getInternalKeyForDisplayName(mappedName, 'Lumos')
+      || getInternalKeyForDisplayName(mappedName, 'Relume')
+      || getInternalKeyForDisplayName(mappedName, 'Bootstrap')
+      || getInternalKeyForDisplayName(mappedName, 'Tailwind')
+      || getInternalKeyForDisplayName(mappedName, 'Default Naming')
+    );
+  };
+
+  for (const style of mappedStyles) {
+    if (!style.mappedSystemStyle || style.mappedSystemStyle === "None") {
+      continue;
+    }
+
+    const derivedKey = deriveSystemKey(style.mappedSystemStyle, style.systemKey || undefined);
+
+    if (!derivedKey) {
+      continue;
+    }
+
+    if (derivedKey === STYLE_KEYS.TEXT_MAIN) {
+      keyStyleSizes.textMain = style.fontSize;
+    } else if (derivedKey === STYLE_KEYS.H1) {
+      keyStyleSizes.h1 = style.fontSize;
+    } else if (derivedKey === STYLE_KEYS.DISPLAY) {
+      keyStyleSizes.display = style.fontSize;
+    }
+
+    if (!primaryFontWeight && (style.fontWeight !== undefined || style.fontStyle)) {
+      if (typeof style.fontWeight === 'number') {
+        primaryFontWeight = style.fontWeight.toString();
+      } else if (style.fontWeight) {
+        primaryFontWeight = style.fontWeight;
+      } else if (style.fontStyle) {
+        primaryFontWeight = style.fontStyle;
+      }
+    }
+  }
+
+  console.log(`${logPrefix} Key style sizes for ratio estimation:`, JSON.stringify(keyStyleSizes));
+
+  // Calculate scale ratios using typography scale exponents
+  const calculatedRatios: number[] = [];
+  const textMainExponent = 0;
+  const h1Exponent = 5;
+  const displayExponent = 6;
+
+  if (keyStyleSizes.textMain && keyStyleSizes.textMain > 0) {
+    if (keyStyleSizes.h1 && keyStyleSizes.h1 > keyStyleSizes.textMain) {
+      const ratio = Math.pow(keyStyleSizes.h1 / keyStyleSizes.textMain, 1 / (h1Exponent - textMainExponent));
+      console.log(`${logPrefix} Ratio from H1 (${keyStyleSizes.h1}) / Main (${keyStyleSizes.textMain}) with exp ${h1Exponent}: ${ratio}`);
+      if (isFinite(ratio) && ratio > 1) calculatedRatios.push(ratio);
+    }
+    if (keyStyleSizes.display && keyStyleSizes.display > keyStyleSizes.textMain) {
+      const ratio = Math.pow(keyStyleSizes.display / keyStyleSizes.textMain, 1 / (displayExponent - textMainExponent));
+      console.log(`${logPrefix} Ratio from Display (${keyStyleSizes.display}) / Main (${keyStyleSizes.textMain}) with exp ${displayExponent}: ${ratio}`);
+      if (isFinite(ratio) && ratio > 1) calculatedRatios.push(ratio);
+    }
+  }
+
+  let estimatedRatio: number | undefined = undefined;
+
+  if (calculatedRatios.length > 0) {
+    const averageCalculatedRatio = calculatedRatios.reduce((sum, r) => sum + r, 0) / calculatedRatios.length;
+    console.log(`${logPrefix} Average calculated ratio from key styles:`, averageCalculatedRatio);
+
+    let closestPresetRatioValue: number | undefined = undefined;
+    let smallestDiff = Infinity;
+
+    for (const presetValue of Object.values(PRESET_RATIOS_MAP)) {
+      const diff = Math.abs(averageCalculatedRatio - presetValue);
+      if (diff < smallestDiff) {
+        smallestDiff = diff;
+        closestPresetRatioValue = presetValue;
+      }
+    }
+
+    // Threshold for snapping: if the average is within ~15% of a preset, snap to it.
+    if (closestPresetRatioValue && smallestDiff < closestPresetRatioValue * 0.15) { 
+      estimatedRatio = closestPresetRatioValue;
+      console.log(`${logPrefix} Estimated scale ratio (snapped to preset):`, estimatedRatio);
+    } else {
+      console.log(`${logPrefix} Could not confidently snap to a preset ratio. Average was:`, averageCalculatedRatio, "Closest preset:", closestPresetRatioValue, "Diff:", smallestDiff);
+    }
+  } else {
+    console.log(`${logPrefix} Not enough key mapped styles (e.g., textMain and H1/Display) to calculate a scale ratio.`);
+  }
+
+  // Extract base and large sizes for the UI
+  const baseSizeInPx = keyStyleSizes.textMain;
+  const largeSizeInPx = keyStyleSizes.display || keyStyleSizes.h1;
+
+  return {
+    estimatedRatio,
+    baseSizeInPx,
+    largeSizeInPx,
+    keyStyleSizes,
+    primaryFontWeight
+  };
+}
+
+/**
+ * PHASE 1: DISCOVERY - Analyze current document state
+ * System-specific logic lives here - different for Relume vs Lumos vs Default
+ */
+async function discoverCurrentStyles(namingConvention: string, typeSystem: TypographySystem, storedMappings?: { [figmaStyleName: string]: string }): Promise<DiscoveredStyle[]> {
+  console.log(`[Pipeline] 🔍 Discovering current styles for ${namingConvention} system...`);
+  console.log(`[Pipeline] 📋 Type system keys:`, Object.keys(typeSystem));
+  
+  const localStyles = figma.getLocalTextStyles();
+  const discoveredStyles: DiscoveredStyle[] = [];
+  
+  console.log(`[Pipeline] 📄 Found ${localStyles.length} local text styles:`, localStyles.map(s => s.name));
+  
+  // Get local variables for variable detection
+  const localVariables = await figma.variables.getLocalVariablesAsync();
+  const localVariableIds = new Set(localVariables.map(v => v.id));
+  console.log(`[Pipeline] 🔧 Found ${localVariables.length} local variables`);
+  
+  for (const figmaStyle of localStyles) {
+    // Check stored mappings first, then fall back to automatic detection
+    let systemKey = storedMappings?.[figmaStyle.name] || null;
+    if (!systemKey) {
+      systemKey = mapFigmaStyleToSystemKey(figmaStyle.name, namingConvention);
+    }
+    
+    const hasVariables = hasVariableBindings(figmaStyle, localVariableIds);
+    const variableBindings = hasVariables ? extractVariableBindings(figmaStyle, localVariableIds) : undefined;
+    
+    // Determine if this style should be included in discovery
+    const autoMapsToSystem = systemKey !== null && typeSystem[systemKey] !== undefined;
+    const isInStoredMappings = storedMappings?.[figmaStyle.name] !== undefined;
+    const couldBeManurallyMapped = isStyleCandidateForManualMapping(figmaStyle.name, namingConvention);
+    const shouldInclude = autoMapsToSystem || hasVariables || isInStoredMappings || couldBeManurallyMapped;
+    
+    console.log(`[Pipeline] 🔍 Style "${figmaStyle.name}": systemKey="${systemKey}", autoMaps=${autoMapsToSystem}, variables=${hasVariables}, stored=${isInStoredMappings}, candidate=${couldBeManurallyMapped}`);
+    
+    // EXTRA DEBUG for specific styles
+    if (figmaStyle.name.toLowerCase().includes('tagline') || figmaStyle.name.toLowerCase().includes('medium')) {
+      console.log(`[Pipeline] 🎯 STYLE DEBUG: "${figmaStyle.name}"`);
+      console.log(`[Pipeline] 🎯   - storedMappings lookup: ${storedMappings?.[figmaStyle.name]}`);
+      console.log(`[Pipeline] 🎯   - final systemKey: ${systemKey}`);
+      console.log(`[Pipeline] 🎯   - typeSystem has key: ${systemKey ? typeSystem[systemKey] !== undefined : 'N/A'}`);
+      console.log(`[Pipeline] 🎯   - typeSystem keys: ${Object.keys(typeSystem).join(', ')}`);
+      console.log(`[Pipeline] 🎯   - needsUpdate will be: ${autoMapsToSystem || isInStoredMappings}`);
+      console.log(`[Pipeline] 🎯   - will be included: ${shouldInclude}`);
+    }
+    
+    if (shouldInclude) {
+      discoveredStyles.push({
+        figmaStyle,
+        systemKey,
+        needsUpdate: autoMapsToSystem || isInStoredMappings, // Both auto-mapped AND stored mapped styles need updates
+        hasVariables,
+        variableBindings
+      });
+      
+      console.log(`[Pipeline] ✅ Including style: "${figmaStyle.name}" → ${systemKey || 'unmapped'} (reason: ${autoMapsToSystem ? 'auto-mapped' : hasVariables ? 'has-variables' : isInStoredMappings ? 'stored-mapping' : 'manual-candidate'})`);
+    } else {
+      console.log(`[Pipeline] ❌ Skipping style: "${figmaStyle.name}" (no mapping, variables, or manual candidate)`);
+    }
+  }
+  
+  console.log(`[Pipeline] 📊 Discovered ${discoveredStyles.length} relevant styles out of ${localStyles.length} total`);
+  return discoveredStyles;
+}
+
+/**
+ * Check if a style could be manually mapped by the user (even if it doesn't auto-map)
+ */
+function isStyleCandidateForManualMapping(figmaStyleName: string, namingConvention: string): boolean {
+  switch (namingConvention) {
+    case 'Relume':
+      // Include all Relume styles that could potentially be mapped
+      return figmaStyleName.startsWith('Heading/') || figmaStyleName.startsWith('Text/');
+    case 'Lumos':
+    case 'Bootstrap':  
+    case 'Tailwind':
+      // For flat naming, include common typography-related names
+      const flatCandidates = ['tagline', 'subtitle', 'caption', 'overline', 'button', 'label'];
+      const nameLower = figmaStyleName.toLowerCase();
+      return flatCandidates.some(candidate => nameLower.includes(candidate));
+    default: // Default Naming
+      // For organized naming like "Specimen / Font / StyleName", include anything that looks like typography
+      return figmaStyleName.includes('/') && (figmaStyleName.toLowerCase().includes('text') || figmaStyleName.toLowerCase().includes('heading'));
+  }
+}
+
+/**
+ * Map Figma style names to system keys based on naming convention
+ */
+function mapFigmaStyleToSystemKey(figmaStyleName: string, namingConvention: string): string | null {
+  switch (namingConvention) {
+    case 'Relume':
+      return mapRelumeStyleToSystemKey(figmaStyleName);
+    case 'Lumos':
+    case 'Bootstrap':  
+    case 'Tailwind':
+      return mapFlatStyleToSystemKey(figmaStyleName);
+    default: // Default Naming
+      return mapDefaultStyleToSystemKey(figmaStyleName);
+  }
+}
+
+function mapRelumeStyleToSystemKey(styleName: string): string | null {
+  // Relume patterns: "Heading/H1" → "h1", "Text/Large/Normal" → "textLarge"
+  console.log(`[Pipeline] 🔍 Mapping Relume style: "${styleName}"`);
+  
+  if (styleName.startsWith('Heading/H')) {
+    const match = styleName.match(/Heading\/H(\d+)/);
+    if (match) {
+      const num = match[1];
+      const systemKey = num === '0' ? 'display' : `h${num}`;
+      console.log(`[Pipeline] ✅ Mapped heading: "${styleName}" → "${systemKey}"`);
+      return systemKey;
+    }
+  }
+  
+  if (styleName.startsWith('Text/')) {
+    // Handle both "Text/Large" and "Text/Large/Normal" patterns
+    // Include "Medium" in the pattern but don't auto-map it (needs manual mapping)
+    const match = styleName.match(/Text\/(Large|Medium|Regular|Small|Tiny)(?:\/(.+))?/);
+    if (match) {
+      const size = match[1];
+      const weight = match[2]; // This will be undefined for base styles, or "Normal", "Bold", etc for variants
+      
+      let systemKey: string | null;
+      switch (size) {
+        case 'Large': systemKey = 'textLarge'; break;
+        case 'Medium': systemKey = null; break; // No auto-mapping - requires manual mapping from scan screen
+        case 'Regular': systemKey = 'textMain'; break;
+        case 'Small': systemKey = 'textSmall'; break;
+        case 'Tiny': systemKey = 'micro'; break;
+        default: return null;
+      }
+      
+      if (systemKey) {
+        console.log(`[Pipeline] ✅ Mapped text style: "${styleName}" → "${systemKey}" (weight: ${weight || 'none'})`);
+        return systemKey;
+      } else {
+        console.log(`[Pipeline] 🎯 Recognized text style: "${styleName}" (size: ${size}) - requires manual mapping`);
+        return null; // Recognized but needs manual mapping
+      }
+    }
+  }
+  
+  console.log(`[Pipeline] ❌ Could not map Relume style: "${styleName}"`);
+  return null;
+}
+
+function mapFlatStyleToSystemKey(styleName: string): string | null {
+  // Flat patterns: "Display" → "display", "H1" → "h1", "Body" → "textMain"
+  const nameLower = styleName.toLowerCase().trim();
+  
+  // Direct matches
+  if (nameLower === 'display') return 'display';
+  if (nameLower === 'h1') return 'h1';
+  if (nameLower === 'h2') return 'h2';
+  if (nameLower === 'h3') return 'h3';
+  if (nameLower === 'h4') return 'h4';
+  if (nameLower === 'h5') return 'h5';
+  if (nameLower === 'h6') return 'h6';
+  
+  // Text styles with various naming patterns
+  if (
+    nameLower.includes('body') ||
+    nameLower.includes('text-main') || // hyphenated variant
+    nameLower.includes('text main') || // spaced variant (e.g., Lumos "Text Main")
+    nameLower === 'main' ||
+    nameLower.includes('regular') || // common alias
+    nameLower.includes('paragraph') // another alias seen in the wild
+  ) return 'textMain';
+  if (nameLower.includes('large') || nameLower.includes('subtitle')) return 'textLarge';
+  if (nameLower.includes('small') || nameLower.includes('caption')) return 'textSmall';
+  if (nameLower.includes('tiny') || nameLower.includes('micro')) return 'micro';
+  
+  return null;
+}
+
+function mapDefaultStyleToSystemKey(styleName: string): string | null {
+  // Default patterns:
+  // - Legacy: "Specimen / Inter / H1"
+  // - Versioned set: "Specimen / Inter / Desktop / H1"
+  const parts = styleName.split('/').map(p => p.trim());
+  if (parts.length >= 3) {
+    const displayName = parts[parts.length - 1].toLowerCase();
+    
+    if (displayName === 'display') return 'display';
+    if (displayName === 'h1') return 'h1';
+    if (displayName === 'h2') return 'h2';
+    if (displayName === 'h3') return 'h3';
+    if (displayName === 'h4') return 'h4';
+    if (displayName === 'h5') return 'h5';
+    if (displayName === 'h6') return 'h6';
+    if (displayName === 'text main') return 'textMain';
+    if (displayName === 'text large') return 'textLarge';
+    if (displayName === 'text small') return 'textSmall';
+    if (displayName === 'micro') return 'micro';
+  }
+  
+  return null;
+}
+
+/**
+ * Check if style has variable bindings
+ */
+function hasVariableBindings(figmaStyle: TextStyle, localVariableIds: Set<string>): boolean {
+  if (!figmaStyle.boundVariables) return false;
+  
+  const boundVars = figmaStyle.boundVariables;
+  for (const [property, binding] of Object.entries(boundVars)) {
+    if (!binding) continue;
+    
+    let variableId: string | undefined;
+    if (Array.isArray(binding) && binding.length > 0 && binding[0]?.type === 'VARIABLE_ALIAS') {
+      variableId = binding[0].id;
+    } else if (typeof binding === 'object' && binding.type === 'VARIABLE_ALIAS') {
+      variableId = binding.id;
+    }
+    
+    if (variableId && localVariableIds.has(variableId)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Extract variable bindings from style
+ */
+function extractVariableBindings(figmaStyle: TextStyle, localVariableIds: Set<string>): { [property: string]: string } {
+  const bindings: { [property: string]: string } = {};
+  
+  if (!figmaStyle.boundVariables) return bindings;
+  
+  const boundVars = figmaStyle.boundVariables;
+  for (const [property, binding] of Object.entries(boundVars)) {
+    if (!binding) continue;
+    
+    let variableId: string | undefined;
+    if (Array.isArray(binding) && binding.length > 0 && binding[0]?.type === 'VARIABLE_ALIAS') {
+      variableId = binding[0].id;
+    } else if (typeof binding === 'object' && binding.type === 'VARIABLE_ALIAS') {
+      variableId = binding.id;
+    }
+    
+    if (variableId && localVariableIds.has(variableId)) {
+      bindings[property] = variableId;
+    }
+  }
+  
+  return bindings;
+}
+
+/**
+ * PHASE 2: PLANNING - Create unified update plan
+ * System-agnostic - same logic regardless of source system
+ */
+function createUpdatePlan(
+  discoveredStyles: DiscoveredStyle[], 
+  typeSystem: TypographySystem,
+  request: CreateStylesRequest,
+  weightMapping?: { [originalWeight: string]: string },
+  variableMapping?: { [variableId: string]: { action: string; newValue?: any } }
+): UpdatePlan {
+  console.log(`[Pipeline] 📋 Creating update plan for ${discoveredStyles.length} discovered styles...`);
+  
+  const plan: UpdatePlan = {
+    stylesToUpdate: [],
+    variablesToUpdate: [],
+    weightMappingsToApply: []
+  };
+  
+  const targetFontFamily = typeSystem.textMain?.fontFamily || 'Inter';
+  const targetFontStyle = request.selectedStyle || 'Regular';
+  
+  for (const discovered of discoveredStyles) {
+    // EXTRA DEBUG for specific styles
+    if (discovered.figmaStyle.name.toLowerCase().includes('tagline') || discovered.figmaStyle.name.toLowerCase().includes('medium')) {
+      console.log(`[Pipeline] 🎯 STYLE PLANNING: "${discovered.figmaStyle.name}"`);
+      console.log(`[Pipeline] 🎯   - needsUpdate: ${discovered.needsUpdate}`);
+      console.log(`[Pipeline] 🎯   - systemKey: ${discovered.systemKey}`);
+      console.log(`[Pipeline] 🎯   - systemData exists: ${discovered.systemKey ? typeSystem[discovered.systemKey] !== undefined : 'N/A'}`);
+      console.log(`[Pipeline] 🎯   - will be included in plan: ${discovered.needsUpdate && discovered.systemKey ? 'YES' : 'NO'}`);
+    }
+    
+    if (discovered.needsUpdate && discovered.systemKey) {
+      const systemData = typeSystem[discovered.systemKey];
+      if (!systemData) {
+        console.log(`[Pipeline] ❌ No system data found for key: ${discovered.systemKey} (style: ${discovered.figmaStyle.name})`);
+        continue;
+      }
+      
+      // Determine if we should preserve variables
+      const preserveVariables = discovered.hasVariables && shouldPreserveVariables(discovered, weightMapping, variableMapping);
+      
+      plan.stylesToUpdate.push({
+        figmaStyle: discovered.figmaStyle,
+        systemKey: discovered.systemKey,
+        targetFont: { family: targetFontFamily, style: targetFontStyle },
+        targetSize: systemData.size,
+        targetLineHeight: systemData.lineHeight,
+        targetLetterSpacing: systemData.letterSpacing,
+        preserveVariables
+      });
+      
+      console.log(`[Pipeline] ✅ Added to plan: "${discovered.figmaStyle.name}" → ${discovered.systemKey}`);
+    }
+  }
+  
+  // Add variable mappings if provided
+  if (variableMapping) {
+    for (const discovered of discoveredStyles) {
+      if (discovered.hasVariables && discovered.variableBindings) {
+        for (const [property, variableId] of Object.entries(discovered.variableBindings)) {
+          const mapping = variableMapping[variableId];
+          if (mapping && mapping.action === 'update' && mapping.newValue !== undefined) {
+            plan.variablesToUpdate.push({
+              variableId: variableId,
+              variableName: `Variable-${variableId}`, // We'll fetch the real name later
+              property: property,
+              newValue: mapping.newValue
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Add weight mappings if provided
+  if (weightMapping) {
+    for (const discovered of discoveredStyles) {
+      const styleName = discovered.figmaStyle.name;
+      
+      // Check if this style should have weight mapping applied
+      for (const [originalWeight, newWeight] of Object.entries(weightMapping)) {
+        if (styleName.includes(originalWeight)) {
+          plan.weightMappingsToApply.push({
+            originalStyleName: styleName,
+            newWeight: newWeight,
+            shouldDelete: newWeight === 'Delete'
+          });
+        }
+      }
+    }
+  }
+  
+  console.log(`[Pipeline] 📋 Plan created: ${plan.stylesToUpdate.length} styles to update, ${plan.variablesToUpdate.length} variables to update, ${plan.weightMappingsToApply.length} weight mappings`);
+  return plan;
+}
+
+/**
+ * Determine if variables should be preserved for this style
+ */
+function shouldPreserveVariables(
+  discovered: DiscoveredStyle,
+  weightMapping?: { [string: string]: string },
+  variableMapping?: { [variableId: string]: { action: string; newValue?: any } }
+): boolean {
+  // Only preserve variables if user explicitly chose to preserve them.
+  // Default: detach variables and apply specimen values.
+  if (discovered.hasVariables && discovered.variableBindings && variableMapping) {
+    for (const variableId of Object.values(discovered.variableBindings)) {
+      const mapping = variableMapping[variableId];
+      if (mapping && mapping.action === 'preserve') {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * PHASE 3: EXECUTION - Apply the update plan
+ * System-agnostic - same logic regardless of source system
+ */
+async function executeUpdatePlan(plan: UpdatePlan, availableFontsList: FontInfo[]): Promise<UpdateResults> {
+  console.log(`[Pipeline] ⚡ Executing update plan...`);
+  
+  const results: UpdateResults = {
+    stylesUpdated: 0,
+    stylesCreated: 0,
+    stylesDeleted: 0,
+    variablesUpdated: 0,
+    stylesFailed: 0,
+    message: ''
+  };
+  
+  // Step 1: Update variables
+  for (const variableUpdate of plan.variablesToUpdate) {
+    try {
+      const variable = await figma.variables.getVariableByIdAsync(variableUpdate.variableId);
+      if (variable) {
+        const collection = await figma.variables.getVariableCollectionByIdAsync(variable.variableCollectionId);
+        if (collection) {
+          const modeId = collection.defaultModeId;
+          
+          // Parse value based on variable type
+          let valueToSet = variableUpdate.newValue;
+          if (variable.resolvedType === 'FLOAT') {
+            // For number variables (like font-size), parse as number
+            valueToSet = typeof variableUpdate.newValue === 'string' 
+              ? parseFloat(variableUpdate.newValue) 
+              : variableUpdate.newValue;
+            
+            if (isNaN(valueToSet)) {
+              console.error(`[Pipeline] ❌ Invalid number value for ${variable.name}: ${variableUpdate.newValue}`);
+              results.stylesFailed++;
+              continue;
+            }
+          }
+          
+          variable.setValueForMode(modeId, valueToSet);
+          results.variablesUpdated++;
+          console.log(`[Pipeline] ✅ Updated variable: ${variable.name} = ${valueToSet}`);
+        }
+      }
+    } catch (error) {
+      console.error(`[Pipeline] Failed to update variable ${variableUpdate.variableId}:`, error);
+      results.stylesFailed++;
+    }
+  }
+  
+  // Step 2: Apply weight mappings
+  for (const weightMapping of plan.weightMappingsToApply) {
+    try {
+      const style = figma.getLocalTextStyles().find(s => s.name === weightMapping.originalStyleName);
+      if (style) {
+        if (weightMapping.shouldDelete) {
+          style.remove();
+          results.stylesDeleted++;
+          console.log(`[Pipeline] ✅ Deleted style: ${weightMapping.originalStyleName}`);
+        } else {
+          // Update weight - this would need the target font family
+          // For now, we'll handle this in the regular style update
+          console.log(`[Pipeline] 📝 Weight mapping queued: ${weightMapping.originalStyleName} → ${weightMapping.newWeight}`);
+        }
+      }
+    } catch (error) {
+      console.error(`[Pipeline] Failed to apply weight mapping for ${weightMapping.originalStyleName}:`, error);
+      results.stylesFailed++;
+    }
+  }
+  
+  // Step 3: Update styles
+  for (const styleUpdate of plan.stylesToUpdate) {
+    try {
+      await updateSingleStyleFromPlan(styleUpdate, availableFontsList);
+      results.stylesUpdated++;
+      console.log(`[Pipeline] ✅ Updated style: ${styleUpdate.figmaStyle.name}`);
+    } catch (error) {
+      console.error(`[Pipeline] Failed to update style ${styleUpdate.figmaStyle.name}:`, error);
+      results.stylesFailed++;
+    }
+  }
+  
+  // Generate results message
+  const parts: string[] = [];
+  if (results.stylesUpdated > 0) parts.push(`${results.stylesUpdated} style(s) updated`);
+  if (results.stylesCreated > 0) parts.push(`${results.stylesCreated} style(s) created`);
+  if (results.stylesDeleted > 0) parts.push(`${results.stylesDeleted} style(s) deleted`);
+  if (results.variablesUpdated > 0) parts.push(`${results.variablesUpdated} variable(s) updated`);
+  
+  results.message = parts.length > 0 ? parts.join(', ') + '.' : 'No changes applied.';
+  
+  if (results.stylesFailed > 0) {
+    results.message += ` ${results.stylesFailed} operation(s) failed.`;
+  }
+  
+  console.log(`[Pipeline] 📊 Execution complete: ${results.message}`);
+  return results;
+}
+
+/**
+ * Update a single style according to the plan
+ */
+async function updateSingleStyleFromPlan(
+  styleUpdate: UpdatePlan['stylesToUpdate'][0], 
+  availableFontsList: FontInfo[]
+): Promise<void> {
+  const { figmaStyle, targetFont, targetSize, targetLineHeight, targetLetterSpacing, preserveVariables } = styleUpdate;
+  
+  // Load existing font
+  await figma.loadFontAsync(figmaStyle.fontName);
+  
+  // Load new font
+  await figma.loadFontAsync(targetFont);
+  
+  // Update font
+  figmaStyle.fontName = targetFont;
+
+  // When NOT preserving variables, detach any bound variables first so we can
+  // write the specimen values directly. Figma throws if you set a value on a
+  // property that is still bound to a variable.
+  if (!preserveVariables) {
+    const boundVars = figmaStyle.boundVariables;
+    if (boundVars) {
+      const propsToDetach = ['fontSize', 'lineHeight', 'letterSpacing'] as const;
+      for (const prop of propsToDetach) {
+        if (boundVars[prop as keyof typeof boundVars]) {
+          try {
+            (figmaStyle as any).setBoundVariable(prop, null);
+          } catch {
+            // Fallback: overwrite the boundVariables record directly
+            try {
+              (figmaStyle as any).boundVariables = {
+                ...boundVars,
+                [prop]: undefined,
+              };
+            } catch (e2) {
+              console.warn(`[Pipeline] Could not detach ${prop} variable from "${figmaStyle.name}":`, e2);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Update properties (preserve variables if requested)
+  if (!preserveVariables || !hasVariableBinding(figmaStyle, 'fontSize')) {
+    figmaStyle.fontSize = targetSize;
+  }
+
+  if (!preserveVariables || !hasVariableBinding(figmaStyle, 'lineHeight')) {
+    figmaStyle.lineHeight = { unit: 'PERCENT', value: Math.round(targetLineHeight * 100) };
+  }
+
+  if (!preserveVariables || !hasVariableBinding(figmaStyle, 'letterSpacing')) {
+    const lsRoundedTarget = Math.round((targetLetterSpacing ?? 0) / 0.25) * 0.25;
+    figmaStyle.letterSpacing = { unit: 'PERCENT', value: lsRoundedTarget };
+  }
+  
+  // Apply vertical trim (cap height) to match preview specimens
+  figmaStyle.leadingTrim = 'CAP_HEIGHT';
+}
+
+/**
+ * Check if a style has a variable binding for a specific property
+ */
+function hasVariableBinding(figmaStyle: TextStyle, property: string): boolean {
+  if (!figmaStyle.boundVariables) return false;
+  const binding = figmaStyle.boundVariables[property as keyof typeof figmaStyle.boundVariables];
+  return binding !== undefined && binding !== null;
+}
+
+/**
+ * MAIN PIPELINE - Combines all three phases
+ * This replaces all the fragmented update functions
+ */
+async function updateDesignSystem(
+  request: CreateStylesRequest,
+  availableFontsList: FontInfo[],
+  weightMapping?: { [originalWeight: string]: string },
+  variableMapping?: { [variableId: string]: { action: string; newValue?: any } },
+  styleMapping?: { [figmaStyleName: string]: string }
+): Promise<UpdateResults> {
+  console.log(`[Pipeline] 🚀 Starting design system update for ${request.namingConvention}...`);
+  
+  try {
+    // PHASE 1: DISCOVERY - Figure out what exists (system-specific)
+    const discoveredStyles = await discoverCurrentStyles(
+      request.namingConvention || 'Default Naming',
+      request.typeSystem,
+      styleMapping
+    );
+    
+    if (discoveredStyles.length === 0) {
+      console.log('[Pipeline] ❌ No styles found to update');
+      return {
+        stylesUpdated: 0,
+        stylesCreated: 0,
+        stylesDeleted: 0,
+        variablesUpdated: 0,
+        stylesFailed: 0,
+        message: 'No styles found to update.'
+      };
+    }
+    
+    // PHASE 2: PLANNING - Create update plan (system-agnostic)
+    const updatePlan = createUpdatePlan(discoveredStyles, request.typeSystem, request, weightMapping, variableMapping);
+    
+    // PHASE 3: EXECUTION - Apply updates (system-agnostic)
+    const results = await executeUpdatePlan(updatePlan, availableFontsList);
+    
+    console.log(`[Pipeline] 🎉 Design system update complete: ${results.message}`);
+    return results;
+    
+  } catch (error) {
+    console.error('[Pipeline] ❌ Design system update failed:', error);
+    return {
+      stylesUpdated: 0,
+      stylesCreated: 0,
+      stylesDeleted: 0,
+      variablesUpdated: 0,
+      stylesFailed: 1,
+      message: `Update failed: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+  }
+  }

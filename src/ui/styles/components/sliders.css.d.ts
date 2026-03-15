@@ -1,0 +1,31 @@
+declare const styles: {
+  readonly "control-row": string;
+  readonly "custom-range-slider-wrapper": string;
+  readonly "custom-single-slider-area": string;
+  readonly "custom-single-slider-input-row": string;
+  readonly "custom-single-slider-row": string;
+  readonly "custom-single-slider-tooltip-spacer": string;
+  readonly "custom-single-slider-wrapper": string;
+  readonly "dark-theme": string;
+  readonly "input": string;
+  readonly "input-container-fixed": string;
+  readonly "knob-tooltip": string;
+  readonly "knob-tooltip-ghost-spacer": string;
+  readonly "knob-tooltips-content-area": string;
+  readonly "knob-tooltips-row": string;
+  readonly "number-input": string;
+  readonly "preset-lock-hint": string;
+  readonly "slider-container": string;
+  readonly "slider-container--range": string;
+  readonly "slider-filled-track-element": string;
+  readonly "slider-knob": string;
+  readonly "slider-main-row": string;
+  readonly "slider-track-background": string;
+  readonly "slider-track-dot": string;
+  readonly "slider-value-display": string;
+  readonly "slider-value-left": string;
+  readonly "slider-value-right": string;
+  readonly "standard-slider-tooltip-wrapper": string;
+};
+export = styles;
+

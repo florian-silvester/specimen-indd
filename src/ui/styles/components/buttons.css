@@ -1,0 +1,381 @@
+/*
+==========================================================================
+ COMPONENTS - BUTTONS
+==========================================================================
+This file contains all button-related styles organized in a logical hierarchy:
+1. Base Button Styles - Core button behavior and appearance
+2. Button Variants - Different visual styles for buttons
+3. Interactive States - Hover, focus, active, and disabled states
+4. Toggle Components - Toggle buttons and switch-like controls
+5. Icon Buttons - Buttons containing only icons
+6. Context-Specific Overrides - Specialized styles for specific use cases
+7. Animations & Effects - Loading spinners and transitions
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE BUTTON STYLES
+==========================================================================
+*/
+
+/* Core button element - foundational styles for all buttons */
+.button {
+  appearance: none;
+  border: none;
+  margin: 0;
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+  font-family: var(--font-family-base);
+  text-decoration: none;
+  text-align: center;
+  height: var(--size-row-height);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  cursor: pointer;
+  transition: background-color 0.1s ease-out, border-color 0.1s ease-out, color 0.1s ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/* New-generation buttons are used directly in JSX without the base class */
+.button-primary-new,
+.button-secondary-new {
+  appearance: none;
+  border: none;
+  margin: 0;
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  height: var(--size-input-height);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease-out, border-color 0.1s ease-out, color 0.1s ease-out;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  position: relative;
+  z-index: 1;
+}
+
+/*
+==========================================================================
+ 2. BUTTON VARIANTS
+==========================================================================
+*/
+
+/* Primary button - main call-to-action style */
+.button-primary,
+.button-primary-new {
+  background-color: var(--brand-default);
+  color: var(--text-onbrand);
+  position: relative;
+  overflow: hidden;
+}
+
+.button-primary:hover,
+.button-primary-new:hover {
+  /* Hover effect handled by ::before pseudo-element */
+}
+
+.button-primary::before,
+.button-primary-new::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-cta-hover);
+  opacity: 0;
+  transition: opacity 0.1s ease-out;
+  border-radius: inherit;
+}
+
+.button-primary:hover::before,
+.button-primary-new:hover::before {
+  opacity: 1;
+}
+
+/* Secondary button - subtle, outline style */
+.button-secondary,
+.button-secondary-new {
+  background-color: var(--background-default);
+  border: var(--border-width-standard) solid var(--border-translucent);
+  color: var(--text-default);
+}
+
+.button-secondary:focus-visible,
+.button-secondary-new:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  position: relative;
+  z-index: 1;
+}
+
+.button-secondary:hover,
+.button-secondary-new:hover {
+  background-color: var(--color-cta-hover);
+  border-color: var(--color-cta-hover);
+  color: var(--text-onbrand);
+}
+
+/* Small button size variant */
+.button-small {
+  height: var(--size-input-height); /* 24px instead of 32px */
+  padding: 0 var(--sizing-default-spacers-spacer-2); /* Smaller padding */
+  font-size: var(--ui-font-size-xsmall); /* Smaller font */
+  margin-left: var(--sizing-default-spacers-spacer-2); /* Add spacing from title */
+}
+
+/* Primary button with left-aligned text */
+.button-primary-new {
+  justify-content: flex-start;
+  padding-left: var(--sizing-default-spacers-spacer-3);
+}
+
+/* Icon button size variant */
+.button-secondary-new.icon-button-size {
+  width: var(--size-icon-size);
+  height: var(--size-icon-size);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Keep commonly used 24px button modifiers centralized with secondary style */
+.button-secondary-new.with-icon {
+  padding-left: var(--sizing-default-spacers-spacer-1);
+  gap: var(--sizing-default-spacers-spacer-1);
+}
+
+.button-secondary-new.icon-only {
+  width: var(--size-icon-size);
+  height: var(--size-icon-size);
+  padding: 0;
+  justify-content: center;
+}
+
+/*
+==========================================================================
+ 3. INTERACTIVE STATES
+==========================================================================
+*/
+
+/* Active state for buttons */
+.button.active,
+.button-secondary-new.active {
+  background-color: var(--color-footer-cta-background);
+  color: var(--text-footer-cta);
+  border-color: var(--color-footer-cta-background);
+}
+
+.button-secondary-new.active:hover {
+  background-color: var(--color-cta-hover);
+  color: var(--text-footer-cta);
+  border-color: var(--color-cta-hover);
+}
+
+/* Keep bordered CTA hover parity with tag hover in light mode */
+body:not(.dark-theme) .button-secondary:hover,
+body:not(.dark-theme) .button-secondary-new:hover {
+  background-color: var(--neutral-100);
+  color: var(--text-default);
+  border-color: var(--neutral-100);
+}
+
+/* Disabled state */
+.button:disabled,
+.button-secondary-new:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button:disabled::before {
+  display: none;
+}
+
+/*
+==========================================================================
+ 4. TOGGLE COMPONENTS
+==========================================================================
+*/
+
+/* Toggle container - holds multiple toggle buttons */
+.toggle-container {
+  display: inline-flex;
+  background-color: var(--background-secondary);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: var(--border-width-standard) solid transparent;
+}
+
+.toggle-container:focus-within {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Individual toggle button */
+.toggle-button {
+  appearance: none;
+  border: none;
+  margin: 0;
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  font-family: var(--font-family-base);
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.1s ease-out, color 0.1s ease-out, box-shadow 0.1s ease-out;
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+}
+
+.toggle-button:hover:not(.active) {
+  color: var(--text-default);
+}
+
+.toggle-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  z-index: 1;
+  position: relative;
+}
+
+.toggle-button.active {
+  background-color: var(--background-default);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-default);
+}
+
+/*
+==========================================================================
+ 5. ICON BUTTONS
+==========================================================================
+*/
+
+/* Icon-only buttons */
+.icon-button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  height: var(--size-icon-size);
+  width: var(--size-icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: 0;
+  transition: color 0.1s ease-out;
+}
+
+.icon-button:hover {
+  color: var(--text-default);
+}
+
+.icon-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  z-index: 1; 
+  position: relative; 
+}
+
+/* Ghost button - subtle background on hover for icon groups */
+.ghost-button {
+  width: var(--size-icon-size);
+  height: var(--size-icon-size);
+  padding: 0;
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-default);
+  transition: background-color 0.1s ease-out;
+}
+
+.ghost-button:hover {
+  background-color: var(--color-cta-hover);
+}
+
+.ghost-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  z-index: 1;
+  position: relative;
+}
+
+/*
+==========================================================================
+ 6. CONTEXT-SPECIFIC OVERRIDES
+==========================================================================
+*/
+
+/* Text sizes section header styling - removed redundant override (Grid handles layout) */
+
+/* Font selection control row button overrides */
+.font-selection-control-row .button-secondary-new.full-width-button {
+  color: var(--text-default);
+  justify-content: flex-start;
+  padding-left: var(--sizing-default-spacers-spacer-2);
+}
+
+.font-selection-control-row .button-secondary-new.full-width-button:hover {
+  background-color: var(--background-secondary);
+  color: var(--text-default);
+}
+
+
+/*
+==========================================================================
+ 7. ANIMATIONS & EFFECTS
+==========================================================================
+*/
+
+/* Loading spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-svg {
+  animation: spin 1s linear infinite;
+}

@@ -1,0 +1,694 @@
+/*
+==========================================================================
+ COMPONENTS - DROPDOWNS
+==========================================================================
+This file contains all dropdown-related styles organized in a logical hierarchy:
+1. Base Dropdown Styles - Core dropdown behavior and appearance
+2. Trigger Button Variants - Different visual styles for dropdown triggers  
+3. Dropdown Lists - Pop-up menu containers and positioning
+4. List Items & Content - Individual items within dropdown lists
+5. Search & Filter Components - Search inputs and filtering UI
+6. Context-Specific Overrides - Specialized styles for specific use cases
+7. Theme & State Variations - Dark theme and interactive states
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE DROPDOWN STYLES
+==========================================================================
+*/
+
+/* Core dropdown element - foundational styles for all dropdowns */
+.dropdown {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  font: var(--font-style-ui-small-regular);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  transition: border-color 0.1s ease-out, box-shadow 0.1s ease-out, background-color 0.1s ease-out;
+  text-align: left;
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-default);
+  background-repeat: no-repeat;
+  background-size: var(--size-icon-size) var(--size-icon-size);
+  background-position: right center;
+  background-image: var(--icon-chevron-down-light);
+}
+
+/* Main container for custom dropdown components */
+.custom-dropdown-container { 
+  position: relative;
+  flex-basis: 0;
+  flex-grow: 1;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Generic dropdown trigger button - base for all custom triggers */
+.dropdown-trigger-button {
+  width: 100%;
+  height: var(--size-icon-size);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  padding-right: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--ui-line-height-small);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-default);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background-image: var(--icon-chevron-down-light);
+  background-repeat: no-repeat;
+  background-size: var(--size-icon-size) var(--size-icon-size);
+  background-position: right center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.dropdown-trigger-button:not(:disabled):hover {
+  background-color: var(--background-secondary);
+}
+
+.dropdown-trigger-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.dropdown-trigger-label {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+==========================================================================
+ 2. TRIGGER BUTTON VARIANTS
+==========================================================================
+*/
+
+/* Primary variant - standard filled dropdown button */
+.dropdown-primary {
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  padding-right: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+}
+
+.dropdown-primary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Secondary variant - transparent, subtle dropdown */
+.dropdown-secondary {
+  height: var(--size-input-height);
+  padding-left: var(--sizing-default-spacers-spacer-2);
+  padding-right: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  border: var(--border-width-standard) solid transparent;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: transparent;
+  color: var(--text-secondary);
+  width: auto;
+  justify-content: flex-end;
+}
+
+.dropdown-secondary:hover {
+  background-color: var(--background-secondary);
+}
+
+.dropdown-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Footer variant - for footer sections */
+.dropdown-footer {
+  height: var(--size-row-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  padding-right: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  color: var(--text-default);
+}
+
+.dropdown-footer:hover {
+  background-color: var(--background-secondary);
+}
+
+.dropdown-footer:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Grid variant - for use within data grids */
+.dropdown-grid {
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-1);
+  padding-right: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-1));
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  color: var(--text-default);
+}
+
+.dropdown-grid.grid-dropdown-case {
+  text-align: center;
+}
+
+/* Ghost variant - blends with background-default, for grid header row */
+.dropdown-trigger-button.dropdown-trigger-secondary {
+  height: var(--size-input-height);
+  padding-left: 0;
+  padding-right: 0;
+  background-color: var(--background-default);
+  background-image: none;
+  justify-content: flex-end;
+  color: var(--text-secondary);
+  border: var(--border-width-standard) solid transparent;
+}
+
+.dropdown-trigger-button.dropdown-trigger-secondary:hover {
+  background-color: var(--background-default);
+  color: var(--text-default);
+}
+
+.dropdown-trigger-secondary .icon {
+  flex-shrink: 0;
+}
+
+.dropdown-trigger-secondary .icon path {
+  fill: currentColor;
+}
+
+.dropdown-trigger-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.dropdown-grid:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow); 
+  position: relative;
+  z-index: 1;
+}
+
+/*
+==========================================================================
+ 3. DROPDOWN LISTS - Pop-up Containers
+==========================================================================
+*/
+
+/* Base dropdown list - the pop-up container */
+.dropdown-list {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-default);
+  border-radius: var(--sizing-default-radius-radius-large);
+  padding: var(--sizing-default-spacers-spacer-2);
+  border: none;
+  z-index: 1000;
+  box-shadow: var(--elevation-dropdown-shadow);
+  min-width: 180px;
+  box-sizing: border-box;
+}
+
+/* Positioning modifiers */
+.dropdown-list--opens-down {
+  top: calc(100% + 4px);
+}
+
+.dropdown-list--opens-up {
+  bottom: calc(100% + 4px);
+}
+
+/* Right-align: for dropdowns in rightmost columns to avoid overflow */
+.dropdown-list--align-right {
+  left: auto;
+  right: 0;
+}
+
+/* Scrollable container for dropdown items */
+.dropdown-items-container {
+  max-height: 260px; /* ~90% of previous dropdown menu height */
+  overflow-y: auto;
+  padding: 0 var(--sizing-default-spacers-spacer-1) 0 0;
+  margin: 0;
+}
+
+.dropdown-section-label {
+  font: var(--font-style-ui-small-regular);
+  color: var(--text-secondary);
+  padding: var(--sizing-default-spacers-spacer-1) var(--sizing-default-spacers-spacer-2);
+  margin-top: var(--sizing-default-spacers-spacer-1);
+}
+
+.dropdown-section-divider {
+  height: 1px;
+  background-color: var(--border-translucent);
+  margin: var(--sizing-default-spacers-spacer-2) 0;
+  flex-shrink: 0;
+}
+
+/* Custom scrollbar styling */
+.dropdown-items-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dropdown-items-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-items-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-translucent);
+  border-radius: 3px; 
+}
+
+.dropdown-items-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-translucent);
+}
+
+/*
+==========================================================================
+ 4. LIST ITEMS & CONTENT
+==========================================================================
+*/
+
+/* Individual dropdown items */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--sizing-default-spacers-spacer-1) var(--sizing-default-spacers-spacer-2);
+  text-align: left;
+  font: var(--font-style-ui-small-regular);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-default);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.dropdown-item:hover {
+  background-color: var(--brand-default);
+  color: var(--text-onbrand);
+}
+
+.dropdown-item.selected {
+  font-weight: var(--font-weight-normal);
+  background-color: var(--brand-default);
+  color: var(--text-onbrand);
+}
+
+/* Light theme: dropdown item hover/selected use neutral-100 + dark text */
+body:not(.dark-theme) .dropdown-item:hover,
+body:not(.dark-theme) .dropdown-item.selected {
+  background-color: var(--neutral-100);
+  color: var(--text-default);
+}
+
+.dark-theme .dropdown-item:hover,
+.dark-theme .dropdown-item.selected {
+  background-color: var(--track-fill);
+  color: var(--text-onbrand);
+}
+
+.dropdown-item.no-results {
+  color: var(--text-secondary);
+  cursor: default;
+  background: none;
+  font-weight: var(--font-weight-normal);
+}
+
+.dropdown-item-text-content {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+==========================================================================
+ 5. SEARCH & FILTER COMPONENTS
+==========================================================================
+*/
+
+/* Search input wrapper */
+.search-input-wrapper {
+  position: relative;
+  margin-bottom: var(--sizing-default-spacers-spacer-2);
+}
+
+.search-input-wrapper:focus-within {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  border-radius: var(--sizing-default-radius-radius-medium);
+}
+
+/* Keep search visually active while dropdown is open, even if focus moves
+   to related controls like "Show Google Fonts". */
+.dropdown-list .search-input-wrapper {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  border-radius: var(--sizing-default-radius-radius-medium);
+}
+
+/* Search input field */
+.font-search-input-inside {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  margin: 0;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  border: var(--border-width-standard) solid var(--border-translucent);
+  font: var(--font-style-ui-small-regular);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-default);
+  outline: none;
+}
+
+.font-search-input-inside::placeholder {
+  color: var(--text-secondary);
+}
+
+.font-search-input-inside:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  background-color: var(--background-default);
+  border-color: transparent;
+}
+
+/* Search icon */
+.search-icon {
+  position: absolute;
+  right: var(--sizing-default-spacers-spacer-2);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--size-icon-size);
+  height: var(--size-icon-size);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* Search divider */
+.search-divider {
+  height: 1px;
+  background-color: var(--border-translucent);
+  margin-top: 0;
+  margin-bottom: var(--sizing-default-spacers-spacer-2);
+  margin-left: calc(-1 * var(--sizing-default-spacers-spacer-2));
+  margin-right: calc(-1 * var(--sizing-default-spacers-spacer-2));
+  flex-shrink: 0;
+}
+
+/* Google Fonts toggle */
+.google-fonts-toggle-row {
+  display: flex;
+  justify-content: flex-start;
+  padding: var(--sizing-default-spacers-spacer-1) var(--sizing-default-spacers-spacer-2) var(--sizing-default-spacers-spacer-2);
+  margin-left: calc(-1 * var(--sizing-default-spacers-spacer-2));
+  margin-right: calc(-1 * var(--sizing-default-spacers-spacer-2));
+}
+
+/*
+==========================================================================
+ 6. CONTEXT-SPECIFIC OVERRIDES
+==========================================================================
+*/
+
+/* Header section dropdown containers */
+.header-section-dropdown-container {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  flex-grow: 0;
+  flex-shrink: 1; /* FIXED: Allow shrinking to respect grid cell width */
+  flex-basis: auto; /* FIXED: Let grid control the width */
+  max-width: 100%; /* FIXED: Fill available grid cell space */
+  min-width: 0; /* FIXED: Allow content to shrink below natural size */
+}
+
+/* Font dropdown containers in headers */
+.header-font-dropdowns-container {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  margin-left: var(--sizing-default-spacers-spacer-3);
+}
+
+.custom-dropdown-container.font-family-dropdown-in-header,
+.custom-dropdown-container.font-style-dropdown-in-header {
+  flex: 1;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.custom-dropdown-container.font-family-dropdown-in-header > .dropdown-trigger-button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.font-family-dropdown-in-header .dropdown-trigger-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Font style dropdowns in headers need truncation too */
+.font-style-dropdown-in-header .dropdown-trigger-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Secondary font dropdown gets shorter max-width - highest specificity to override all other rules */
+.custom-dropdown-container.font-family-dropdown-in-header.secondary-font-dropdown .dropdown-trigger-label {
+  max-width: 120px !important;
+}
+
+/* Secondary weight dropdown gets same max-width as secondary font dropdown - highest specificity to override all other rules */
+.custom-dropdown-container.font-style-dropdown-in-header.secondary-weight-dropdown .dropdown-trigger-label {
+  max-width: 120px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* EXTRA SPECIFIC RULE FOR SECONDARY WEIGHT DROPDOWN TEXT */
+.secondary-weight-dropdown .dropdown-trigger-label {
+  max-width: 120px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Secondary font container now uses same rules as primary */
+
+/* Font style dropdown in control rows */
+.custom-dropdown-container.font-style-dropdown {
+  flex-grow: 0;
+  flex-shrink: 1; /* FIXED: Allow shrinking to respect grid cell width */
+  flex-basis: auto; /* FIXED: Let grid control the width */
+  max-width: 100%; /* FIXED: Fill available grid cell space */
+  min-width: 0; /* FIXED: Allow content to shrink below natural size */
+}
+
+.font-selection-control-row .custom-dropdown-container.font-style-dropdown {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  min-width: 0;
+}
+
+/* Font style dropdown with icon wrapper */
+.font-style-dropdown-with-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.font-style-dropdown-with-icon .custom-dropdown-container {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Font style dropdown trigger button - ensure it can shrink */
+.custom-dropdown-container.font-style-dropdown > .dropdown-trigger-button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* CRITICAL: Force font-style-dropdown-with-icon to respect grid cell width constraints */
+.font-selection-control-row .font-style-dropdown-with-icon {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Only hide overflow on the button itself, not the wrapper (so dropdown can show) */
+.font-selection-control-row .font-style-dropdown-with-icon .dropdown-trigger-button {
+  overflow: hidden !important;
+}
+
+
+
+/* Outline style variants for header dropdowns - now redundant since base class uses outline style */
+
+/* Grid-specific dropdown styles */
+.dropdown-list.grid-font-style-dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 182px;
+  z-index: 1200;
+}
+
+.dropdown-list.grid-text-case-dropdown-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 182px;
+  z-index: 1010;
+}
+
+/* Footer combo button dropdown */
+.footer-main-cta__dropdown-list {
+  position: absolute;
+  bottom: calc(100% + 4px); /* Position above the footer-main-cta */
+  left: 0;
+  right: 0;
+  width: 100%; /* Match the width of the footer-main-cta */
+  min-width: auto; /* Override the default min-width */
+  z-index: 1100; /* Ensure it appears above other elements */
+}
+
+/* Styles action dropdown: keep one clear active state */
+.footer-main-cta__dropdown-list .dropdown-item:hover:not(.selected) {
+  background-color: var(--background-secondary);
+  color: var(--text-default);
+}
+
+/* Convention dropdown - use modifier for direction */
+.convention-dropdown-list.dropdown-list--opens-down {
+  top: calc(100% + 4px);
+  bottom: auto;
+}
+
+/* Font family dropdown list */
+.font-family-dropdown .dropdown-list {
+  width: 100%;
+}
+
+/*
+==========================================================================
+ 7. THEME & STATE VARIATIONS
+==========================================================================
+*/
+
+/* Dark theme: override chevron with explicit white fill (currentColor doesn't work in background-image SVGs) */
+body.dark-theme .dropdown-trigger-button {
+  background-image: var(--icon-chevron-down-dark);
+}
+
+body.dark-theme .dropdown-trigger-button.dropdown-trigger-secondary {
+  background-image: none;
+}
+
+
+.dark-theme .font-search-input-inside {
+  background-color: var(--background-default); 
+}
+
+/* Remove preview overlay in dark mode */
+body.dark-theme .preview-image-wrapper::before {
+  display: none;
+}
+
+/* Disabled state */
+.dropdown-trigger-button:disabled:hover {
+  background-color: var(--background-secondary) !important;
+  cursor: default;
+}
+
+/* CRITICAL: Override global button:disabled opacity for ALL dropdown triggers */
+.dropdown-trigger-button:disabled {
+  opacity: 1 !important;
+  background-color: var(--background-secondary) !important;
+  background-image: var(--icon-chevron-down-inactive) !important;
+}
+
+.dropdown-trigger-button:disabled .dropdown-trigger-label {
+  opacity: 1 !important;
+}
+
+/*
+==========================================================================
+ 8. NATIVE SELECT ELEMENTS
+==========================================================================
+*/
+
+/* Native select element styled to match other inputs */
+.dropdown-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  padding-right: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  border: none;
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  background-image: var(--icon-chevron-down-light);
+  background-repeat: no-repeat;
+  background-size: var(--size-icon-size) var(--size-icon-size);
+  background-position: right var(--sizing-default-spacers-spacer-2) center;
+  font: var(--font-style-ui-small-regular);
+  color: var(--text-default);
+  cursor: pointer;
+  transition: border-color 0.1s ease-out, background-color 0.1s ease-out;
+}
+
+.dropdown-select:hover {
+  background-color: var(--background-secondary);
+}
+
+.dropdown-select:focus {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Library preview accordion removed - replaced by specimen sampling */

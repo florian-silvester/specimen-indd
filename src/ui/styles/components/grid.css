@@ -1,0 +1,557 @@
+/*
+==========================================================================
+ COMPONENTS - GRIDS
+==========================================================================
+This file contains all grid-related styles organized in a logical hierarchy:
+1. Base Grid Structure - Core grid layout and containers
+2. Grid Headers - Column headers and labels
+3. Grid Cells - Individual cell styling and content
+4. Grid Inputs - Input fields within grid cells
+5. Grid Dropdowns - Dropdown components in grid cells
+6. Grid Actions - Buttons and interactive elements (visibility, expand)
+7. Grid States - Visibility, focus, and inactive states
+8. Grid Row Details - Accordion detail panel per row
+9. Context-Specific Overrides - Specialized grid styling
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE GRID STRUCTURE
+==========================================================================
+*/
+
+/* Main styles grid container — flex column of row wrappers */
+.styles-grid {
+  /* Size/Line/Letter columns widened so labels fit; settings = 24px, eye = 28px */
+  --grid-cols: 1fr 64px 64px 72px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.styles-grid--fluid {
+  --grid-cols: 1fr 56px 64px 64px 72px 24px 28px;
+}
+
+/* Grid row containers — each is its own grid */
+.grid-header-row {
+  display: grid;
+  grid-template-columns: var(--grid-cols);
+  column-gap: 0;
+}
+
+.grid-row-wrapper {
+  /* Block container for main row + detail panel */
+}
+
+.grid-style-row {
+  display: grid;
+  grid-template-columns: var(--grid-cols);
+  column-gap: 0;
+}
+
+/* Base grid cell */
+.grid-cell {
+  display: flex;
+  align-items: center;
+  padding-top: var(--sizing-default-spacers-spacer-1);
+  padding-bottom: var(--sizing-default-spacers-spacer-1);
+}
+
+/* Grid cell direct children styling */
+.grid-cell > .input, 
+.grid-cell > .dropdown,
+.grid-cell > .icon-button { 
+  height: var(--size-input-height);
+  width: 100%; 
+  margin: 0; 
+  border: none; 
+  background-color: var(--background-secondary);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  box-sizing: border-box;
+}
+
+.grid-cell > .input, 
+.grid-cell > .dropdown {
+  border-radius: 0;
+}
+
+.grid-cell > .input-container-fixed > .input {
+  border-radius: 0;
+}
+
+/*
+==========================================================================
+ 2. GRID HEADERS
+==========================================================================
+*/
+
+/* Grid header row — same height as data rows */
+.grid-header-row {
+  height: var(--size-row-height);
+  align-items: center;
+}
+
+/* Grid column headers — primary size, tertiary color */
+.grid-header {
+  font-size: var(--ui-font-size-small);
+  color: var(--text-inactive);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Grid header units */
+.grid-header-unit {
+  font-size: var(--ui-font-size-small);
+  color: var(--text-inactive);
+  margin-left: var(--sizing-default-spacers-spacer-1);
+  font-weight: var(--font-weight-normal);
+}
+
+/*
+==========================================================================
+ 3. GRID CELLS
+==========================================================================
+*/
+
+/* Grid cell containers */
+.grid-cell > .input-container-fixed {
+  height: var(--size-input-height); 
+  display: block; 
+  padding: 0; 
+  background-color: transparent;
+  border: none; 
+  width: 100%;
+  position: relative;
+}
+
+/* Grid cell borders */
+.grid-style-row .grid-cell:not(:first-child):not(:last-child) > .input,
+.grid-style-row .grid-cell:not(:first-child):not(:last-child) > .dropdown,
+.grid-style-row .grid-cell:not(:first-child):not(:last-child) > .input-container-fixed,
+.grid-style-row .grid-cell:not(:first-child):not(:last-child) > .icon-button {
+  border-left: var(--border-width-standard) solid var(--background-default);
+  position: relative;
+}
+
+/* Grid cell border radius — first and last cells */
+.grid-style-row .grid-cell:first-child > .input {
+  border-top-left-radius: var(--sizing-default-radius-radius-medium);
+  border-bottom-left-radius: var(--sizing-default-radius-radius-medium);
+}
+
+.grid-style-row .grid-cell:first-child > input.grid-input-name {
+  border-top-left-radius: var(--sizing-default-radius-radius-medium) !important;
+  border-bottom-left-radius: var(--sizing-default-radius-radius-medium) !important;
+}
+
+.grid-style-row .grid-cell:last-child > .grid-visibility-button {
+  border-top-right-radius: var(--sizing-default-radius-radius-medium);
+  border-bottom-right-radius: var(--sizing-default-radius-radius-medium);
+}
+
+/* Remove bottom radius when detail panel is open (visual continuity) */
+
+/* Icon cell styling */
+.grid-cell-icon {
+  justify-content: center;
+  padding: 0;
+}
+
+/*
+==========================================================================
+ 4. GRID INPUTS
+==========================================================================
+*/
+
+/* Base grid input */
+.grid-input {
+  font: var(--font-style-ui-small-regular);
+  text-align: left;
+}
+
+/* Grid text inputs */
+.styles-grid .grid-cell > .input.grid-input-name {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+}
+
+/* Grid number inputs */
+.grid-cell > .input-container-fixed > .input.number-input {
+  padding-left: var(--sizing-default-spacers-spacer-2) !important; 
+  padding-right: 20px !important; 
+}
+
+.grid-cell--responsive .input-container-fixed .input {
+  pointer-events: none;
+  color: var(--text-inactive);
+  background-color: var(--background-secondary);
+}
+
+.grid-cell > .input-container-fixed > .input.grid-input-number,
+.grid-cell > .input-container-fixed > .input.number-input {
+  text-align: right !important;
+  padding-left: var(--sizing-default-spacers-spacer-2) !important;
+  padding-right: var(--sizing-default-spacers-spacer-2) !important;
+}
+
+/* Grid input units */
+.grid-cell > .input-container-fixed > .input-unit {
+  position: absolute !important;
+  right: var(--sizing-default-spacers-spacer-2) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none;
+}
+
+/*
+==========================================================================
+ 5. GRID DROPDOWNS
+==========================================================================
+*/
+
+/* Base grid dropdown */
+.grid-dropdown {
+  background-size: var(--size-icon-size);
+  background-position: right var(--sizing-default-spacers-spacer-2) center;
+}
+
+.grid-dropdown-font,
+.grid-dropdown-case {
+  display: flex; 
+  align-items: center;
+}
+
+/* Font style dropdown */
+.grid-cell-font-style {
+  position: relative;
+}
+
+.grid-font-style-trigger-button {
+  width: 100%; 
+  height: 100%;
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  text-align: left;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: var(--border-width-standard) solid var(--background-default) !important;
+  background-color: transparent;
+  color: var(--text-default); 
+  border-radius: 0 !important;
+}
+
+.grid-font-style-dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 150px;
+  width: max-content;
+  max-width: 250px;
+  z-index: 1010;
+}
+
+/* Text case dropdown */
+.grid-cell-text-case {
+  position: relative;
+}
+
+.grid-text-case-trigger-button {
+  width: 100%; 
+  height: 100%;
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  text-align: left;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: var(--border-width-standard) solid var(--background-default) !important;
+  background-color: var(--background-secondary) !important;
+  color: var(--text-default); 
+  border-radius: 0 !important;
+}
+
+.grid-text-case-dropdown-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 60px;
+  width: max-content;
+  max-width: 100px;
+  z-index: 1010;
+}
+
+/* Grid dropdown trigger overrides */
+.grid-cell > .dropdown-trigger-button.input {
+  color: var(--text-default);
+}
+
+/* CRITICAL: Override global button:disabled opacity for grid dropdowns */
+.grid-cell .dropdown-trigger-button:disabled {
+  opacity: 1 !important;
+}
+
+.grid-cell .dropdown-trigger-button:disabled .dropdown-trigger-label {
+  opacity: 1 !important;
+}
+
+/*
+==========================================================================
+ 6. GRID ACTIONS
+==========================================================================
+*/
+
+/* Visibility toggle — 24px to match column */
+.grid-cell-visibility {
+  width: 28px;
+  padding-left: var(--sizing-default-spacers-spacer-1);
+  box-sizing: border-box;
+}
+
+.grid-visibility-button {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.1s ease-out;
+}
+
+/* Override base grid icon-button background for eye action */
+.grid-cell > .grid-visibility-button {
+  background-color: transparent;
+}
+
+.grid-visibility-button:hover {
+  opacity: 0.7;
+}
+
+.grid-visibility-icon {
+  color: var(--text-default);
+}
+
+/* Expand/collapse chevron */
+.grid-cell-expand {
+  width: 24px;
+}
+
+.grid-expand-button {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-secondary);
+  border: none;
+  border-left: var(--border-width-standard) solid var(--background-default);
+  border-top-right-radius: var(--sizing-default-radius-radius-medium);
+  border-bottom-right-radius: var(--sizing-default-radius-radius-medium);
+  cursor: pointer;
+  transition: opacity 0.1s ease-out;
+}
+
+.grid-expand-button:hover {
+  opacity: 0.7;
+}
+
+.grid-expand-icon {
+  color: var(--text-default);
+}
+
+/*
+==========================================================================
+ 7. GRID STATES
+==========================================================================
+*/
+
+/* Focus states */
+.grid-cell > .input:focus-visible,
+.grid-cell > .dropdown:focus-visible,
+.grid-cell > .input-container-fixed:focus-within {
+  position: relative;
+  z-index: 1;
+}
+
+/* Override focus background change for grid inputs - keep original background */
+.grid-cell > .input:focus-visible,
+.grid-cell > .input-container-fixed > .input:focus-visible {
+  background-color: var(--background-secondary); /* Keep the same background as unfocused */
+}
+
+/* Inactive row state */
+.grid-style-row--inactive {
+  color: var(--text-inactive) !important;
+}
+
+.grid-style-row--inactive .input {
+  color: var(--text-inactive) !important;
+}
+
+.grid-style-row--inactive .icon-button {
+  color: var(--text-inactive) !important;
+}
+
+.grid-style-row--inactive .dropdown-trigger-button {
+  color: var(--text-inactive) !important;
+  background-image: var(--icon-chevron-down-inactive) !important;
+  opacity: 1 !important;
+}
+
+.grid-style-row--inactive .dropdown-trigger-label {
+  color: var(--text-inactive) !important;
+  opacity: 1 !important;
+}
+
+.grid-style-row--inactive .dropdown-trigger-label.is-disabled {
+  color: var(--text-inactive) !important;
+  opacity: 1 !important;
+}
+
+/* Inactive wrapper — fade expand icon too */
+.grid-row-wrapper--inactive .grid-expand-icon {
+  color: var(--text-inactive);
+}
+
+/* Drag states */
+.grid-style-row--dragging {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.grid-visibility-button--dragging {
+  cursor: grabbing !important;
+}
+
+/* Prevent text selection during drag across the entire grid */
+.styles-grid.styles-grid--dragging,
+.styles-grid.styles-grid--dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Font source dropdown styles */
+.font-source-dropdown-list {
+  right: 0;
+  left: auto;
+}
+
+/* Export dropdown styles - right-aligned */
+.export-dropdown-list {
+  right: 0;
+  left: auto;
+  width: max-content;
+  min-width: 140px;
+}
+
+/*
+==========================================================================
+ 8. GRID ROW DETAILS — Accordion panel
+==========================================================================
+*/
+
+.grid-row-details {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sizing-default-spacers-spacer-2) 0;
+}
+
+/* Detail rows: standard row height, left-aligned with name input text (8px) */
+.grid-row-details .control-row.font-selection-control-row.control-row-no-left-padding {
+  height: var(--size-row-height);
+  min-height: var(--size-row-height);
+  padding-left: var(--sizing-default-spacers-spacer-2);
+}
+
+/* Detail row labels — tertiary color */
+.grid-row-details .control-label {
+  color: var(--text-inactive);
+}
+
+.grid-row-details .custom-dropdown-container {
+  position: relative;
+}
+
+/*
+==========================================================================
+ 9. CONTEXT-SPECIFIC OVERRIDES
+==========================================================================
+*/
+
+/* Fine-tune section specific styling */
+.fine-tune-section .section-content {
+  padding-top: 0;
+  padding-bottom: 0;
+  gap: 0;
+}
+
+.fine-tune-section.section-open {
+  padding-bottom: var(--sizing-default-spacers-spacer-3);
+}
+
+/* Standalone styles tab container (no accordion shell) */
+.styles-tab-content {
+  width: 100%;
+}
+
+.styles-tab-content > .section-header {
+  cursor: default;
+}
+
+.styles-tab-content__inner {
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+}
+
+/* Font/weight detail row: field + lock icon layout */
+.grid-detail-field-with-lock {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.grid-detail-field-with-lock .custom-dropdown-container {
+  position: relative;
+  min-width: 0;
+}
+
+.grid-lock-button {
+  flex-shrink: 0;
+}
+
+/* Searchable font picker dropdown inside the grid detail panel */
+.grid-font-picker-dropdown {
+  max-height: 320px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-font-picker-dropdown .dropdown-items-container {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: 260px;
+}
+
+/* Dark theme overrides */
+.dark-theme .grid-cell .input,
+.dark-theme .grid-cell .icon-button {
+  background-color: var(--background-secondary);
+  color: var(--text-default);
+}
+
+/* Keep row-level visibility action transparent in dark mode as well */
+.dark-theme .grid-cell .grid-visibility-button {
+  background-color: transparent;
+}

@@ -1,0 +1,398 @@
+/*
+==========================================================================
+ COMPONENTS - SLIDERS
+==========================================================================
+This file contains all slider-related styles organized in a logical hierarchy:
+1. Base Slider Styles - Core slider behavior and native input styling
+2. Slider Containers - Wrapper elements and positioning
+3. Range Sliders - Multi-handle slider components
+4. Single Sliders - Single-handle slider components
+5. Slider Elements - Tracks, knobs, dots, and visual elements
+6. Tooltips & Labels - Value displays and interactive feedback
+7. Context-Specific Overrides - Specialized styles for specific use cases
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE SLIDER STYLES
+==========================================================================
+*/
+
+/* Core slider container */
+.slider-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  border-bottom-left-radius: var(--sizing-default-radius-radius-medium);
+}
+
+.slider-container--range {
+  width: 100%;
+}
+
+/* Native range input base styles */
+input[type=range] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: var(--border-width-track);
+  background: var(--background-secondary);
+  border-radius: 0;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+input[type=range]:focus-visible {
+  outline: none;
+}
+
+/* Webkit slider thumb */
+input[type=range]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--size-slider-knob);
+  height: var(--size-slider-knob);
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: 0px;
+  position: relative;
+  z-index: 1;
+}
+
+input[type=range]:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Mozilla slider thumb */
+input[type=range]::-moz-range-thumb {
+  width: var(--size-slider-knob);
+  height: var(--size-slider-knob);
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+input[type=range]:focus-visible::-moz-range-thumb {
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Webkit slider track */
+input[type=range]::-webkit-slider-runnable-track {
+  height: var(--border-width-track);
+  border-radius: 0;
+  background: linear-gradient(to right, 
+    var(--track-fill) var(--track-progress, 0%),
+    var(--background-secondary) var(--track-progress, 0%)
+  );
+}
+
+/* Mozilla slider track */
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: var(--border-width-track);
+  background: var(--background-secondary);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+input[type=range]::-moz-range-progress {
+  background-color: var(--track-fill);
+  height: var(--border-width-track);
+  border-radius: 0;
+  border: none;
+}
+
+/*
+==========================================================================
+ 2. SLIDER CONTAINERS
+==========================================================================
+*/
+
+/* Main slider row container */
+.slider-main-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 24px;
+}
+
+/* Standard slider wrapper with tooltip */
+.standard-slider-tooltip-wrapper {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.standard-slider-tooltip-wrapper input[type=range] {
+  display: block;
+  width: 100%; 
+}
+
+/*
+==========================================================================
+ 3. RANGE SLIDERS
+==========================================================================
+*/
+
+/* Custom range slider wrapper */
+.custom-range-slider-wrapper {
+  width: 100%;
+  padding: 4px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Tooltips row for range sliders */
+.knob-tooltips-row {
+  display: flex;
+  align-items: center;
+  height: var(--size-row-height);
+  margin-bottom: 4px;
+  box-sizing: border-box;
+}
+
+.knob-tooltip-ghost-spacer {
+  display: block;
+  flex-shrink: 0;
+  width: 64px;
+}
+
+.knob-tooltips-content-area {
+  flex-grow: 1;
+  position: relative;
+  height: 100%;
+  margin: 0;
+}
+
+/* Range slider input styling */
+.knob-tooltips-row .input-container-fixed .input.number-input {
+  background-color: transparent !important;
+  color: var(--text-secondary) !important;
+  border: var(--border-width-standard) solid var(--border-translucent) !important;
+  border-radius: var(--sizing-default-radius-radius-medium) !important; 
+  padding: 0 var(--sizing-default-spacers-spacer-2) !important;
+  text-align: left !important;
+}
+
+.knob-tooltips-row .input-container-fixed .input.number-input:focus-visible {
+  box-shadow: none !important;
+}
+
+/*
+==========================================================================
+ 4. SINGLE SLIDERS
+==========================================================================
+*/
+
+/* Custom single slider wrapper */
+.custom-single-slider-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Single slider input row */
+.custom-single-slider-input-row {
+  display: flex;
+  align-items: center;
+  height: var(--size-row-height);
+}
+
+.custom-single-slider-input-row .input-container-fixed .input.number-input {
+  background-color: transparent !important; 
+  color: var(--text-secondary) !important; 
+  border: var(--border-width-standard) solid var(--border-translucent) !important;
+  border-radius: var(--sizing-default-radius-radius-medium) !important; 
+  padding: 0 var(--sizing-default-spacers-spacer-2) !important; 
+  text-align: left !important; 
+  height: var(--size-input-height) !important;
+}
+
+.custom-single-slider-input-row .input-container-fixed .input.number-input:focus-visible {
+  box-shadow: var(--focus-ring-shadow) !important;
+}
+
+.custom-single-slider-tooltip-spacer {
+  flex-grow: 1;
+  height: 100%;
+}
+
+/* Single slider row */
+.custom-single-slider-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--size-row-height);
+  box-sizing: border-box;
+}
+
+/* Single slider area */
+.custom-single-slider-area {
+  flex-grow: 1;
+  position: relative;
+  height: var(--border-width-track);
+}
+
+/*
+==========================================================================
+ 5. SLIDER ELEMENTS
+==========================================================================
+*/
+
+/* Slider track background */
+.slider-track-background {
+  flex-grow: 1;
+  position: relative;
+  height: var(--border-width-track);
+  background-color: var(--background-secondary);
+  border-radius: 0;
+  cursor: auto; 
+}
+
+/* Slider knob */
+.slider-knob {
+  position: absolute;
+  width: var(--size-slider-knob, 10px);  
+  height: var(--size-slider-knob, 10px); 
+  background-color: transparent;
+  border-radius: 50%;
+  cursor: grab;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: none;
+  z-index: 3;
+}
+
+/* Vertical line through knob center */
+.slider-knob::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(-1 * var(--size-slider-handle-overhang));
+  width: var(--size-slider-handle-line-width);
+  height: calc(100% + (2 * var(--size-slider-handle-overhang)));
+  background-color: var(--border-accent);
+  transform: translateX(-50%);
+  border-radius: var(--sizing-default-radius-radius-full);
+  pointer-events: none;
+}
+
+.slider-knob:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+  z-index: 4;
+}
+
+.slider-knob:active {
+  cursor: grabbing;
+}
+
+/* Slider track dots */
+.slider-track-dot {
+  position: absolute;
+  width: 0.25px;
+  height: var(--size-slider-knob);
+  background-color: var(--tick-color);
+  border-radius: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+/* Filled track element */
+.slider-filled-track-element {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  background-color: var(--track-fill); 
+  border-radius: 0; 
+  z-index: 1;
+}
+
+/*
+==========================================================================
+ 6. TOOLTIPS & LABELS
+==========================================================================
+*/
+
+/* Slider value display */
+.slider-value-display {
+  font-size: var(--ui-font-size-small, 11px); 
+  font-weight: var(--ui-font-weight-regular, 400);
+  color: var(--text-secondary);
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  height: auto;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 56px;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+}
+
+.slider-value-left {
+  justify-content: flex-start;
+}
+
+.slider-value-right {
+  justify-content: flex-end;
+}
+
+/* Tooltip positioning */
+.standard-slider-tooltip-wrapper .knob-tooltip {
+  top: calc(-1 * (var(--size-input-height) + 7px));
+}
+
+.custom-single-slider-area > .knob-tooltip {
+  top: calc(-1 * (var(--size-input-height) + 8px));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/*
+==========================================================================
+ 7. CONTEXT-SPECIFIC OVERRIDES
+==========================================================================
+*/
+
+/* Border radius for control row sliders */
+.control-row > .slider-container:first-child .slider-track-background {
+  border-top-left-radius: var(--sizing-default-radius-radius-medium);
+  border-bottom-left-radius: var(--sizing-default-radius-radius-medium);
+}
+
+.control-row > .slider-container:last-child .slider-track-background {
+  border-top-right-radius: var(--sizing-default-radius-radius-medium);
+  border-bottom-right-radius: var(--sizing-default-radius-radius-medium);
+}
+
+/* Dark theme overrides */
+.dark-theme input[type=range]::-webkit-slider-thumb {
+  background: var(--brand-default);
+}
+
+.dark-theme input[type=range]::-moz-range-thumb {
+  background: var(--brand-default);
+}
+
+.dark-theme .knob-tooltips-row .input-container-fixed .input.number-input {
+  background-color: transparent !important;
+  color: var(--text-secondary);
+} 
+
+.preset-lock-hint {
+  font: var(--font-style-ui-xsmall-regular, var(--font-style-ui-small-regular));
+  color: var(--text-secondary);
+  margin-top: var(--sizing-default-spacers-spacer-1);
+}

@@ -1,0 +1,17 @@
+---
+description: 
+alwaysApply: true
+---
+
+---
+description: Require screen/state architecture context before tasks
+globs: "**/*"
+alwaysApply: true
+---
+
+Before any analysis, code change, or recommendation:
+1. Read `SCREENS_AND_STATES.md`.
+2. Use its terms for screen names, flows, and states.
+3. If a task touches navigation/state/screens, cite the relevant section from `SCREENS_AND_STATES.md` in your reasoning.
+4. If the requested change conflicts with `SCREENS_AND_STATES.md`, call out the conflict and propose updating the doc.
+5. After implementing navigation/state/screen changes, update `SCREENS_AND_STATES.md`.

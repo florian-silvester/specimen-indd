@@ -1,0 +1,399 @@
+/*
+==========================================================================
+ COMPONENTS - CONTROL ROWS
+==========================================================================
+This file contains all control row-related styles organized in a logical hierarchy:
+1. Base Control Row Styles - Core row layout and structure
+2. Control Row Variants - Different types of control rows
+3. Control Labels - Label styling and positioning
+4. Control Elements - Sliders, inputs, and interactive components
+5. Specialized Rows - Font selection, text size, and other specific rows
+6. Layout Utilities - Spacing, alignment, and sizing helpers
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE CONTROL ROW STYLES
+==========================================================================
+*/
+
+/* Base control row container */
+.control-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--size-input-height);
+  gap: var(--sizing-default-spacers-spacer-2);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Indent control rows to align with section titles (chevron + gap) */
+.section .section-content .control-row {
+  padding-left: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  box-sizing: border-box;
+}
+
+/* Control row with no gap between elements */
+.control-row-no-gap {
+  gap: 0;
+}
+
+/* Range slider specific control row */
+.control-row-range-slider {
+  display: flex; 
+  flex-direction: column; 
+  padding-left: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+.section > .control-row-range-slider {
+  padding-left: calc(var(--size-icon-size) + var(--sizing-default-spacers-spacer-2));
+  box-sizing: border-box;
+}
+
+/* Rows that must not receive left padding */
+.control-row-no-left-padding {
+  padding-left: 0;
+}
+
+.section .section-content .control-row.control-row-no-left-padding {
+  padding-left: 0;
+}
+
+/*
+==========================================================================
+ 2. CONTROL ROW VARIANTS
+==========================================================================
+*/
+
+/* Merged slider and input row */
+.control-row-merged-slider-input {
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+.control-row-merged-slider-input .control-label {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.control-row-merged-slider-input .slider-container {
+  flex-grow: 1;
+  flex-basis: 0;
+  flex-shrink: 1;
+}
+
+.control-row-merged-slider-input .input-container-flex-full {
+  flex-grow: 1;
+  flex-basis: 0;
+  flex-shrink: 0;
+}
+
+/* Text size control row */
+.text-size-control-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--size-input-height);
+  gap: var(--sizing-default-spacers-spacer-2);
+  padding: 0;
+}
+
+.text-size-control-left {
+  display: flex;
+  align-items: center;
+  flex-grow: 0;
+  gap: var(--sizing-default-spacers-spacer-2);
+  min-width: 0;
+}
+
+.text-size-control-left .control-label {
+  width: 64px;
+}
+
+.text-size-control-left .slider-container {
+  flex-grow: 1;
+  min-width: 50px;
+}
+
+.text-size-control-right {
+  flex-grow: 1;
+  box-sizing: border-box;
+}
+
+.text-size-control-right .input-container-flex-full {
+  width: 100%;
+  position: relative;
+}
+
+/*
+==========================================================================
+ 3. CONTROL LABELS
+==========================================================================
+*/
+
+/* Standard control label */
+.control-label {
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  color: var(--text-default);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Extra small control label */
+.control-label-xsmall {
+  font-size: var(--ui-font-size-xsmall);
+  color: var(--text-inactive);
+  white-space: normal;
+}
+
+/* Control label wrapper */
+.control-label-wrapper {
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+}
+
+/*
+==========================================================================
+ 4. CONTROL ELEMENTS
+==========================================================================
+*/
+
+/* Full width button in control row */
+.control-row .full-width-button {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Toggle item wrapper */
+.toggle-item-wrapper {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+/*
+==========================================================================
+ 5. SPECIALIZED ROWS
+==========================================================================
+*/
+
+/* Font selection control row */
+.font-selection-control-row {
+  min-height: var(--size-input-height);
+  height: var(--size-input-height);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+/* Font section content container */
+.font-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+/* Weight mapping dropdown row */
+.control-row-with-dropdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  height: var(--size-row-height);
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+}
+
+.section-content.update-mapping-content {
+  padding: 0;
+}
+
+.section-content.update-mapping-content:first-child {
+  padding-top: 0;
+}
+
+.section.update-mapping-section.section-open {
+  padding-bottom: 0;
+}
+
+.section-content.update-mapping-content > .control-row-with-dropdown {
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+}
+
+.update-mapping-folder-row {
+  height: var(--size-header-height);
+  border-bottom: var(--border-width-standard) solid var(--border-translucent);
+}
+
+.update-mapping-folder-row + .control-row-with-dropdown {
+  margin-top: var(--sizing-default-spacers-spacer-1);
+}
+
+.update-mapping-columns-row {
+  height: var(--size-header-height);
+}
+
+.update-mapping-column-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-size);
+  height: var(--size-icon-size);
+  line-height: 1;
+  color: var(--text-default);
+  padding-right: 0;
+}
+
+/*
+==========================================================================
+ 6. LAYOUT UTILITIES
+==========================================================================
+*/
+
+/* Flex grow utilities for control row elements */
+.control-row-flex-grow {
+  flex-grow: 1;
+}
+
+.control-row-flex-shrink {
+  flex-shrink: 1;
+}
+
+.control-row-flex-no-shrink {
+  flex-shrink: 0;
+}
+
+/* Spacing utilities for control rows */
+.control-row-gap-small {
+  gap: var(--sizing-default-spacers-spacer-1);
+}
+
+.control-row-gap-large {
+  gap: var(--sizing-default-spacers-spacer-3);
+}
+
+/*
+==========================================================================
+ 7. WEIGHT MAPPING SPECIFIC STYLES
+==========================================================================
+*/
+
+.control-row-label-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sizing-default-spacers-spacer-2);
+}
+
+.control-row-arrow {
+  font-size: var(--ui-font-size-small);
+  color: var(--text-inactive);
+  padding-right: var(--sizing-default-spacers-spacer-2);
+}
+
+/* Checkbox row styles */
+.control-row-checkbox {
+  padding: var(--sizing-default-spacers-spacer-2) var(--sizing-default-spacers-spacer-3);
+}
+
+.checkbox-label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  cursor: pointer;
+  width: 100%;
+}
+
+.checkbox-input {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  font-size: var(--ui-font-size-small);
+  color: var(--text-default);
+  flex-grow: 1;
+}
+
+/* Control section container */
+.control-section {
+  margin-bottom: var(--sizing-default-spacers-spacer-3);
+}
+
+.control-rows-container {
+  display: flex;
+  flex-direction: column;
+} 
+
+/* Preset tag cloud */
+.preset-profile-row {
+  display: flex;
+  align-items: center;
+  height: var(--size-header-height);
+  padding: 0 var(--sizing-default-spacers-spacer-3);
+}
+
+.ramp-preset-tags {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--sizing-default-spacers-spacer-1);
+  overflow-x: auto;
+  width: 100%;
+}
+
+.ramp-preset-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--sizing-default-spacers-spacer-4);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  background-color: transparent;
+  border: var(--border-width-standard) solid var(--border-translucent);
+  color: var(--text-secondary);
+  border-radius: calc(var(--sizing-default-spacers-spacer-4) / 2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--ui-font-size-small);
+  font-weight: var(--ui-font-weight-regular);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.1s ease-out, color 0.1s ease-out, border-color 0.1s ease-out, opacity 0.1s ease-out;
+  outline: none;
+}
+
+.ramp-preset-tag:focus-visible {
+  border-color: var(--border-accent);
+}
+
+.ramp-preset-tag:hover {
+  background-color: var(--color-cta-hover);
+  color: var(--text-onbrand);
+  border-color: var(--color-cta-hover);
+}
+
+/* Light theme: tag hover uses neutral-100 + text-default (same as active) */
+body:not(.dark-theme) .ramp-preset-tag:hover {
+  background-color: var(--neutral-100);
+  color: var(--text-default);
+  border-color: var(--neutral-100);
+}
+
+.ramp-preset-tag--active {
+  background-color: var(--neutral-925);
+  color: var(--text-onbrand);
+  border-color: var(--neutral-925);
+  font-weight: var(--font-weight-mid);
+}
+
+.ramp-preset-tag--active:hover {
+  opacity: var(--opacity-hover);
+}
+
+/* Light theme: active preset tags use neutral-100 + text-default */
+body:not(.dark-theme) .ramp-preset-tag--active {
+  background-color: var(--neutral-100);
+  color: var(--text-default);
+  border-color: var(--neutral-100);
+}

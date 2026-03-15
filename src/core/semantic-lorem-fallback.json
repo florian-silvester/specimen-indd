@@ -1,0 +1,86 @@
+[
+  {
+    "id": "recipes-ceviche-nikkei",
+    "topic": "recipes",
+    "expression": "Ceviche Nikkei",
+    "blurb": "Ceviche Nikkei combines citrus-cured fish with soy, chili, and herbs in a Peruvian Japanese style. The marinade sets bright acidity first, then savory depth follows with subtle marine sweetness and aromatic heat."
+  },
+  {
+    "id": "mathematics-banach-tarski",
+    "topic": "mathematics",
+    "expression": "Banach Tarski Paradox",
+    "blurb": "Banach Tarski Paradox states that one ideal sphere can be partitioned and reassembled into two spheres of equal size. The result depends on non-measurable sets and highlights limits of geometric intuition under set theory."
+  },
+  {
+    "id": "mathematics-cantor-set",
+    "topic": "mathematics",
+    "expression": "Cantor Set",
+    "blurb": "Cantor Set emerges by repeatedly removing middle thirds from a segment, leaving an uncountable dust with zero total length. It is central in topology and measure theory because structure survives extreme fragmentation."
+  },
+  {
+    "id": "psychology-attentional-blink",
+    "topic": "psychology",
+    "expression": "Attentional Blink",
+    "blurb": "Attentional Blink describes a short interval where a second target is missed after a first one is identified in rapid streams. The effect suggests bottlenecks in temporal attention despite sustained effort and intent."
+  },
+  {
+    "id": "psychology-choice-blindness",
+    "topic": "psychology",
+    "expression": "Choice Blindness",
+    "blurb": "Choice Blindness appears when people fail to detect mismatches between intended decisions and presented outcomes. Follow-up explanations often sound confident, revealing how post hoc reasoning can mask uncertainty in immediate awareness."
+  },
+  {
+    "id": "astronomy-oort-cloud",
+    "topic": "astronomy",
+    "expression": "Oort Cloud",
+    "blurb": "Oort Cloud names a distant reservoir of icy bodies surrounding the Solar System at vast orbital scales. Long-period comets can be perturbed inward, linking outer gravitational dynamics to visible inner-system events."
+  },
+  {
+    "id": "astronomy-accretion-disk",
+    "topic": "astronomy",
+    "expression": "Accretion Disk",
+    "blurb": "Accretion Disk forms when gas spirals around a compact object and heats through friction and compression. Emission profiles reveal velocity gradients, composition signatures, and energetic transfer within rotating plasma environments."
+  },
+  {
+    "id": "latin-animals-ailurus-fulgens",
+    "topic": "latinAnimals",
+    "expression": "Ailurus fulgens",
+    "blurb": "Ailurus fulgens inhabits temperate mountain forests and relies on arboreal movement for feeding and shelter. Seasonal habitat pressure and fragmented corridors challenge long-term population stability across its geographic range today."
+  },
+  {
+    "id": "latin-animals-saiga-tatarica",
+    "topic": "latinAnimals",
+    "expression": "Saiga tatarica",
+    "blurb": "Saiga tatarica migrates across open steppe regions where climate swings shape forage and breeding timing. Its specialized nasal anatomy helps filter dust and condition air in harsh seasonal conditions efficiently."
+  },
+  {
+    "id": "instruments-glass-harmonica",
+    "topic": "instruments",
+    "expression": "Glass Harmonica",
+    "blurb": "Glass Harmonica produces sustained tones from rotating glass bowls contacted by wet fingertips. Layered partials create an ethereal timbre that carries clearly, making dynamic control and intonation precision especially important."
+  },
+  {
+    "id": "instruments-hurdy-gurdy",
+    "topic": "instruments",
+    "expression": "Hurdy Gurdy",
+    "blurb": "Hurdy Gurdy uses a crank-driven wheel to bow strings continuously while keys select pitch changes. Drone resonance and rhythmic buzzing bridges support dance texture and melodic articulation in regional performance traditions."
+  },
+  {
+    "id": "cs-byzantine-fault",
+    "topic": "computerScience",
+    "expression": "Byzantine Fault",
+    "blurb": "Byzantine Fault describes a failure where a component sends contradictory information to different parts of a distributed system. Tolerating such arbitrary deception requires consensus protocols that remain correct even when some participants lie or behave unpredictably."
+  },
+  {
+    "id": "math-terms-klein-bottle",
+    "topic": "mathTerms",
+    "expression": "Klein Bottle",
+    "blurb": "Klein Bottle is a non-orientable surface with no distinct inside or outside in four-dimensional embedding. In three-dimensional models it self-intersects, offering a useful visualization for topology and orientation arguments broadly."
+  },
+  {
+    "id": "math-terms-zorn-lemma",
+    "topic": "mathTerms",
+    "expression": "Zorn Lemma",
+    "blurb": "Zorn Lemma states that a partially ordered set has a maximal element when every chain has an upper bound. It is equivalent to the axiom of choice and underpins many existence proofs."
+  }
+]

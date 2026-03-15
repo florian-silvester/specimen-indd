@@ -1,0 +1,50 @@
+{
+  "name": "specimen-typography",
+  "version": "1.0.0",
+  "description": "Specimen - Typography System Generator for Figma",
+  "scripts": {
+    "update:google-fonts": "node scripts/fetch-google-fonts.js",
+    "build:term-bank": "node scripts/build-semantic-term-bank.js",
+    "update:term-bank-wiki": "node scripts/update-term-bank-wiki.js",
+    "update:term-bank-wiki:watch": "SEMANTIC_TERM_BANK_VERBOSE=1 SEMANTIC_TERM_BANK_PROGRESS_EVERY=1 node scripts/update-term-bank-wiki.js",
+    "enrich:gemini": "node scripts/enrich-term-bank-gemini.js",
+    "update:semantic-lorem": "node scripts/refresh-semantic-lorem.js",
+    "update:macos-fonts": "node scripts/fetch-macos-fonts.js",
+    "update:windows-fonts": "node scripts/fetch-windows-fonts.js",
+    "update:all-fonts": "node scripts/update-all-fonts.js",
+    "update:fonts": "npm run update:all-fonts",
+    "build:tokens": "mkdir -p dist && npx style-dictionary build --config sd.config.json",
+    "build:css": "node scripts/embed-css.js",
+    "build:plugin": "./node_modules/.bin/build-figma-plugin --typecheck --minify",
+    "build": "npm run build:tokens && npm run build:css && npm run build:plugin",
+    "watch:plugin": "./node_modules/.bin/build-figma-plugin --typecheck --watch",
+    "watch": "npm run watch:plugin"
+  },
+  "figma-plugin": {
+    "editorType": [
+      "figma"
+    ],
+    "id": "1489596635708172736",
+    "name": "Specimen",
+    "main": "src/core/main.ts",
+    "ui": "src/ui/ui.tsx"
+  },
+  "devDependencies": {
+    "@create-figma-plugin/build": "^4.0.0-alpha.0",
+    "@create-figma-plugin/tsconfig": "^4.0.0-alpha.0",
+    "@create-figma-plugin/utilities": "^4.0.0-alpha.0",
+    "@preact/preset-vite": "^2.9.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.5.5",
+    "postcss-import": "^16.1.0",
+    "style-dictionary": "^4.3.3",
+    "typescript": "^5.8.2",
+    "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "preact": "^10.26.4",
+    "zustand": "^4.5.2"
+  }
+}

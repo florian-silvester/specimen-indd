@@ -1,0 +1,37 @@
+declare const styles: {
+  readonly "dark-theme": string;
+  readonly "design-system-group-header": string;
+  readonly "design-system-style-row": string;
+  readonly "design-system-styles-list": string;
+  readonly "dropdown-trigger-label": string;
+  readonly "header-mode-toggle-row": string;
+  readonly "header-row-icon": string;
+  readonly "header-title-group": string;
+  readonly "icon-wrap-right": string;
+  readonly "is-disabled": string;
+  readonly "label-active-drag": string;
+  readonly "labelSpecsRow": string;
+  readonly "landing-header-logo-group": string;
+  readonly "landing-header-text-group": string;
+  readonly "landing-intro-text": string;
+  readonly "landing-intro-wrap": string;
+  readonly "landing-option-section": string;
+  readonly "modal-content": string;
+  readonly "modal-overlay": string;
+  readonly "no-content-message": string;
+  readonly "no-content-subtitle": string;
+  readonly "scan-results-list": string;
+  readonly "section-header": string;
+  readonly "section-header-label": string;
+  readonly "section-title-small": string;
+  readonly "sub-section-header": string;
+  readonly "subsection-header": string;
+  readonly "text-input-area-large": string;
+  readonly "unified-update-content": string;
+  readonly "update-heading-link": string;
+  readonly "variables-section": string;
+  readonly "weight-group-header": string;
+  readonly "weight-group-title": string;
+};
+export = styles;
+

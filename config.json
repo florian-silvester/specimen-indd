@@ -1,0 +1,36 @@
+const { registerTransforms } = require('@tokens-studio/sd-transforms');
+const StyleDictionary = require('style-dictionary');
+
+// Register the Tokens Studio transforms
+registerTransforms(StyleDictionary);
+
+module.exports = {
+  // Source token file
+  source: ['tokens.json'],
+
+  // Platform configuration
+  platforms: {
+    // CSS output platform
+    css: {
+      // Apply Tokens Studio transforms + standard CSS transforms
+      transformGroup: 'tokens-studio', 
+      // Output path
+      buildPath: 'src/ui/',
+      // Files to generate
+      files: [
+        {
+          // Output filename
+          destination: 'tokens.css',
+          // Format for CSS variables
+          format: 'css/variables',
+          // Options (optional, e.g., specify selector)
+          // options: {
+          //   selector: ':root' // Default selector
+          // }
+        },
+      ],
+    },
+    // Add other platforms like JS/TS if needed later
+    // ts: { ... }
+  },
+}; 

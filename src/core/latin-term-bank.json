@@ -1,0 +1,828 @@
+[
+  {
+    "id": "latin-apus-pacificus",
+    "bucket": "Birds",
+    "expression": "Apus pacificus",
+    "description": "Apus pacificus is the Pacific swift, a soot-dark aerialist that breeds across Siberia and winters deep into Australasia. It feeds, sleeps, and even mates on the wing, touching solid ground only to nest in cliff crevices. Radar studies show flocks ascending above two thousand metres at dusk to drift through the night on thermal currents. First described in the late 18th century. Body length around 18 cm. Weight approximately 130 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-bubo-scandiacus",
+    "bucket": "Birds",
+    "expression": "Bubo scandiacus",
+    "description": "Bubo scandiacus is the snowy owl, a stark-white raptor of the Arctic tundra whose plumage thickens into feathered boots that insulate against temperatures far below freezing. Irruptive migrations occasionally carry it into temperate farmland, where birders gather in reverent crowds. Males whiten with age while females retain dark barring throughout life. Named by Linnaeus, 1758. Up to 63 cm. Weight around 2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-grus-japonensis",
+    "bucket": "Birds",
+    "expression": "Grus japonensis",
+    "description": "Grus japonensis is the red-crowned crane, sacred in East Asian art as an emblem of longevity and fidelity. Pairs perform elaborate unison dances, leaping and trumpeting on frozen Hokkaido marshes. Once reduced to a few dozen individuals in Japan, captive breeding and winter feeding stations have coaxed the population back from the edge of extinction. Described in the late 18th century. Adults stand up to 150 cm tall. Weight around 10 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-sula-dactylatra",
+    "bucket": "Birds",
+    "expression": "Sula dactylatra",
+    "description": "Sula dactylatra is the masked booby, a heavy-billed seabird that plunge-dives from heights of thirty metres into tropical waters. Its stark white plumage and dark facial mask give it a theatrical appearance on remote atolls. Siblicide is common: the older chick routinely pushes its younger sibling from the nest within days of hatching. Named in the early 19th century. Body length approximately 81 cm. Weight around 1.5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pavo-cristatus",
+    "bucket": "Birds",
+    "expression": "Pavo cristatus",
+    "description": "Pavo cristatus is the Indian peafowl, whose iridescent tail coverts — not true tail feathers — fan into a shimmering disc of eye-spots during courtship. Peahens select mates partly by the symmetry and number of these ocelli. Feral populations thrive on several continents, and the bird has been a symbol of royalty from Persia to the British Raj. Classified by Linnaeus, 1758. Males reach 110 cm. Weight up to 5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-jynx-torquilla",
+    "bucket": "Birds",
+    "expression": "Jynx torquilla",
+    "description": "Jynx torquilla is the Eurasian wryneck, a cryptic woodpecker relative that twists its head in slow, serpentine motions when alarmed — the behaviour that gave rise to the English word ‘jinx.’ It feeds almost exclusively on ants, probing their tunnels with a sticky tongue. Unlike other woodpeckers it never drums and nests in existing cavities. First described in the mid-18th century. Around 17 cm. Weight approximately 35 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-asio-flammeus",
+    "bucket": "Birds",
+    "expression": "Asio flammeus",
+    "description": "Asio flammeus is the short-eared owl, a crepuscular hunter found on every continent except Antarctica. It quarters low over marshes and grasslands on long, buoyant wings, dropping onto voles with sudden precision. During courtship males perform a spectacular wing-clapping display flight, rising high and then diving with audible feather pops. Described by Pontoppidan, 1763. Body length approximately 38 cm. Weight around 350 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-otus-bakkamoena",
+    "bucket": "Birds",
+    "expression": "Otus bakkamoena",
+    "description": "Otus bakkamoena is the Indian scops owl, a small nocturnal raptor whose quavering interrogative call punctuates warm subcontinental nights. Its bark-patterned plumage renders it nearly invisible against tree trunks during the day. It favours open woodland, mango groves, and suburban gardens where large insects and geckos are plentiful. Classified in the late 18th century. Around 25 cm. Weight approximately 125 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-rhea-americana",
+    "bucket": "Birds",
+    "expression": "Rhea americana",
+    "description": "Rhea americana is the greater rhea, South America’s largest bird and a flightless ratite that races across the pampas at speeds above sixty kilometres per hour. Males are sole incubators, sitting on clutches laid by multiple females in a shallow scrape. Gaucho culture once prized rhea feathers as dusters and bola weights. Described by Linnaeus, 1758. Height up to 150 cm. Weight around 25 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-falco-peregrinus",
+    "bucket": "Birds",
+    "expression": "Falco peregrinus",
+    "description": "Falco peregrinus is the peregrine falcon, the fastest animal on Earth, reaching verified stoops above three hundred kilometres per hour. Its baffled nostrils, nictitating membranes, and stiff plumage are aerodynamic adaptations refined over millions of years. Urban populations nest on skyscraper ledges and prey on pigeons drawn to city centres. First catalogued in the late 18th century. Body length up to 46 cm. Weight around 1 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-gavia-stellata",
+    "bucket": "Birds",
+    "expression": "Gavia stellata",
+    "description": "Gavia stellata is the red-throated loon, the smallest and most agile diver in its family, capable of taking off directly from water without a running start. Breeding pairs produce a mournful wailing duet across boreal lakes. Unlike other loons it often feeds in coastal waters, commuting inland to its nesting site each evening. First described by Pontoppidan, 1763. Length approximately 63 cm. Weight around 1.6 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-strix-nebulosa",
+    "bucket": "Birds",
+    "expression": "Strix nebulosa",
+    "description": "Strix nebulosa is the great grey owl, the tallest owl in North America despite being surprisingly lightweight beneath its voluminous plumage. Its enormous facial disc funnels sound so precisely that it can locate voles moving under half a metre of snow, then punch through the crust feet-first. Silent flight feathers muffle every wingbeat. First described in the late 18th century. Up to 67 cm. Weight approximately 1.1 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-ardea-purpurea",
+    "bucket": "Birds",
+    "expression": "Ardea purpurea",
+    "description": "Ardea purpurea is the purple heron, a secretive wading bird that threads through dense reedbeds across southern Eurasia and Africa. Its chestnut and slate plumage, streaked neck, and serpentine strike distinguish it from the commoner grey heron. When alarmed it adopts a rigid bittern-like pose, bill pointed skyward among the swaying stems. Named by Linnaeus, 1766. Adults reach 85 cm. Weight around 1.2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-sitta-whiteheadi",
+    "bucket": "Birds",
+    "expression": "Sitta whiteheadi",
+    "description": "Sitta whiteheadi is the Corsican nuthatch, found nowhere on Earth outside the laricio pine forests of Corsica. It spirals headfirst down bark probing for insects, uttering a distinctive nasal trill. The entire world population numbers only a few thousand pairs, making it one of Europe’s rarest endemic passerines and a conservation priority. Described in the late 19th century. Body length around 12 cm. Weight approximately 13 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-remiz-pendulinus",
+    "bucket": "Birds",
+    "expression": "Remiz pendulinus",
+    "description": "Remiz pendulinus is the Eurasian penduline tit, a tiny passerine that constructs one of the most elaborate nests in the bird world: a felted, flask-shaped pouch woven from plant fibres and spider silk, suspended from a drooping branch over water. Males build multiple nests to attract females, who may abandon eggs for the male to incubate alone. Described in the mid-18th century. Approximately 11 cm. Weight around 10 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-larus-ridibundus",
+    "bucket": "Birds",
+    "expression": "Larus ridibundus",
+    "description": "Larus ridibundus is the black-headed gull, whose chocolate-brown breeding hood — not truly black — is one of Eurasian birding’s most recognisable field marks. Adaptable and noisy, it thrives from tundra lakes to city car parks. Its Latin epithet means ‘laughing,’ a nod to the cackling chorus that erupts from every nesting colony. Described by Linnaeus, 1766. Around 40 cm. Weight approximately 300 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-lanius-excubitor",
+    "bucket": "Birds",
+    "expression": "Lanius excubitor",
+    "description": "Lanius excubitor is the great grey shrike, a songbird-sized predator that impales prey on thorns and barbed wire to create macabre larders. It hunts from exposed perches across boreal and steppe habitats, taking everything from beetles to small rodents. The Latin name means ‘butcher sentinel,’ a fitting description of its watchful hunting style. Named in the mid-18th century. Body length up to 25 cm. Weight around 65 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-ketupa-blakistoni",
+    "bucket": "Birds",
+    "expression": "Ketupa blakistoni",
+    "description": "Ketupa blakistoni is Blakiston’s fish owl, the heaviest owl alive, reaching over four kilograms in the old-growth riparian forests of eastern Russia, Hokkaido, and Manchuria. It wades into icy streams to seize salmon and trout with massive talons. Habitat loss and dam construction have pushed it into endangered status across most of its range. Named by Seebohm, 1884. Length up to 72 cm. Weight around 4.5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-sterna-paradisaea",
+    "bucket": "Birds",
+    "expression": "Sterna paradisaea",
+    "description": "Sterna paradisaea is the Arctic tern, holder of the longest migration of any animal — pole to pole and back, roughly seventy thousand kilometres each year. Over a lifespan of thirty years it may travel the equivalent of three round trips to the Moon. Its buoyant flight and blood-red bill are hallmarks of high-latitude coastlines worldwide. Classified in the mid-18th century. Body length around 35 cm. Weight approximately 120 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-anas-formosa",
+    "bucket": "Birds",
+    "expression": "Anas formosa",
+    "description": "Anas formosa is the Baikal teal, a small dabbling duck whose male sports a psychedelic face pattern of green, cream, and black that has no equal among waterfowl. It breeds in Siberian taiga wetlands and winters in enormous flocks across Korea and Japan, sometimes numbering in the hundreds of thousands on a single lake. Named in the late 18th century. Approximately 43 cm. Weight around 450 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-rallus-aquaticus",
+    "bucket": "Birds",
+    "expression": "Rallus aquaticus",
+    "description": "Rallus aquaticus is the water rail, a narrow-bodied marsh bird more often heard than seen, announcing its presence with pig-like squeals from deep within reedbeds. Its laterally compressed body lets it slip between dense stems, and its long red bill probes mud for invertebrates. In winter, freezing marshes sometimes force it into surprisingly open ground. Classified by Linnaeus, 1758. Around 27 cm. Weight approximately 130 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-tadorna-ferruginea",
+    "bucket": "Birds",
+    "expression": "Tadorna ferruginea",
+    "description": "Tadorna ferruginea is the ruddy shelduck, a striking rust-orange waterfowl revered in Buddhist and Hindu traditions as a symbol of devoted partnership. Pairs are fiercely territorial, nesting in cliff holes, ruined buildings, and even marmot burrows far from water. Its loud, braying call carries across the steppes and high-altitude lakes of Central Asia. First catalogued in the mid-18th century. Body length up to 65 cm. Weight around 1.3 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pica-hudsonia",
+    "bucket": "Birds",
+    "expression": "Pica hudsonia",
+    "description": "Pica hudsonia is the black-billed magpie, a boldly pied corvid of western North America whose intelligence rivals that of the great apes. It is one of the few non-mammalian species to pass the mirror self-recognition test. Its domed stick nests, lined with mud, can be a metre tall and are reused by long-eared owls and other cavity nesters. Described by Sabine, 1823. Up to 50 cm including tail. Weight approximately 180 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-accipiter-nisus",
+    "bucket": "Birds",
+    "expression": "Accipiter nisus",
+    "description": "Accipiter nisus is the Eurasian sparrowhawk, a compact woodland raptor built for explosive acceleration through tangled canopy. Females are up to twenty-five per cent larger than males, one of the widest sexual size dimorphisms among raptors. Its short rounded wings and long tail allow breakneck pursuit of small birds through hedgerows and gardens. First described in the mid-18th century. Around 33 cm. Weight approximately 200 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-aquila-chrysaetos",
+    "bucket": "Birds",
+    "expression": "Aquila chrysaetos",
+    "description": "Aquila chrysaetos is the golden eagle, one of the most widely distributed raptors across the Northern Hemisphere. Revered in heraldry and mythology, it hunts mammals and birds across open mountain terrain, reaching dive speeds that rival the peregrine falcon. Its wingspan can exceed two metres, and pairs maintain vast territories for decades. Classified by Linnaeus, 1758. Wingspan up to 220 cm. Weight around 5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-buceros-rhinoceros",
+    "bucket": "Birds",
+    "expression": "Buceros rhinoceros",
+    "description": "Buceros rhinoceros is the rhinoceros hornbill, a massive frugivore of Southeast Asian rainforest whose casqued bill and booming calls echo through the canopy. The female seals herself inside a tree-cavity nest with mud, leaving only a narrow slit through which the male passes food for months. Hornbills are vital seed dispersers for tropical hardwoods. Described in the mid-18th century. Adults reach 110 cm. Weight around 2.8 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-irania-gutturalis",
+    "bucket": "Birds",
+    "expression": "Irania gutturalis",
+    "description": "Irania gutturalis is the white-throated robin, a striking chat of rocky mountain slopes from Turkey eastward to Afghanistan. Males flash a vivid orange breast and blue-grey upperparts while singing from exposed boulders at dawn. It winters in East Africa, undertaking one of the longer migrations of any Old World chat, and remains poorly studied overall. Classified in the early 19th century. Body length approximately 16 cm. Weight around 22 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-xenus-cinereus",
+    "bucket": "Birds",
+    "expression": "Xenus cinereus",
+    "description": "Xenus cinereus is the terek sandpiper, a peculiar wader with a noticeably upturned bill and a distinctive habit of running along mudflats with a curious bobbing motion. It breeds in boreal Russia and migrates to tropical coastlines of Africa, South Asia, and Australasia. Its frenetic feeding style and odd proportions make it instantly recognisable. First catalogued in the late 18th century. Around 23 cm. Weight approximately 65 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-fregata-minor",
+    "bucket": "Birds",
+    "expression": "Fregata minor",
+    "description": "Fregata minor is the great frigatebird, a piratical seabird with the largest wingspan-to-body-weight ratio of any bird alive. Males inflate a vivid scarlet gular pouch to balloon proportions during courtship, drumming it with their bills. Unable to land on water because its plumage lacks waterproofing, it snatches fish from the surface or kleptoparasitises other birds mid-flight. Described by Gmelin, 1789. Wingspan approximately 200 cm. Weight around 1.2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-scopus-umbretta",
+    "bucket": "Birds",
+    "expression": "Scopus umbretta",
+    "description": "Scopus umbretta is the hamerkop, a wading bird of sub-Saharan Africa and Madagascar that builds one of the most extraordinary nests in nature — a domed stick structure up to two metres across, strong enough to support a person. Multiple nests may dot a single territory, and other species quickly appropriate abandoned ones. Local folklore often views it with superstition. First described in the late 18th century. Up to 56 cm. Weight approximately 470 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-strigops-habroptila",
+    "bucket": "Birds",
+    "expression": "Strigops habroptila",
+    "description": "Strigops habroptila is the kākāpō, a flightless nocturnal parrot endemic to New Zealand and the heaviest parrot in the world. Males inflate like feathered bellows to boom across the forest during lek displays. Intensive conservation has pulled the species back from fewer than fifty individuals, using hand-rearing and predator-free island sanctuaries. Named in the mid-19th century. Adults reach 64 cm. Weight up to 4 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-xema-sabini",
+    "bucket": "Birds",
+    "expression": "Xema sabini",
+    "description": "Xema sabini is Sabine’s gull, a dainty high-Arctic breeder with a striking black, white, and grey wing pattern visible in flight. It migrates enormous distances to winter on the open ocean off western South America and southwestern Africa. Its forked tail — unusual among gulls — and buoyant tern-like flight set it apart from every congener. Described in the early 19th century. Body length around 33 cm. Weight approximately 190 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-tragopan-temminckii",
+    "bucket": "Birds",
+    "expression": "Tragopan temminckii",
+    "description": "Tragopan temminckii is Temminck’s tragopan, a crimson-breasted pheasant of misty Himalayan rhododendron forests. Males possess inflatable blue lappets and horns they unfurl during courtship in one of the most theatrical displays in the avian world. It is among the few pheasants that nests in trees, often commandeering old raptor or crow platforms. First described by Gray, 1831. Up to 64 cm. Weight approximately 1.5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-eudocimus-ruber",
+    "bucket": "Birds",
+    "expression": "Eudocimus ruber",
+    "description": "Eudocimus ruber is the scarlet ibis, a wading bird whose blazing vermilion plumage derives from carotenoid pigments in the crustaceans it consumes. Colonies turn mangrove swamps into vivid red spectacles at dusk. It is the national bird of Trinidad and Tobago, featured on the coat of arms and celebrated as a symbol of the islands’ tropical exuberance. Classified in the mid-18th century. Length approximately 60 cm. Weight around 650 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-balaena-mysticetus",
+    "bucket": "Marine Mammals",
+    "expression": "Balaena mysticetus",
+    "description": "Balaena mysticetus is the bowhead whale, an Arctic giant whose skull — nearly a third of its body length — smashes through sea ice up to sixty centimetres thick. Bowheads are among the longest-lived mammals; harpoon tips found embedded in living individuals date to the nineteenth century. Their enormous baleen plates filter vast clouds of copepods. First catalogued in the mid-18th century. Adults reach up to 1,800 cm. Weight around 75,000 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-kogia-breviceps",
+    "bucket": "Marine Mammals",
+    "expression": "Kogia breviceps",
+    "description": "Kogia breviceps is the pygmy sperm whale, a cryptic deep-diver seldom seen alive at the surface. When threatened it releases a cloud of reddish-brown intestinal fluid — a squid-like ink defence unique among mammals. Despite its diminutive size it carries a spermaceti organ analogous to its giant relative, used for echolocation in the mesopelagic zone. Named in the early 19th century. Length up to 340 cm. Weight around 400 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-lipotes-vexillifer",
+    "bucket": "Marine Mammals",
+    "expression": "Lipotes vexillifer",
+    "description": "Lipotes vexillifer is the baiji, a nearly blind freshwater dolphin endemic to the Yangtze River and almost certainly the first cetacean driven to extinction in modern times. Its long, narrow beak navigated murky waters by echolocation alone. A 2006 survey failed to find a single individual, making the baiji a haunting symbol of irreversible biodiversity loss. Classified in the early 20th century. Adults reach approximately 230 cm. Weight around 160 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pusa-sibirica",
+    "bucket": "Marine Mammals",
+    "expression": "Pusa sibirica",
+    "description": "Pusa sibirica is the Baikal seal, the only exclusively freshwater pinniped on Earth, confined to Lake Baikal in Siberia — the world’s deepest and oldest lake. It dives to depths exceeding three hundred metres to hunt golomyanka, a translucent endemic fish. How a marine seal colonised a landlocked lake thousands of kilometres from the ocean remains debated. First catalogued in the late 18th century. Body length up to 130 cm. Weight approximately 90 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-feresa-attenuata",
+    "bucket": "Marine Mammals",
+    "expression": "Feresa attenuata",
+    "description": "Feresa attenuata is the pygmy killer whale, one of the least-known cetaceans despite a pantropical range. Rarely seen and easily confused with the melon-headed whale, it travels in small pods and has a reputation for aggression when cornered. Almost everything known about its biology comes from stranding records and a handful of brief at-sea encounters. First described in the late 19th century. Around 270 cm. Weight approximately 170 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-orcinus-orca",
+    "bucket": "Marine Mammals",
+    "expression": "Orcinus orca",
+    "description": "Orcinus orca is the killer whale, apex predator of every ocean basin on Earth. Distinct ecotypes specialise on salmon, seals, or even great whales, each with unique dialects, hunting tactics, and social customs passed from mother to calf. Pod bonds persist for life, and post-reproductive females serve as repositories of ecological knowledge for the group. Classified by Linnaeus, 1758. Males reach up to 800 cm. Weight around 5,400 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-sousa-chinensis",
+    "bucket": "Marine Mammals",
+    "expression": "Sousa chinensis",
+    "description": "Sousa chinensis is the Indo-Pacific humpback dolphin, a coastal species that turns progressively pinker with age due to blood-vessel dilation beneath thinning skin. It frequents estuaries, mangrove channels, and harbour approaches where vessel traffic and habitat loss pose constant threats. Some populations are now critically small and genetically isolated. First described in the mid-18th century. Adults reach approximately 280 cm. Weight around 250 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-phocoena-sinus",
+    "bucket": "Marine Mammals",
+    "expression": "Phocoena sinus",
+    "description": "Phocoena sinus is the vaquita, the world’s rarest marine mammal, confined to a tiny patch of the upper Gulf of California. Fewer than a dozen individuals are believed to survive, victims of entanglement in illegal totoaba gillnets. Despite intensive enforcement and acoustic monitoring, the vaquita’s slide toward extinction continues almost unchecked. Described in the mid-20th century. Body length up to 150 cm. Weight approximately 50 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-monodon-monoceros",
+    "bucket": "Marine Mammals",
+    "expression": "Monodon monoceros",
+    "description": "Monodon monoceros is the narwhal, an Arctic cetacean whose spiralling ivory tusk — actually an elongated upper canine — can exceed three metres. Medieval Europeans believed it was the horn of a unicorn. The tusk is packed with millions of nerve endings and may function as a sensory organ, detecting changes in salinity and temperature beneath the pack ice. Named by Linnaeus, 1758. Up to 500 cm excluding tusk. Weight around 1,600 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-manta-birostris",
+    "bucket": "Sea Creatures",
+    "expression": "Manta birostris",
+    "description": "Manta birostris is the oceanic manta ray, the largest ray in the sea, with a wingspan reaching over seven metres. Cephalic fins funnel plankton into its cavernous mouth as it barrel-rolls through nutrient upwellings. Mantas possess the largest brain-to-body ratio of any fish and demonstrate self-recognition behaviour in mirror experiments. Described in the late 18th century. Wingspan up to 700 cm. Weight around 1,400 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-rhincodon-typus",
+    "bucket": "Sea Creatures",
+    "expression": "Rhincodon typus",
+    "description": "Rhincodon typus is the whale shark, the largest living fish, growing to over twelve metres and filter-feeding on plankton and small schooling fish. Its checkerboard skin pattern is unique to each individual, enabling photo-identification catalogues spanning decades. Despite its enormous size it is docile and often tolerates snorkellers swimming alongside. Named in the early 19th century. Adults reach up to 1,200 cm. Weight around 20,000 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-cetorhinus-maximus",
+    "bucket": "Sea Creatures",
+    "expression": "Cetorhinus maximus",
+    "description": "Cetorhinus maximus is the basking shark, the second-largest fish alive, cruising temperate seas with its mouth agape to sieve zooplankton. It can filter two thousand tonnes of water per hour through gill rakers that are shed and regrown seasonally. Long hunted for its oil-rich liver, it is now protected across much of its North Atlantic range. First described by Gunnerus, 1765. Length up to 1,100 cm. Weight approximately 5,000 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-limulus-polyphemus",
+    "bucket": "Sea Creatures",
+    "expression": "Limulus polyphemus",
+    "description": "Limulus polyphemus is the Atlantic horseshoe crab, a living fossil whose lineage predates the dinosaurs by over two hundred million years. Its blue, copper-based blood contains a clotting agent used worldwide to test pharmaceuticals for bacterial contamination. Each spring, thousands swarm Delaware Bay beaches to spawn under the full moon. Named in the mid-18th century. Up to 60 cm including tail spine. Weight around 3.6 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-tridacna-gigas",
+    "bucket": "Sea Creatures",
+    "expression": "Tridacna gigas",
+    "description": "Tridacna gigas is the giant clam, the largest living bivalve, reaching over a metre across and weighing more than two hundred kilograms. Symbiotic algae in its mantle tissue provide most of its nutrition through photosynthesis, colouring the flesh in iridescent blues, greens, and golds. Once settled on a reef, it never moves again. Described by Linnaeus, 1758. Shell width up to 120 cm. Weight around 200 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-glaucus-atlanticus",
+    "bucket": "Sea Creatures",
+    "expression": "Glaucus atlanticus",
+    "description": "Glaucus atlanticus is the blue dragon, a tiny pelagic nudibranch that floats upside-down at the ocean surface using an air bubble in its stomach. It preys on Portuguese man-o’-war, sequestering their venomous nematocysts in its own finger-like cerata for defence. Its electric-blue and silver colouring provides perfect countershading against open water. Classified in the late 18th century. Body length around 30 mm. Weight approximately 3 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-dosidicus-gigas",
+    "bucket": "Sea Creatures",
+    "expression": "Dosidicus gigas",
+    "description": "Dosidicus gigas is the Humboldt squid, a powerful predator of the eastern Pacific that hunts in coordinated packs and communicates through rapid chromatophore flashes. It can reach two metres in length and is notoriously aggressive toward divers. Fishers call it ‘diablo rojo’ for its habit of turning crimson when agitated during capture. First catalogued in the early 19th century. Mantle length up to 150 cm. Weight around 50 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-carcharias-taurus",
+    "bucket": "Sea Creatures",
+    "expression": "Carcharias taurus",
+    "description": "Carcharias taurus is the sand tiger shark, a heavy-bodied coastal shark that gulps air at the surface to achieve neutral buoyancy — unique among sharks. Despite its fearsome ragged-tooth appearance, it is generally docile. Intrauterine cannibalism means only two pups survive per litter, each having consumed its siblings before birth. First described in the early 19th century. Adults reach approximately 320 cm. Weight around 160 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pagurus-bernhardus",
+    "bucket": "Sea Creatures",
+    "expression": "Pagurus bernhardus",
+    "description": "Pagurus bernhardus is the common hermit crab of the northeastern Atlantic, a crustacean that inhabits salvaged gastropod shells and upgrades to larger ones as it grows. When a coveted shell appears, crabs form orderly vacancy chains, queuing by size to swap homes in rapid succession. Anemones often colonise the shell, providing mutual defence. Classified in the mid-18th century. Body length around 10 cm. Weight approximately 12 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-euphyllia-ancora",
+    "bucket": "Corals",
+    "expression": "Euphyllia ancora",
+    "description": "Euphyllia ancora is the hammer coral, a large-polyped stony coral whose tentacle tips swell into distinctive anchor or hammer shapes. Under ultraviolet light its tissues fluoresce vivid green, a trait linked to photoprotective proteins. It is a staple of reef aquariums but increasingly threatened on wild Indo-Pacific reefs by bleaching and acidification. Described in the late 20th century. Colony diameter up to 30 cm. Colony weight around 3 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pavona-decussata",
+    "bucket": "Corals",
+    "expression": "Pavona decussata",
+    "description": "Pavona decussata is the cactus coral, forming upright leaf-like plates on Indo-Pacific reefs. Its ridged surface channels water flow to maximise plankton capture and gas exchange. Symbiotic zooxanthellae within its tissue provide the bulk of its energy through photosynthesis, tinting the colony olive or brown under normal conditions. First catalogued in the mid-19th century. Colony diameter up to 50 cm. Colony weight approximately 8 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-corallium-rubrum",
+    "bucket": "Corals",
+    "expression": "Corallium rubrum",
+    "description": "Corallium rubrum is precious red coral, harvested from Mediterranean and eastern Atlantic depths since antiquity for jewellery and amulets. Its slow growth — just a few millimetres per year — makes it acutely vulnerable to over-collection. Entire submarine cliff faces once crimson with colonies have been stripped bare by commercial dredging operations. Named by Linnaeus, 1758. Colonies reach approximately 30 cm. Branch weight around 1 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-tubipora-musica",
+    "bucket": "Corals",
+    "expression": "Tubipora musica",
+    "description": "Tubipora musica is the organ-pipe coral, an octocoral whose bright red calcium-carbonate skeleton forms parallel tubes resembling the pipes of an old church organ. Green polyps extend from each tube to feed on passing plankton. Found across the Indo-Pacific, it is unusual among soft-coral relatives for producing a rigid and vividly coloured skeleton. First described in the mid-18th century. Colony diameter around 30 cm. Colony weight approximately 2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-acropora-tenuis",
+    "bucket": "Corals",
+    "expression": "Acropora tenuis",
+    "description": "Acropora tenuis is a branching staghorn coral and one of the most important reef-building species across the Indo-Pacific. Its fast growth rapidly colonises damaged reef patches, providing three-dimensional habitat for hundreds of fish and invertebrate species. It is also among the first corals to bleach during marine heat waves, making it a climate sentinel. Described in the mid-19th century. Colony diameter up to 50 cm. Colony weight around 4 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-apis-mellifera",
+    "bucket": "Insects",
+    "expression": "Apis mellifera",
+    "description": "Apis mellifera is the western honey bee, arguably the most economically important insect on Earth. Its waggle dance communicates the precise distance and direction of nectar sources to nestmates. A single colony can pollinate millions of blossoms in a season, and its structured wax comb remains an engineering marvel studied by materials scientists. Described by Linnaeus, 1758. Workers approximately 15 mm. Weight around 100 mg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-bombus-terrestris",
+    "bucket": "Insects",
+    "expression": "Bombus terrestris",
+    "description": "Bombus terrestris is the buff-tailed bumblebee, a robust pollinator native to Europe whose commercially reared colonies now work greenhouses on every continent except Antarctica. Queens hibernate underground through winter, emerging in spring to found new colonies alone. Its buzz-pollination technique — vibrating flowers at specific frequencies — releases pollen that other bees cannot access. Named in the mid-18th century. Queens reach up to 22 mm. Weight approximately 600 mg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-danaus-plexippus",
+    "bucket": "Insects",
+    "expression": "Danaus plexippus",
+    "description": "Danaus plexippus is the monarch butterfly, famed for an annual migration spanning up to four thousand kilometres between Canadian meadows and Mexican oyamel fir forests. Milkweed toxins accumulated as a caterpillar render the adult unpalatable, advertised by bold orange and black warning colours. Entire trees sag under the weight of overwintering clusters. Classified by Linnaeus, 1758. Wingspan up to 10 cm. Weight around 500 mg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-vespa-mandarinia",
+    "bucket": "Insects",
+    "expression": "Vespa mandarinia",
+    "description": "Vespa mandarinia is the Asian giant hornet, the world’s largest wasp, capable of annihilating an entire honeybee colony in hours. Japanese honeybees counter with a remarkable defensive strategy: mobbing an intruding scout and vibrating their flight muscles to generate a lethal thermal ball that cooks the hornet alive at forty-six degrees Celsius. Classified in the mid-19th century. Body length up to 50 mm. Weight approximately 4 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-formica-rufa",
+    "bucket": "Insects",
+    "expression": "Formica rufa",
+    "description": "Formica rufa is the red wood ant, an ecosystem engineer that builds towering thatched mounds in European forests. A single nest may house hundreds of thousands of workers who farm aphids for honeydew, aerate soil, and disperse seeds. Their formic-acid spray deters predators and has been used in folk medicine since the Middle Ages. First catalogued in the mid-18th century. Workers around 10 mm. Weight approximately 8 mg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-gryllus-campestris",
+    "bucket": "Insects",
+    "expression": "Gryllus campestris",
+    "description": "Gryllus campestris is the field cricket, once a familiar voice of European meadows now drastically declined through habitat loss and pesticide use. Males chirp by scraping a ridged vein on one wing against a sharp edge on the other. Temperature directly controls chirp rate, and a simple formula can estimate the ambient temperature from the count. Named by Linnaeus, 1758. Body length approximately 25 mm. Weight around 2 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-mantis-religiosa",
+    "bucket": "Insects",
+    "expression": "Mantis religiosa",
+    "description": "Mantis religiosa is the European praying mantis, a stealthy ambush predator whose raptorial forelegs strike in under fifty milliseconds. Its triangular head rotates almost one hundred and eighty degrees, giving it a binocular field of vision rare among insects. Females sometimes consume the male during mating, though this occurs less often in the wild than in captivity. First described in the mid-18th century. Females reach up to 75 mm. Weight approximately 6 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pieris-brassicae",
+    "bucket": "Insects",
+    "expression": "Pieris brassicae",
+    "description": "Pieris brassicae is the large white butterfly, a familiar European garden visitor whose caterpillars can devastate brassica crops. Adults flutter with deceptive fragility but undertake genuine migrations across the English Channel. Parasitoid wasps, particularly Cotesia glomerata, lay eggs inside the caterpillars, providing natural biocontrol valued by organic growers. First described by Linnaeus, 1758. Wingspan approximately 60 mm. Weight around 300 mg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-chelonia-mydas",
+    "bucket": "Reptiles",
+    "expression": "Chelonia mydas",
+    "description": "Chelonia mydas is the green sea turtle, named not for its shell but for the greenish fat beneath it, coloured by a seagrass diet unique among marine turtles. Females return to their natal beach to nest, navigating thousands of oceanic kilometres by geomagnetic cues. Hatchlings sprint to the surf under cover of darkness, guided by moonlight on the waves. Named by Linnaeus, 1758. Carapace length up to 100 cm. Weight up to 150 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-crotalus-atrox",
+    "bucket": "Reptiles",
+    "expression": "Crotalus atrox",
+    "description": "Crotalus atrox is the western diamondback rattlesnake, responsible for more snakebite fatalities in North America than any other species. Its rattle — interlocking keratin segments that buzz when vibrated — is an honest warning signal: each strike expends precious venom. Pit organs between eye and nostril detect infrared radiation, mapping warm-blooded prey in total darkness. Described in the mid-19th century. Adults reach approximately 120 cm. Weight around 2.5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-varanus-niloticus",
+    "bucket": "Reptiles",
+    "expression": "Varanus niloticus",
+    "description": "Varanus niloticus is the Nile monitor, a powerful semi-aquatic lizard that patrols African riverbanks and can exceed two metres in length. It raids crocodile nests for eggs, swallows fish whole, and has been observed cooperating in pairs to distract a nesting crocodile while the other digs. Its forked tongue samples airborne chemicals like a snake. Named in the mid-18th century. Length up to 200 cm. Weight approximately 15 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-eryx-jaculus",
+    "bucket": "Reptiles",
+    "expression": "Eryx jaculus",
+    "description": "Eryx jaculus is the javelin sand boa, a small burrowing constrictor found from the Balkans through the Middle East. It ambushes lizards and rodents from beneath loose sandy soil, striking upward with surprising speed. Unusually for a snake its tail is blunt and shaped almost identically to its head, confusing predators about which end to avoid. Classified by Linnaeus, 1758. Around 80 cm. Weight approximately 300 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-hyla-arborea",
+    "bucket": "Amphibians",
+    "expression": "Hyla arborea",
+    "description": "Hyla arborea is the European tree frog, a vivid lime-green amphibian whose adhesive toe pads let it scale smooth vertical surfaces. Males inflate a resonant vocal sac to produce a deafening chorus on warm spring nights, audible from hundreds of metres away. It serves as an indicator species: its presence signals clean, well-vegetated wetland habitat. Named by Linnaeus, 1758. Body length up to 5 cm. Weight around 8 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-bufo-calamita",
+    "bucket": "Amphibians",
+    "expression": "Bufo calamita",
+    "description": "Bufo calamita is the natterjack toad, easily identified by a bold yellow dorsal stripe and a tendency to run rather than hop. It is a pioneer species, colonising temporary pools in sand dunes and heathlands where few other amphibians can breed. Males produce a rasping, far-carrying call that has earned them the old English name ‘running toad.’ Named in the late 18th century. Around 8 cm. Weight approximately 20 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-naja-tripudians",
+    "bucket": "Reptiles",
+    "expression": "Naja tripudians",
+    "description": "Naja tripudians is the Indian cobra, one of the ‘big four’ venomous snakes of the subcontinent. Its expandable hood, formed by elongated cervical ribs, is both a threat display and a cultural icon inseparable from snake-charmer folklore. Venom is primarily neurotoxic, and antivenom production still relies on immunising horses with carefully titrated doses. Classified in the mid-18th century. Adults reach up to 180 cm. Weight around 2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-vipera-ammodytes",
+    "bucket": "Reptiles",
+    "expression": "Vipera ammodytes",
+    "description": "Vipera ammodytes is the nose-horned viper, considered the most dangerous snake in Europe. A fleshy horn on its snout gives it a distinctive silhouette among the rocky limestone karst it inhabits from the Balkans to the Middle East. Its haemotoxic venom causes tissue destruction and requires prompt medical treatment, yet bites remain rare due to its retiring nature. Described by Linnaeus, 1758. Length approximately 85 cm. Weight around 200 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-manis-javanica",
+    "bucket": "Mammals",
+    "expression": "Manis javanica",
+    "description": "Manis javanica is the Sunda pangolin, the world’s most trafficked wild mammal, poached for its keratin scales and meat. Covered head to tail in overlapping plates, it curls into an impenetrable ball when threatened — a defence effective against leopards but useless against human hands. It is a solitary, nocturnal insectivore with a tongue longer than its body. Classified in the early 19th century. Body length approximately 60 cm. Weight around 5 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-okapia-johnstoni",
+    "bucket": "Mammals",
+    "expression": "Okapia johnstoni",
+    "description": "Okapia johnstoni is the okapi, a reclusive forest giraffe of the Congo basin whose striped hindquarters and dark velvet coat eluded Western science until 1901. Despite resembling a zebra-horse hybrid, it is the giraffe’s closest living relative. Its prehensile tongue, over thirty centimetres long, strips leaves and is dark enough to resist sunburn. First catalogued in the early 20th century. Body length up to 250 cm. Weight approximately 300 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-nycticebus-coucang",
+    "bucket": "Mammals",
+    "expression": "Nycticebus coucang",
+    "description": "Nycticebus coucang is the Sunda slow loris, one of the only venomous primates. A toxin secreted from brachial glands on its upper arms, activated by mixing with saliva, can cause anaphylactic shock in humans. Its enormous forward-facing eyes gather light for nocturnal foraging, and its deliberate, hand-over-hand movement through the canopy is eerily silent. First described in the late 18th century. Around 35 cm. Weight approximately 700 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-vampyressa-thyone",
+    "bucket": "Mammals",
+    "expression": "Vampyressa thyone",
+    "description": "Vampyressa thyone is the northern little yellow-eared bat, a tiny frugivore of Central American cloud forests whose outsized yellow-rimmed ears and leaf-nose give it a cartoonish charm. It roosts in small groups under Heliconia leaves, biting the midrib so the leaf folds into a protective tent. Fig seeds dispersed in its droppings regenerate forest clearings. Described in the early 20th century. Forearm length approximately 35 mm. Weight around 10 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-ilex-aquifolium",
+    "bucket": "Trees",
+    "expression": "Ilex aquifolium",
+    "description": "Ilex aquifolium is the common holly, an evergreen whose spiny leaves and red berries became entwined with midwinter celebration long before Christianity adopted them. Lower leaves bear sharp spines to deter browsing animals, while upper canopy leaves are often smooth — an elegant example of heterophylly driven by herbivore pressure over evolutionary time. Described by Linnaeus, 1753. Height up to 1,500 cm. Mature specimens around 8,000 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-salix-babylonica",
+    "bucket": "Trees",
+    "expression": "Salix babylonica",
+    "description": "Salix babylonica is the weeping willow, whose cascading curtain of slender branches has symbolised mourning and romantic melancholy across cultures for centuries. Native to northern China, it spread along Silk Road trade routes and now lines waterways worldwide. Its roots stabilise riverbanks, and salicin in its bark is the biochemical ancestor of aspirin. First catalogued in the mid-18th century. Height up to 2,500 cm. Mature specimens around 5,000 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-yucca-gloriosa",
+    "bucket": "Plants",
+    "expression": "Yucca gloriosa",
+    "description": "Yucca gloriosa is the Spanish dagger, a dramatic rosette plant native to the southeastern United States whose sword-like leaves terminate in a vicious spine. It depends on a single moth genus, Tegeticula, for pollination in a classic example of obligate mutualism: the moth lays eggs inside the flower while deliberately transferring pollen to the stigma. Classified by Linnaeus, 1753. Height up to 250 cm. Mature plants around 30 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-puya-raimondii",
+    "bucket": "Plants",
+    "expression": "Puya raimondii",
+    "description": "Puya raimondii is the queen of the Andes, the largest bromeliad on Earth, producing a flower spike over ten metres tall after roughly eighty years of vegetative growth. Each spike bears thousands of blooms visited by hummingbirds before the entire plant dies. Found above four thousand metres in Peru and Bolivia, it is increasingly threatened by fire and grazing. Named in the early 20th century. Inflorescence reaches 1,000 cm. Plant weight around 75 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-zamia-furfuracea",
+    "bucket": "Plants",
+    "expression": "Zamia furfuracea",
+    "description": "Zamia furfuracea is the cardboard palm, a cycad native to Veracruz, Mexico, whose thick corrugated leaflets feel like stiff cardboard to the touch. Despite the common name it is not a palm but a gymnosperm with a lineage reaching back to the Permian. All parts are toxic, containing cycasin, yet it thrives as an ornamental in frost-free gardens worldwide. First described in the mid-19th century. Height up to 130 cm. Mature plants approximately 25 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-ulex-europaeus",
+    "bucket": "Plants",
+    "expression": "Ulex europaeus",
+    "description": "Ulex europaeus is common gorse, a thorny evergreen shrub whose coconut-scented yellow flowers blaze across European heathlands nearly year-round. Its seeds can remain viable in the soil for thirty years, and the plant is fiercely invasive in oceanic climates outside its native range. An old country saying: ‘When gorse is out of bloom, kissing is out of fashion.’ Described in the mid-18th century. Height up to 250 cm. Mature shrubs around 20 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-quercus-ilex",
+    "bucket": "Trees",
+    "expression": "Quercus ilex",
+    "description": "Quercus ilex is the holm oak, an evergreen oak of the Mediterranean whose leathery, holly-like leaves resist drought and salt spray. It forms dense woodlands called encinares across Iberia and North Africa. Its acorns fatten the black Iberian pigs whose cured ham, jamón ibérico de bellota, is among the most prized charcuterie in the world. Named by Linnaeus, 1753. Mature trees reach 2,500 cm. Trunk weight around 12,000 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-dionaea-muscipula",
+    "bucket": "Plants",
+    "expression": "Dionaea muscipula",
+    "description": "Dionaea muscipula is the Venus flytrap, a carnivorous plant found only in a small radius of boggy Carolina coastal plain. Its hinged leaf traps snap shut in under a hundred milliseconds when trigger hairs are stimulated twice — a counting mechanism that prevents false alarms. Digestive enzymes then dissolve soft-bodied insects over roughly ten days. Classified in the late 18th century. Rosette diameter up to 15 cm. Plant weight around 50 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-wisteria-floribunda",
+    "bucket": "Plants",
+    "expression": "Wisteria floribunda",
+    "description": "Wisteria floribunda is the Japanese wisteria, a vigorous woody climber whose pendulous racemes of violet flowers can exceed a metre in length. It twines clockwise — the opposite direction of its Chinese cousin — and can live for centuries; a specimen in Ashikaga, Japan, covers nearly two thousand square metres. Its fragrance and cascading form define spring in temperate gardens. Named in the mid-19th century. Vines extend up to 3,000 cm. Mature specimens around 200 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-datura-stramonium",
+    "bucket": "Plants",
+    "expression": "Datura stramonium",
+    "description": "Datura stramonium is the thorn apple, a toxic annual found on waste ground worldwide whose spiny seed capsules and trumpet-shaped white flowers have a sinister beauty. Every part contains tropane alkaloids — scopolamine and atropine — that cause delirium and hallucination. Despite its dangers, it has been used in folk medicine and shamanic ritual for millennia. Classified in the mid-18th century. Height up to 150 cm. Plant weight approximately 2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-ascaphus-truei",
+    "bucket": "Amphibians",
+    "expression": "Ascaphus truei",
+    "description": "Ascaphus truei is the coastal tailed frog, one of the most primitive frogs alive, found only in cold, fast-flowing mountain streams of the Pacific Northwest. The male’s ‘tail’ is actually a copulatory organ — unique among frogs — that allows internal fertilisation in torrential currents where external spawning would fail. Tadpoles cling to rocks with sucker-like mouths. First catalogued in the late 19th century. Body length approximately 5 cm. Weight around 10 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-megophrys-nasuta",
+    "bucket": "Amphibians",
+    "expression": "Megophrys nasuta",
+    "description": "Megophrys nasuta is the long-nosed horned frog of Southeast Asian rainforest floors, where fleshy horn-like projections above its eyes and snout break up its outline among leaf litter. It sits motionless for hours, perfectly mimicking a dead leaf in colour, texture, and even the suggestion of a midrib. Unwary insects that wander too close are engulfed in a single lunge. First catalogued in the mid-19th century. Females reach up to 12 cm. Weight approximately 100 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-spea-hammondii",
+    "bucket": "Amphibians",
+    "expression": "Spea hammondii",
+    "description": "Spea hammondii is the western spadefoot toad, a burrowing amphibian of California’s arid grasslands that spends most of its life underground, emerging only after heavy rains to breed explosively in temporary pools. Tadpoles can develop a carnivorous morph with enlarged jaw muscles and a shorter gut, cannibalising siblings when the pool begins to dry. First described in the mid-19th century. Body length around 6 cm. Weight approximately 15 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-mantella-aurantiaca",
+    "bucket": "Amphibians",
+    "expression": "Mantella aurantiaca",
+    "description": "Mantella aurantiaca is the golden mantella, a thumbnail-sized frog endemic to a single swampy forest fragment in eastern Madagascar. Its blazing orange skin advertises alkaloid toxins sequestered from the mites and ants it eats. Habitat loss has reduced its range to fewer than ten square kilometres, making it one of the most critically endangered amphibians on Earth. First described in the early 20th century. Adults reach approximately 25 mm. Weight around 3 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-atelopus-zeteki",
+    "bucket": "Amphibians",
+    "expression": "Atelopus zeteki",
+    "description": "Atelopus zeteki is the Panamanian golden frog, a vivid yellow toad revered in local folklore as a symbol of good luck. It communicates by semaphore-like hand waving near noisy streams — one of the few frogs to use visual signalling. The chytrid fungus pandemic has driven it to functional extinction in the wild; it survives only in captive breeding programmes. Described in the early 20th century. Body length up to 5 cm. Weight approximately 12 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-micrixalus-saxicola",
+    "bucket": "Amphibians",
+    "expression": "Micrixalus saxicola",
+    "description": "Micrixalus saxicola is the dancing frog of India’s Western Ghats, named for the male’s extraordinary foot-flagging display: it stretches a hind leg high and waves it in slow arcs to signal rivals and attract mates above the roar of forest torrents. This genus went undescribed for decades because the tiny frogs vanish into spray-soaked boulder crevices at the slightest disturbance. Described in the mid-19th century. Around 30 mm. Weight approximately 2 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-amanita-phalloides",
+    "bucket": "Fungi",
+    "expression": "Amanita phalloides",
+    "description": "Amanita phalloides is the death cap, responsible for the majority of fatal mushroom poisonings worldwide. Its olive-green cap and white gills look deceptively innocuous, and its pleasant taste offers no warning. Amatoxins destroy liver cells over days, and by the time symptoms appear the damage is often irreversible. It has likely altered the course of empires. Named in the early 19th century. Cap diameter up to 12 cm. Fruiting body around 120 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-phallus-impudicus",
+    "bucket": "Fungi",
+    "expression": "Phallus impudicus",
+    "description": "Phallus impudicus is the common stinkhorn, a fungus whose phallic form and carrion stench have scandalised botanists since Linnaeus. It erupts from a gelatinous ‘egg’ overnight, extending a spongy cap coated in foul-smelling spore slime that attracts flies from great distances. Victorian naturalist Gwendolen Sutton reportedly crept out at dawn to destroy them on sight. Named in the mid-18th century. Fruiting body up to 20 cm. Weight approximately 100 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-clathrus-ruber",
+    "bucket": "Fungi",
+    "expression": "Clathrus ruber",
+    "description": "Clathrus ruber is the latticed stinkhorn, a fungus that hatches from a pale egg into a hollow scarlet cage smeared with dark, foul-smelling spore mass. Flies are lured by the stench, pick up spores on their feet, and carry them to new ground. Native to Mediterranean woodlands, it has spread to gardens worldwide where its alien appearance startles unsuspecting gardeners. Classified in the early 18th century. Approximately 10 cm across. Weight around 50 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-lactarius-indigo",
+    "bucket": "Fungi",
+    "expression": "Lactarius indigo",
+    "description": "Lactarius indigo is the indigo milk cap, a striking blue mushroom that bleeds vivid blue latex when its flesh is cut. Found in oak and pine forests across the Americas and East Asia, it slowly turns green on exposure to air. Despite its startling colour it is edible and sold in rural Mexican markets, where it is prized for its meaty texture and mild flavour. First catalogued in the early 19th century. Cap diameter around 15 cm. Weight approximately 100 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-mycena-interrupta",
+    "bucket": "Fungi",
+    "expression": "Mycena interrupta",
+    "description": "Mycena interrupta is the pixie’s parasol, a tiny bioluminescent mushroom of Australasian rainforests whose translucent, electric-blue cap glows faintly in the dark. Each fruiting body is barely a centimetre across and lasts only a day or two. The function of its bioluminescence is debated — it may attract insects that disperse spores through the damp understorey at night. First described in the late 19th century. Cap diameter barely 10 mm. Weight around 1 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-xylaria-polymorpha",
+    "bucket": "Fungi",
+    "expression": "Xylaria polymorpha",
+    "description": "Xylaria polymorpha is dead man’s fingers, a saprobic fungus that rises from buried hardwood roots in swollen black clubs disturbingly reminiscent of charred digits clawing from the soil. Its tough, carbonaceous crust protects a white interior packed with perithecia that eject spores year-round. Clusters often appear at the base of beech stumps in damp temperate woodlands. Described in the late 18th century. Fruiting bodies reach 8 cm. Weight approximately 30 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-xerus-rutilus",
+    "bucket": "Mammals",
+    "expression": "Xerus rutilus",
+    "description": "Xerus rutilus is the unstriped ground squirrel of East Africa’s dry savannahs, where it digs elaborate burrow systems shared communally with mongooses and other small mammals. Unlike most squirrels it is almost entirely terrestrial, foraging for roots and seeds in the open while flicking its bushy tail overhead as a parasol against the equatorial sun. Named in the early 19th century. Body length around 22 cm. Weight approximately 350 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-nyctea-scandiaca",
+    "bucket": "Birds",
+    "expression": "Nyctea scandiaca",
+    "description": "Nyctea scandiaca is the snowy owl, a heavy-bodied raptor of the Arctic tundra whose white plumage provides near-perfect camouflage against snow. Males grow paler with age while females retain dark barring. It hunts lemmings by day across treeless expanses, and in irruption years thousands drift south into temperate latitudes, startling birdwatchers on beaches and airport fields. Named by Linnaeus, 1758. Body length up to 60 cm. Weight around 2 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-zalophus-wollebaeki",
+    "bucket": "Marine Mammals",
+    "expression": "Zalophus wollebaeki",
+    "description": "Zalophus wollebaeki is the Galápagos sea lion, an endemic pinniped that basks on lava shelves and sandy coves across the archipelago. Pups play in tidal pools while bulls patrol territorial boundaries with barking displays. Climate-driven collapses of sardine stocks periodically trigger mass starvation, making this one of the most El Niño–vulnerable marine mammals on Earth. Classified in the mid-20th century. Males reach approximately 250 cm. Weight around 250 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-viverricula-indica",
+    "bucket": "Mammals",
+    "expression": "Viverricula indica",
+    "description": "Viverricula indica is the small Indian civet, a slender nocturnal carnivore with bold dark spots and bands running the length of its body. It prowls forest edges and plantations across South and Southeast Asia, marking territories with a musk secretion once prized in perfumery. Despite its cat-like appearance it belongs to Viverridae, an ancient family closer to mongooses than felines. Classified in the early 19th century. Body length up to 60 cm. Weight around 3 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-oryx-gazella",
+    "bucket": "Mammals",
+    "expression": "Oryx gazella",
+    "description": "Oryx gazella is the gemsbok, a powerful desert antelope of southern Africa’s Kalahari and Namib whose rapier-straight horns can exceed a metre in length. A network of nasal blood vessels cools arterial blood before it reaches the brain, allowing the animal to tolerate body temperatures that would cause heatstroke in most mammals. It rarely needs to drink. First described by Linnaeus, 1758. Shoulder height approximately 120 cm. Weight around 240 kg.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-myoxus-glis",
+    "bucket": "Mammals",
+    "expression": "Myoxus glis",
+    "description": "Myoxus glis is the edible dormouse, a rotund nocturnal rodent of European woodlands that gorges on beechnuts and hazels before entering a hibernation so profound the Romans farmed it as a delicacy. In autumn its body weight can double with fat reserves, and it may sleep for over seven months in underground burrows, sometimes not emerging until June. First catalogued in the mid-18th century. Body length around 18 cm. Weight up to 150 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-zapus-hudsonius",
+    "bucket": "Mammals",
+    "expression": "Zapus hudsonius",
+    "description": "Zapus hudsonius is the meadow jumping mouse of North America, a tiny rodent with enormously elongated hind feet and a tail longer than its body. When startled it launches itself in erratic three-metre leaps through wet grassland, making it nearly impossible for predators to track. It hibernates for up to eight months, one of the longest dormancies of any mammal. First catalogued in the early 19th century. Body length approximately 9 cm. Weight around 18 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-cynictis-penicillata",
+    "bucket": "Mammals",
+    "expression": "Cynictis penicillata",
+    "description": "Cynictis penicillata is the yellow mongoose of southern Africa, a gregarious carnivore that shares its warren systems with meerkats and ground squirrels in a rare example of interspecies cohabitation. Its tawny fur blends with the dry grasslands where it hunts insects and small vertebrates. Sentinels perch on termite mounds, barking alarm calls that benefit all residents of the shared burrow. First described in the early 19th century. Body length up to 30 cm. Weight approximately 800 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-zamenis-longissimus",
+    "bucket": "Reptiles",
+    "expression": "Zamenis longissimus",
+    "description": "Zamenis longissimus is the Aesculapian snake, a sleek, olive-bronze colubrid that can exceed two metres in length. It is the serpent coiled around the Rod of Asclepius, symbol of medicine worldwide. An agile climber, it ascends trees and stone walls in pursuit of rodents. Relic populations persist in Germany and Britain far north of its Mediterranean core range. Described in the late 18th century. Adults exceed 200 cm. Weight approximately 900 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-danio-kyathit",
+    "bucket": "Fish",
+    "expression": "Danio kyathit",
+    "description": "Danio kyathit is the orange-finned danio, a small cyprinid from the hill streams of Myanmar’s Shan Plateau. Males flush vivid tangerine along their fins during courtship, darting through shallow riffles over pebble substrates. Discovered only in the early 2000s, it quickly became prized in the aquarium trade for its hardiness and jewel-like colouration in planted tanks. Named in the late 20th century. Body length approximately 30 mm. Weight around 1 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pyrrhulina-brevis",
+    "bucket": "Fish",
+    "expression": "Pyrrhulina brevis",
+    "description": "Pyrrhulina brevis is a small splashing characin of Amazonian blackwater streams, where it glides just beneath the surface hunting mosquito larvae and fallen insects. Males develop flame-red fin margins and perform an elaborate leaf-spawning ritual, leaping to deposit eggs on overhanging vegetation. Its genus name derives from the Greek for ‘little flame’, a nod to its fiery markings. Classified in the early 20th century. Around 5 cm. Weight approximately 3 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-xiphophorus-variatus",
+    "bucket": "Fish",
+    "expression": "Xiphophorus variatus",
+    "description": "Xiphophorus variatus is the variable platyfish, a livebearer from Mexico’s Atlantic slope rivers whose wild populations display an extraordinary range of colour morphs — from olive drab to sunset orange to ink-spotted blue. This natural polymorphism has made it a cornerstone of genetic research into pigmentation and melanoma, as certain gene combinations produce heritable tumour susceptibility. First catalogued in the early 20th century. Body length up to 7 cm. Weight around 5 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-xenotoca-eiseni",
+    "bucket": "Fish",
+    "expression": "Xenotoca eiseni",
+    "description": "Xenotoca eiseni is the redtail splitfin, a livebearer endemic to a handful of spring-fed streams in Jalisco, Mexico. Males sport an electric-blue body with a blazing orange caudal fin. Habitat destruction and invasive species have reduced wild populations to critical levels, and captive breeding programmes in Europe now hold more individuals than exist in the species’ entire native range. First described in the late 19th century. Males reach approximately 7 cm. Weight around 4 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-poecilia-wingei",
+    "bucket": "Fish",
+    "expression": "Poecilia wingei",
+    "description": "Poecilia wingei is Endler’s livebearer, a tiny fish from a single lagoon in northeastern Venezuela where males display an electric mosaic of neon green, orange, and black. Each male’s colour pattern is virtually unique, a result of intense sexual selection. The species was nearly lost to pollution before aquarists established captive populations that now far outnumber the wild stock. Described in the early 21st century. Males around 25 mm. Weight approximately 0.5 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-sawbwa-resplendens",
+    "bucket": "Fish",
+    "expression": "Sawbwa resplendens",
+    "description": "Sawbwa resplendens is the Asian rummynose, a scaleless cyprinid endemic to Inle Lake in Myanmar’s Shan Hills. Males develop a luminous silver body tipped with a scarlet snout and electric-blue fin edges. It is the sole member of its genus, and habitat degradation from floating-garden agriculture and introduced species threatens the only wild population on Earth. Named in the early 20th century. Body length up to 30 mm. Weight around 1 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-barilius-bakeri",
+    "bucket": "Fish",
+    "expression": "Barilius bakeri",
+    "description": "Barilius bakeri is the Malabar baril, a torpedo-shaped cyprinid of India’s Western Ghats hill streams that leaps clear of the water to snatch low-flying insects, earning it the local name ‘hill trout’. Its flanks shimmer with vertical blue bars against a golden background. Found only in fast, oxygen-rich rivers of Kerala, it is increasingly threatened by sand mining and small dams. Classified in the late 19th century. Adults reach approximately 12 cm. Weight around 15 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-trichopsis-vittata",
+    "bucket": "Fish",
+    "expression": "Trichopsis vittata",
+    "description": "Trichopsis vittata is the croaking gourami, a small labyrinth fish of Southeast Asian rice paddies and swamps that produces audible clicking sounds by snapping modified pectoral-fin tendons against its swim bladder. Males croak during territorial disputes and courtship, making it one of the few fish whose vocalisations are easily heard above the waterline by human observers. First catalogued in the early 19th century. Body length around 7 cm. Weight approximately 3 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-carnegiella-strigata",
+    "bucket": "Fish",
+    "expression": "Carnegiella strigata",
+    "description": "Carnegiella strigata is the marbled hatchetfish, a tiny surface-dweller of Amazonian blackwater creeks whose deep, keel-shaped body and oversized pectoral muscles allow it to burst from the water and glide short distances to escape predators. Its ventral profile resembles a miniature hatchet blade. Schools hover motionless just beneath the surface film, scanning for fallen insects. First described in the mid-19th century. Around 4 cm. Weight approximately 3 g.",
+    "source": "manual"
+  },
+  {
+    "id": "latin-pseudomugil-luminatus",
+    "bucket": "Fish",
+    "expression": "Pseudomugil luminatus",
+    "description": "Pseudomugil luminatus is the red neon blue-eye, a rainbowfish barely three centimetres long from the Timika region of Papua. Males flash iridescent blue eyes and flame-orange fin filaments during frenzied dawn displays. Described only in 2011, it became an instant sensation in the nano-aquarium world, though its restricted swamp-forest habitat faces ongoing pressure from logging and mining. First described in the early 21st century. Body length barely 30 mm. Weight around 1 g.",
+    "source": "manual"
+  }
+]

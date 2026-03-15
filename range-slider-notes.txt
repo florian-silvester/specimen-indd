@@ -1,0 +1,121 @@
+Range slider + ticks (Specimen)
+
+Scope
+- Only range slider behavior, handles, and tick markers.
+- References are from RangeSlider component and slider/tooltip CSS.
+
+Component structure
+- Component: src/ui/components/RangeSlider.tsx
+- Track and labels are arranged in a single row:
+  - left static label (H0)
+  - slider track (filled segment + dots + knobs)
+  - right static label (Text Tiny)
+
+Markup (labels + track + knobs)
+File: src/ui/components/RangeSlider.tsx
+
+<div className="slider-main-row">
+  <div className="static-label-input-look align-left">{leftLabel}</div>
+  <div className="slider-track-background" ref={trackRef}>
+    <div className="slider-filled-track-element" style={{ left: `${filledTrackLeft}%`, width: `${filledTrackWidth}%` }}></div>
+    {dotValues.map(...)}
+    <div className="slider-knob" style={{ left: `${displayLeftPercentage}%` }} onMouseDown={...} onTouchStart={...}></div>
+    <div className="slider-knob" style={{ left: `${displayRightPercentage}%` }} onMouseDown={...} onTouchStart={...}></div>
+  </div>
+  <div className="static-label-input-look align-right">{rightLabel}</div>
+</div>
+
+Handle picking (how knobs are grabbed)
+File: src/ui/components/RangeSlider.tsx
+- The knob itself is the hit target (no track click-to-move).
+- Drag starts only on knob mouse/touch down.
+- While dragging, document-level listeners handle pointer move and release.
+
+Code (core flow)
+const startDrag = (knob, event) => {
+  event.preventDefault();
+  setDraggingKnob(knob);
+};
+
+useEffect(() => {
+  if (draggingKnob) {
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('touchmove', handleDragMove, { passive: false });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+  }
+  return () => { ...remove listeners... };
+}, [draggingKnob, ...]);
+
+handleDragMove:
+- reads track bounding box (trackRef.getBoundingClientRect())
+- converts pointer x to percentage, clamps 0..100
+- converts percentage to value and clamps to min/max
+- updates left/right values based on which knob is active
+
+Handle size and hit area (CSS)
+File: src/ui/styles/components/sliders.css
+
+.slider-knob {
+  position: absolute;
+  width: var(--size-slider-knob);
+  height: var(--size-slider-knob);
+  border-radius: 50%;
+  cursor: grab;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+Tick markers (how dots are rendered)
+File: src/ui/components/RangeSlider.tsx
+- Each tick is generated from dotValues.
+- Each tick is placed by converting value -> percentage of the track.
+
+{dotValues.map((dotValue, index) => {
+  const dotPercentage = valueToPercentage(dotValue);
+  return (
+    <div
+      key={`dot-${index}`}
+      className="slider-track-dot"
+      style={{ left: `${dotPercentage}%` }}
+    />
+  );
+})}
+
+Tick styling (CSS)
+File: src/ui/styles/components/sliders.css
+
+.slider-track-dot {
+  position: absolute;
+  width: 0.25px;
+  height: var(--size-slider-knob);
+  background-color: var(--slider-dot-color);
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+Track and row sizing (CSS)
+File: src/ui/styles/components/sliders.css
+
+.slider-main-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 24px;
+}
+
+.slider-track-background {
+  flex-grow: 1;
+  position: relative;
+  height: var(--border-width-track);
+  background-color: var(--background-secondary);
+}
+
+Static label width (H0 / Text Tiny regions)
+File: src/ui/styles/components/misc.css
+
+.static-label-input-look {
+  width: 72px;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+}

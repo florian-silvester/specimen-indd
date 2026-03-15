@@ -1,0 +1,145 @@
+/*
+==========================================================================
+ COMPONENTS - MISCELLANEOUS
+==========================================================================
+This file contains miscellaneous UI component styles organized in a logical hierarchy:
+1. Static Labels - Label components styled like inputs
+2. Interactive Labels - Labels with hover and active states
+3. Control Overrides - Specific control element modifications
+4. Links & Navigation - Link styling and interactive elements
+5. Utility Classes - Helper classes for various components
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. STATIC LABELS
+==========================================================================
+*/
+
+/* Static label styled like an input field */
+.static-label-input-look {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-secondary);
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-default);
+  box-sizing: border-box;
+  white-space: nowrap;
+  width: 72px;
+  text-align: left;
+}
+
+/* Left-aligned static label */
+.static-label-input-look.align-left {
+  justify-content: flex-start;
+  text-align: left;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Right-aligned static label */
+.static-label-input-look.align-right {
+  justify-content: flex-end;
+  text-align: right;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/*
+==========================================================================
+ 2. INTERACTIVE LABELS
+==========================================================================
+*/
+
+/* Label with active drag state */
+.label-active-drag {
+  color: var(--text-default);
+}
+
+/* Curve label styling */
+.curve-label-adaptive {
+  color: var(--text-default);
+}
+
+/*
+==========================================================================
+ 3. CONTROL OVERRIDES
+==========================================================================
+*/
+
+/* Font selection control row label override */
+.font-selection-control-row > .control-label {
+  width: auto;
+  flex-grow: 1;
+  flex-basis: 0;
+}
+
+/*
+==========================================================================
+ 4. LINKS & NAVIGATION
+==========================================================================
+*/
+
+/* Update heading link */
+#update-heading-link {
+  color: var(--brand-default);
+  text-decoration: none;
+  cursor: pointer;
+  transition: text-decoration 0.1s ease-out;
+}
+
+#update-heading-link:hover {
+  text-decoration: underline;
+}
+
+/*
+==========================================================================
+ 5. UTILITY CLASSES
+==========================================================================
+*/
+
+/* Text alignment utilities */
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Display utilities */
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+/* Spacing utilities */
+.no-margin {
+  margin: 0;
+}
+
+.no-padding {
+  padding: 0;
+}
+
+/* Section description text */
+.section-description {
+  font-size: var(--ui-font-size-small);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+ 

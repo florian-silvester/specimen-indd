@@ -1,0 +1,153 @@
+/*
+==========================================================================
+ COMPONENTS - SEGMENTED CONTROLS
+==========================================================================
+This file contains all segmented control-related styles organized in a logical hierarchy:
+1. Base Segmented Control Styles - Core container and structure
+2. Segmented Input Components - Input fields within segmented controls
+3. Segmented Triggers - Buttons and interactive elements
+4. Segmented Control States - Focus, readonly, and interactive states
+5. Segmented Control Rows - Multi-element segmented layouts
+6. Theme & Context Overrides - Dark theme and specialized styling
+==========================================================================
+*/
+
+/*
+==========================================================================
+ 1. BASE SEGMENTED CONTROL STYLES
+==========================================================================
+*/
+
+/* Main segmented input container */
+.segmented-input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--size-input-height);
+  background-color: var(--background-secondary);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  overflow: hidden;
+  transition: box-shadow 0.1s ease-out;
+}
+
+/* Segmented control row container */
+.segmented-control-row {
+  gap: 0;
+}
+
+/*
+==========================================================================
+ 2. SEGMENTED INPUT COMPONENTS
+==========================================================================
+*/
+
+/* Input field within segmented control */
+.segmented-input-field {
+  flex-grow: 1;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  padding-right: var(--sizing-default-spacers-spacer-1);
+  outline: none;
+}
+
+/* Left input in segmented row */
+.segmented-control-row > .input-container-fixed:first-child > .input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Right input in segmented row */
+.segmented-control-row > .input-container-fixed:last-child > .input {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: var(--border-width-standard) solid var(--border-translucent);
+}
+
+/*
+==========================================================================
+ 3. SEGMENTED TRIGGERS
+==========================================================================
+*/
+
+/* Trigger button within segmented control */
+.segmented-input-trigger {
+  flex-shrink: 0;
+  width: var(--size-icon-size);
+  height: var(--size-input-height);
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.1s ease-out;
+}
+
+/* Middle dropdown trigger in segmented row */
+.segmented-control-row > .custom-dropdown-container > .dropdown-trigger-button {
+  border-radius: 0;
+  border-left: var(--border-width-standard) solid var(--border-translucent);
+}
+
+/*
+==========================================================================
+ 4. SEGMENTED CONTROL STATES
+==========================================================================
+*/
+
+/* Focus state for segmented container */
+.segmented-input-container:focus-within {
+  outline: none;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* Readonly state */
+.segmented-input-container.readonly .segmented-input-field {
+  cursor: inherit;
+}
+
+.segmented-input-container.readonly:focus-within {
+  box-shadow: none !important;
+}
+
+/* Hover states */
+.segmented-input-trigger:hover {
+  color: var(--text-default);
+  background-color: var(--brand-interactive-overlay);
+}
+
+/*
+==========================================================================
+ 5. SEGMENTED CONTROL ROWS
+==========================================================================
+*/
+
+/* Multi-element segmented layouts are handled by the base styles above */
+/* Additional row-specific styles can be added here as needed */
+
+/*
+==========================================================================
+ 6. THEME & CONTEXT OVERRIDES
+==========================================================================
+*/
+
+/* Dark theme overrides */
+body.dark-theme .segmented-input-trigger {
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+/* Disabled state */
+.segmented-input-container.disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+.segmented-input-container.disabled .segmented-input-field {
+  cursor: not-allowed;
+} 
