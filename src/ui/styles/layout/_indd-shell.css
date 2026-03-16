@@ -1,0 +1,267 @@
+/*
+==========================================================================
+ INDD SHELL — Panel + Canvas split layout
+ All values use existing design-system variables only.
+==========================================================================
+*/
+
+/* ── Root shell ──────────────────────────────────────────────────────── */
+
+.indd-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--background-default);
+  font-family: var(--font-family-base);
+  font-size: var(--ui-font-size-small);
+  color: var(--text-default);
+}
+
+/* ── Panel (left side) ───────────────────────────────────────────────── */
+
+.indd-panel {
+  width: 400px;
+  min-width: 400px;
+  max-width: 400px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-right: var(--border-width-standard) solid var(--border-translucent);
+  background-color: var(--background-default);
+  position: relative;
+  z-index: 10;
+}
+
+/* Override the global header-tabs-section to be panel-scoped, not full-width */
+.indd-panel .header-tabs-section {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* Panel scrollable body */
+.indd-panel .main-content {
+  flex: 1;
+  padding-top: 0;
+  padding-bottom: 0;
+  height: auto;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.indd-panel .main-content::-webkit-scrollbar {
+  width: 0;
+}
+
+/* Override the global footer-fixed to be panel-scoped */
+.indd-panel .footer-fixed {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  flex-shrink: 0;
+}
+
+/* ── Unified panel grid — EVERY row is 50/50 at identical padding ──── */
+
+/* Section headers: explicit 50/50, same horizontal padding as control rows */
+.indd-panel .section-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sizing-default-spacers-spacer-2);
+  align-items: center;
+  padding-left: var(--sizing-default-spacers-spacer-3);
+  padding-right: var(--sizing-default-spacers-spacer-3);
+}
+
+/* Control rows: no extra row padding — indent goes on label only */
+.indd-panel .section .section-content .control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sizing-default-spacers-spacer-2);
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Labels: indent to match section title text (chevron + gap) */
+.indd-panel .section .section-content .control-label {
+  width: auto;
+  text-align: left;
+  padding-left: calc(24px + var(--sizing-default-spacers-spacer-2));
+}
+
+/* Inputs stretch to fill — override inline width from JSX */
+.indd-panel .section .section-content .input-container-fixed {
+  width: 100% !important;
+  flex-shrink: 1;
+}
+
+/* Slider anchor labels: keep original fixed width so the track gets space */
+.indd-panel .slider-main-row .static-label-input-look {
+  width: 72px;
+  flex-shrink: 0;
+}
+
+/* Checkbox rows: span both columns */
+.indd-panel .checkbox-label-row {
+  grid-column: 1 / -1;
+}
+
+/* When a row has 3 children (label + input + unit), keep same left col */
+.indd-panel .section .section-content .control-row:has(.control-label-xsmall) {
+  grid-template-columns: 1fr 1fr auto;
+}
+
+/* Slider rows: full width, same left indent as labels */
+.indd-panel .section .section-content .slider-row {
+  padding-left: calc(24px + var(--sizing-default-spacers-spacer-2));
+  padding-right: 0;
+}
+
+/* Range slider wrapper inside panel — override fixed input widths */
+.indd-panel .custom-range-slider-wrapper .knob-tooltips-row .input-container-fixed {
+  width: 64px !important;
+  flex-shrink: 0;
+}
+
+/* Slider sub-labels (e.g. "Headings", "Text") — full width, same indent */
+.indd-panel .section .section-content .slider-sub-label {
+  padding-left: calc(24px + var(--sizing-default-spacers-spacer-2));
+  font: var(--font-style-ui-xsmall-regular);
+  color: var(--text-secondary);
+  margin-top: var(--sizing-default-spacers-spacer-2);
+}
+
+/* ── Canvas (right side) ─────────────────────────────────────────────── */
+
+.indd-canvas {
+  flex: 1;
+  height: 100vh;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: var(--background-secondary);
+  position: relative;
+}
+
+/* Checkerboard pattern for canvas background (subtle, using existing neutrals) */
+.dark-theme .indd-canvas {
+  background-color: var(--neutral-925);
+}
+
+/* ── Page on canvas ──────────────────────────────────────────────────── */
+
+.indd-page-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.indd-page {
+  position: relative;
+  background-color: var(--neutral-0);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.dark-theme .indd-page {
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Margin guide overlay ────────────────────────────────────────────── */
+
+.indd-margins-overlay {
+  position: absolute;
+  pointer-events: none;
+  border: var(--border-width-standard) solid var(--border-accent-light);
+  opacity: 0.35;
+}
+
+.dark-theme .indd-margins-overlay {
+  border-color: var(--border-accent-dark);
+  opacity: 0.3;
+}
+
+/* ── Baseline grid lines ─────────────────────────────────────────────── */
+
+.indd-baseline-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: var(--border-width-standard) solid var(--text-inactive);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* ── Type specimen on page ───────────────────────────────────────────── */
+
+.indd-type-specimen {
+  position: absolute;
+  overflow: hidden;
+  color: var(--neutral-950);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.indd-type-specimen-label {
+  position: absolute;
+  font-family: var(--font-family-base);
+  font-size: 8px;
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--border-accent-light);
+  opacity: 0.6;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dark-theme .indd-type-specimen-label {
+  color: var(--border-accent-dark);
+}
+
+/* ── Canvas controls bar (zoom etc.) ─────────────────────────────────── */
+
+.indd-canvas-controls {
+  position: fixed;
+  bottom: var(--sizing-default-spacers-spacer-3);
+  right: var(--sizing-default-spacers-spacer-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sizing-default-spacers-spacer-2);
+  z-index: 5;
+}
+
+.indd-canvas-controls .button-secondary-new {
+  background-color: var(--background-default);
+  border-color: var(--border-translucent);
+}
+
+/* ── Canvas info badge ───────────────────────────────────────────────── */
+
+.indd-canvas-info {
+  position: fixed;
+  top: var(--sizing-default-spacers-spacer-3);
+  right: var(--sizing-default-spacers-spacer-3);
+  display: flex;
+  gap: var(--sizing-default-spacers-spacer-2);
+  z-index: 5;
+}
+
+.indd-info-badge {
+  display: inline-flex;
+  align-items: center;
+  height: var(--size-input-height);
+  padding: 0 var(--sizing-default-spacers-spacer-2);
+  border-radius: var(--sizing-default-radius-radius-medium);
+  background-color: var(--background-default);
+  border: var(--border-width-standard) solid var(--border-translucent);
+  font: var(--font-style-ui-small-regular);
+  letter-spacing: var(--ui-letter-spacing-small);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}

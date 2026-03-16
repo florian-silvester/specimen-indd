@@ -2,4 +2,5 @@
 @import "./styles/utils/_atoms-utilities.css";
 @import "./styles/components/index.css";
 @import "./styles/layout/_layout.css";
-@import "./styles/screens/_screens.css"; 
+@import "./styles/layout/_indd-shell.css";
+@import "./styles/screens/_screens.css";

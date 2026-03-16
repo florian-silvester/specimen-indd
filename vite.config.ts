@@ -1,18 +1,16 @@
 import { defineConfig } from 'vite'
-import preact from '@preact/preset-vite' // Use preact preset
+import preact from '@preact/preset-vite'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [preact()],
   build: {
-    outDir: 'dist/ui-vite', // Output UI bundle to a subdirectory
-    emptyOutDir: true, // Clear the directory before building
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
-      input: 'index.html' // Specify the HTML entry point
+      input: 'index.html',
+      external: ['indesign', 'uxp', 'os', 'fs', 'path'],
     },
-    // Optional: Minify settings if needed, often defaults are fine
-    // minify: 'esbuild',
   },
-  // Adjust base if necessary for Figma environment, usually root '/' is fine
-  // base: '/', 
-}) 
+  // UXP doesn't support ES modules natively — inline everything
+  base: './',
+})

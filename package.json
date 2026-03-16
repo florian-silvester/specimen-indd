@@ -1,24 +1,16 @@
 {
-  "name": "specimen-typography",
+  "name": "specimen-indd",
   "version": "1.0.0",
-  "description": "Specimen - Typography System Generator for Figma",
+  "description": "Specimen - Typography System Generator for InDesign",
   "scripts": {
     "update:google-fonts": "node scripts/fetch-google-fonts.js",
-    "build:term-bank": "node scripts/build-semantic-term-bank.js",
-    "update:term-bank-wiki": "node scripts/update-term-bank-wiki.js",
-    "update:term-bank-wiki:watch": "SEMANTIC_TERM_BANK_VERBOSE=1 SEMANTIC_TERM_BANK_PROGRESS_EVERY=1 node scripts/update-term-bank-wiki.js",
-    "enrich:gemini": "node scripts/enrich-term-bank-gemini.js",
-    "update:semantic-lorem": "node scripts/refresh-semantic-lorem.js",
     "update:macos-fonts": "node scripts/fetch-macos-fonts.js",
     "update:windows-fonts": "node scripts/fetch-windows-fonts.js",
     "update:all-fonts": "node scripts/update-all-fonts.js",
     "update:fonts": "npm run update:all-fonts",
-    "build:tokens": "mkdir -p dist && npx style-dictionary build --config sd.config.json",
-    "build:css": "node scripts/embed-css.js",
-    "build:plugin": "./node_modules/.bin/build-figma-plugin --typecheck --minify",
-    "build": "npm run build:tokens && npm run build:css && npm run build:plugin",
-    "watch:plugin": "./node_modules/.bin/build-figma-plugin --typecheck --watch",
-    "watch": "npm run watch:plugin"
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "dev": "vite"
   },
   "figma-plugin": {
     "editorType": [

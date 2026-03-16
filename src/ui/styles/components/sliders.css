@@ -295,16 +295,17 @@ input[type=range]::-moz-range-progress {
   cursor: grabbing;
 }
 
-/* Slider track dots */
+/* Slider track dots (tick marks at preset values) */
 .slider-track-dot {
   position: absolute;
-  width: 0.25px;
-  height: var(--size-slider-knob);
+  width: 1px;
+  height: 8px;
   background-color: var(--tick-color);
   border-radius: 0;
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
+  pointer-events: none;
 }
 
 /* Filled track element */
