@@ -630,24 +630,27 @@ function LetterSpacingSection() {
 // ── Paragraph Styles Grid ────────────────────────────────────────────────────
 
 function ParagraphStylesGrid({ typeSystem, grid }: { typeSystem: TypographySystem; grid: GridResult }) {
-  const { gridAlignMode, setGridAlignMode, gridRowOverrides, setGridRowOverride, styleVisibility, toggleStyleVisibility, spaceBefore, spaceAfter, setSpaceBefore, setSpaceAfter } = useInddStore();
+  const { gridAlignMode, setGridAlignMode, gridRowOverrides, setGridRowOverride, styleVisibility, toggleStyleVisibility, spaceBefore, spaceAfter, setSpaceBefore, setSpaceAfter, sizeOverrides, setSizeOverride, trackingOverrides, setTrackingOverride } = useInddStore();
   const allStyles = TYPOGRAPHY_SCALE_ORDER.ALL_STYLES;
 
   const rows = allStyles.map(key => {
     const style = typeSystem[key];
     if (!style) return null;
     const visible = styleVisibility[key] !== false;
-    const resolved = resolveGridRows(key, style.size, grid.baselineIncrement, gridRowOverrides);
-    const tracking = Math.round(style.letterSpacing * 10);
+    const sizePt = sizeOverrides[key] ?? style.size;
+    const resolved = resolveGridRows(key, sizePt, grid.baselineIncrement, gridRowOverrides);
+    const computedTracking = Math.round(style.letterSpacing * 10);
+    const tracking = trackingOverrides[key] ?? computedTracking;
     return {
       key, style, visible,
+      sizePt,
       leadingPt: resolved.leadingPt,
       gridRows: resolved.gridRows,
       tracking,
       sb: spaceBefore[key] || 0,
       sa: spaceAfter[key] || 0,
     };
-  }).filter(Boolean) as { key: string; style: any; visible: boolean; leadingPt: number; gridRows: number; tracking: number; sb: number; sa: number }[];
+  }).filter(Boolean) as { key: string; style: any; visible: boolean; sizePt: number; leadingPt: number; gridRows: number; tracking: number; sb: number; sa: number }[];
 
   const displayName = (key: string) => {
     switch (key) {
@@ -716,20 +719,25 @@ function ParagraphStylesGrid({ typeSystem, grid }: { typeSystem: TypographySyste
               </span>
             </div>
             <div className="grid-cell">
-              {cellInput(row.style.size, 0.25, 4, () => {}, true)}
+              {cellInput(row.sizePt, 0.25, 4, (v) => setSizeOverride(row.key, v))}
             </div>
             <div className="grid-cell">
               {cellInput(row.gridRows, 1, 1, (v) => setGridRowOverride(row.key, v))}
             </div>
             <div className="grid-cell">
-              <span style={{
-                color: 'var(--text-secondary)',
-                font: 'var(--font-style-ui-small-regular)',
-                padding: '0 4px',
-              }}>{row.leadingPt.toFixed(1).replace(/\.0$/, '')}</span>
+              <div className="input-container-fixed" style={{ width: '100%' }}>
+                <input
+                  type="text"
+                  className="input number-input"
+                  value={row.leadingPt.toFixed(1).replace(/\.0$/, '')}
+                  readOnly
+                  tabIndex={-1}
+                  style={{ color: 'var(--text-secondary)' }}
+                />
+              </div>
             </div>
             <div className="grid-cell">
-              {cellInput(row.tracking, 1, -100, () => {})}
+              {cellInput(row.tracking, 1, -100, (v) => setTrackingOverride(row.key, v))}
             </div>
             <div className="grid-cell">
               {cellInput(row.sb, 1, 0, (v) => setSpaceBefore(row.key, v))}
@@ -768,7 +776,9 @@ function generateInDesignScript(
         ? 'GridAlignment.ALIGN_FIRST_LINE_ONLY'
         : 'GridAlignment.NONE';
 
-    return `  createOrUpdateStyle("${name}", "${store.fontFamily}", "${store.fontStyle}", ${style.size}, ${leading.toFixed(2)}, ${gridAlign});`;
+    const sb = ((store.spaceBefore[key] || 0) * grid.baselineIncrement).toFixed(2);
+    const sa = ((store.spaceAfter[key] || 0) * grid.baselineIncrement).toFixed(2);
+    return `  createOrUpdateStyle("${name}", "${store.fontFamily}", "${store.fontStyle}", ${style.size}, ${leading.toFixed(2)}, ${gridAlign}, ${sb}, ${sa});`;
   }).filter(Boolean).join('\n');
 
   return `// Specimen InDesign — Generated Paragraph Styles
@@ -793,7 +803,7 @@ for (var i = 0; i < doc.pages.length; i++) {
 }
 
 // Helper: create or update a paragraph style
-function createOrUpdateStyle(name, fontFamily, fontStyle, size, leading, gridAlign) {
+function createOrUpdateStyle(name, fontFamily, fontStyle, size, leading, gridAlign, spaceBefore, spaceAfter) {
   var style;
   try {
     style = doc.paragraphStyles.itemByName(name);
@@ -805,6 +815,8 @@ function createOrUpdateStyle(name, fontFamily, fontStyle, size, leading, gridAli
   style.fontStyle = fontStyle;
   style.pointSize = size;
   style.leading = leading;
+  style.spaceBefore = spaceBefore;
+  style.spaceAfter = spaceAfter;
   if (gridAlign === GridAlignment.NONE) {
     style.gridAlignFirstLineOnly = false;
   } else if (gridAlign === GridAlignment.ALIGN_FIRST_LINE_ONLY) {
@@ -868,6 +880,7 @@ function ExportPanel({ typeSystem, grid }: { typeSystem: TypographySystem; grid:
 
 /** A text block: style key + text content + computed metrics */
 interface TextBlock {
+  storyIndex: number;  // index in the story array (for editing)
   styleKey: string;
   text: string;
   sizePt: number;
@@ -875,70 +888,77 @@ interface TextBlock {
   gridRows: number;
   letterSpacing: number;
   fontWeight: number;
+  spaceBeforePt: number;
+  spaceAfterPt: number;
 }
 
 /** Build a sequence of text blocks (the "story") that flows across pages */
+/** Default story structure used when no custom story is set */
+const DEFAULT_STORY: { styleKey: string; text: string }[] = [
+  { styleKey: 'display', text: SAMPLE_TEXT.title },
+  { styleKey: 'h2', text: SAMPLE_TEXT.subtitle },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[0] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[1] },
+  { styleKey: 'h3', text: SAMPLE_TEXT.h2 },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[2] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[3] },
+  { styleKey: 'h4', text: SAMPLE_TEXT.h3 },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[4] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[5] },
+  { styleKey: 'h3', text: SAMPLE_TEXT.h4 },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[6] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[0] },
+  { styleKey: 'textSmall', text: SAMPLE_TEXT.smallText },
+  { styleKey: 'h2', text: 'Proportions & Harmony' },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[3] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[4] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[5] },
+  { styleKey: 'h3', text: 'The Role of White Space' },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[6] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[0] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[1] },
+  { styleKey: 'h4', text: 'Margins & Gutters' },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[2] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[3] },
+  { styleKey: 'textSmall', text: SAMPLE_TEXT.smallText },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[4] },
+  { styleKey: 'textMain', text: SAMPLE_TEXT.body[5] },
+];
+
 function buildStory(
   typeSystem: TypographySystem,
   grid: GridResult,
   snapToGrid: boolean,
   gridRowOverrides: Record<string, number>,
+  spaceBefore: Record<string, number>,
+  spaceAfter: Record<string, number>,
+  storyBlocks: { styleKey: string; text: string }[] | null,
 ): TextBlock[] {
   const blocks: TextBlock[] = [];
+  const increment = grid.baselineIncrement;
+  const source = storyBlocks || DEFAULT_STORY;
 
-  const makeBlock = (key: string, text: string): TextBlock | null => {
-    const style = typeSystem[key];
-    if (!style) return null;
+  source.forEach((entry, index) => {
+    const style = typeSystem[entry.styleKey];
+    if (!style) return;
     const resolved = snapToGrid
-      ? resolveGridRows(key, style.size, grid.baselineIncrement, gridRowOverrides)
+      ? resolveGridRows(entry.styleKey, style.size, grid.baselineIncrement, gridRowOverrides)
       : null;
     const leadingPt = resolved ? resolved.leadingPt : Math.round(style.size * style.lineHeight * 10) / 10;
     const gridRows = resolved ? resolved.gridRows : Math.max(1, Math.ceil(leadingPt / grid.baselineIncrement));
-    return {
-      styleKey: key,
-      text,
+    blocks.push({
+      storyIndex: index,
+      styleKey: entry.styleKey,
+      text: entry.text,
       sizePt: style.size,
       leadingPt,
       gridRows,
       letterSpacing: style.letterSpacing || 0,
       fontWeight: style.fontWeight || 400,
-    };
-  };
-
-  // Build a realistic document structure
-  const add = (key: string, text: string) => {
-    const b = makeBlock(key, text);
-    if (b) blocks.push(b);
-  };
-
-  add('display', SAMPLE_TEXT.title);
-  add('h2', SAMPLE_TEXT.subtitle);
-  add('textMain', SAMPLE_TEXT.body[0]);
-  add('textMain', SAMPLE_TEXT.body[1]);
-  add('h3', SAMPLE_TEXT.h2);
-  add('textMain', SAMPLE_TEXT.body[2]);
-  add('textMain', SAMPLE_TEXT.body[3]);
-  add('h4', SAMPLE_TEXT.h3);
-  add('textMain', SAMPLE_TEXT.body[4]);
-  add('textMain', SAMPLE_TEXT.body[5]);
-  add('h3', SAMPLE_TEXT.h4);
-  add('textMain', SAMPLE_TEXT.body[6]);
-  add('textMain', SAMPLE_TEXT.body[0]);
-  add('textSmall', SAMPLE_TEXT.smallText);
-  add('h2', 'Proportions & Harmony');
-  add('textMain', SAMPLE_TEXT.body[3]);
-  add('textMain', SAMPLE_TEXT.body[4]);
-  add('textMain', SAMPLE_TEXT.body[5]);
-  add('h3', 'The Role of White Space');
-  add('textMain', SAMPLE_TEXT.body[6]);
-  add('textMain', SAMPLE_TEXT.body[0]);
-  add('textMain', SAMPLE_TEXT.body[1]);
-  add('h4', 'Margins & Gutters');
-  add('textMain', SAMPLE_TEXT.body[2]);
-  add('textMain', SAMPLE_TEXT.body[3]);
-  add('textSmall', SAMPLE_TEXT.smallText);
-  add('textMain', SAMPLE_TEXT.body[4]);
-  add('textMain', SAMPLE_TEXT.body[5]);
+      spaceBeforePt: (spaceBefore[entry.styleKey] || 0) * increment,
+      spaceAfterPt: (spaceAfter[entry.styleKey] || 0) * increment,
+    });
+  });
 
   return blocks;
 }
@@ -983,10 +1003,12 @@ function flowTextToPages(
     const totalLines = Math.max(1, Math.ceil(block.text.length / charsPerLine));
     const totalHeightPt = totalLines * rowHeightPt;
 
-    // Add 1 grid row gap before headings (if not at top of page)
+    // Space before (from store, in grid rows converted to pt)
     const isHeading = ['display', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(block.styleKey);
-    if (isHeading && cursorPt > 0) {
-      cursorPt += increment; // 1 row space before heading
+    if (cursorPt > 0 && block.spaceBeforePt > 0) {
+      cursorPt += block.spaceBeforePt;
+    } else if (isHeading && cursorPt > 0 && block.spaceBeforePt === 0) {
+      cursorPt += increment; // default 1 row before headings if no explicit space set
     }
 
     // Does this block fit on the current page?
@@ -1011,7 +1033,7 @@ function flowTextToPages(
         isOverflow: false,
         text: block.text,
       });
-      cursorPt += totalHeightPt;
+      cursorPt += totalHeightPt + block.spaceAfterPt;
     } else {
       // Block needs to split across pages
       const linesOnThisPage = Math.floor(remainingOnPage / rowHeightPt);
@@ -1093,6 +1115,8 @@ function PageView({
   fontFamily,
   grid,
   isVerso,
+  onTextEdit,
+  onBlockFocus,
 }: {
   pageIndex: number;
   pw: number; ph: number;
@@ -1106,6 +1130,8 @@ function PageView({
   fontFamily: string;
   grid: GridResult;
   isVerso: boolean;
+  onTextEdit: (storyIndex: number, newText: string) => void;
+  onBlockFocus: (storyIndex: number) => void;
 }) {
   // For facing pages: verso (left) mirrors margins (inner/outer)
   const actualMLeft = isVerso ? mRight : mLeft;
@@ -1174,6 +1200,17 @@ function PageView({
           <div
             key={i}
             className="indd-text-frame"
+            contentEditable={!el.isOverflow}
+            spellCheck={false}
+            onClick={() => { if (!el.isOverflow) onBlockFocus(el.block.storyIndex); }}
+            onBlur={(e: any) => {
+              if (!el.isOverflow) {
+                const newText = e.currentTarget.textContent || '';
+                if (newText !== el.text) {
+                  onTextEdit(el.block.storyIndex, newText);
+                }
+              }
+            }}
             style={{
               position: 'absolute',
               left: `${actualMLeft}px`,
@@ -1187,12 +1224,133 @@ function PageView({
               fontWeight: el.block.fontWeight,
               overflow: 'hidden',
               color: '#000',
+              outline: 'none',
+              cursor: 'text',
             }}
           >
             {el.text}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ── Floating style picker (appears when a text block is focused) ──────────────
+
+function StylePicker() {
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [blocks, setBlocks] = useState<{ styleKey: string; text: string }[] | null>(null);
+  const [open, setOpen] = useState(false);
+
+  // Subscribe to store changes manually (Preact compat workaround)
+  useEffect(() => {
+    const unsub = useInddStore.subscribe((state) => {
+      setActiveIdx(state.activeBlockIndex);
+      setBlocks(state.storyBlocks);
+    });
+    return unsub;
+  }, []);
+
+  const active = activeIdx >= 0;
+  const source = blocks || DEFAULT_STORY;
+  const current = active ? source[activeIdx] : null;
+
+  const displayName = (key: string) => {
+    switch (key) {
+      case 'display': return 'Display';
+      case 'h1': return 'H1';
+      case 'h2': return 'H2';
+      case 'h3': return 'H3';
+      case 'h4': return 'H4';
+      case 'h5': return 'H5';
+      case 'h6': return 'H6';
+      case 'textLarge': return 'Text Lg';
+      case 'textMain': return 'Body';
+      case 'textSmall': return 'Caption';
+      case 'micro': return 'Micro';
+      default: return key;
+    }
+  };
+
+  const allStyles = TYPOGRAPHY_SCALE_ORDER.ALL_STYLES;
+
+  const changeStyle = (newKey: string) => {
+    const s = useInddStore.getState();
+    if (!s.storyBlocks) {
+      const initial = DEFAULT_STORY.map((b, i) =>
+        i === activeIdx ? { ...b, styleKey: newKey } : { ...b }
+      );
+      s.setStoryBlocks(initial);
+    } else {
+      s.updateStoryBlockStyle(activeIdx, newKey);
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div className="indd-style-picker" style={{
+      position: 'absolute',
+      top: '12px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 100,
+      display: active ? 'flex' : 'none',
+      alignItems: 'center',
+      gap: '6px',
+    }}>
+      <div style={{ position: 'relative' }}>
+        <button
+          className="button-secondary-new"
+          onClick={() => setOpen(!open)}
+          style={{ minWidth: '80px', fontSize: '11px' }}
+        >
+          {current ? displayName(current.styleKey) : '—'} ▾
+        </button>
+        {open && current && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: '4px',
+            background: 'var(--bg-primary, #2a2a2a)',
+            border: '1px solid var(--border-primary, #444)',
+            borderRadius: '6px',
+            boxShadow: '0 4px 12px rgba(0,0,0,.4)',
+            overflow: 'hidden',
+            minWidth: '120px',
+          }}>
+            {allStyles.map(key => (
+              <button
+                key={key}
+                onClick={() => changeStyle(key)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '5px 12px',
+                  border: 'none',
+                  background: key === current.styleKey ? 'var(--bg-tertiary, #444)' : 'transparent',
+                  color: 'var(--text-primary, #eee)',
+                  fontSize: '11px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e: any) => { e.currentTarget.style.background = 'var(--bg-secondary, #333)'; }}
+                onMouseLeave={(e: any) => { e.currentTarget.style.background = key === current.styleKey ? 'var(--bg-tertiary, #444)' : 'transparent'; }}
+              >
+                {displayName(key)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <button
+        className="button-secondary-new"
+        onClick={() => { useInddStore.getState().setActiveBlockIndex(-1); setOpen(false); }}
+        style={{ fontSize: '11px', padding: '4px 8px' }}
+      >
+        ✕
+      </button>
     </div>
   );
 }
@@ -1222,6 +1380,38 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
     return () => window.removeEventListener('resize', recalcFit);
   }, [recalcFit, store.fitSignal]);
 
+  // Pinch-to-zoom (trackpad sends wheel events with ctrlKey=true)
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const s = useInddStore.getState();
+      const currentZoom = s.zoom === 0 ? s.lastFitScale : s.zoom;
+      const delta = -e.deltaY * 0.01;
+      const next = Math.max(0.1, Math.min(15, currentZoom * (1 + delta)));
+      const ratio = next / currentZoom;
+
+      // Zoom toward cursor: keep the point under the pinch fixed
+      const rect = el.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
+      const contentX = el.scrollLeft + cursorX;
+      const contentY = el.scrollTop + cursorY;
+      const newScrollLeft = contentX * ratio - cursorX;
+      const newScrollTop = contentY * ratio - cursorY;
+
+      s.setZoom(next);
+      requestAnimationFrame(() => {
+        el.scrollLeft = Math.max(0, newScrollLeft);
+        el.scrollTop = Math.max(0, newScrollTop);
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
   // 96 CSS px per inch / 25.4 mm per inch ≈ 3.78 px/mm  →  that's "100%" (physical size)
   const PX_PER_MM = 96 / 25.4;
   const scale = store.zoom === 0 ? fitScale : store.zoom;
@@ -1247,8 +1437,8 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
 
   // Build story and flow across pages
   const story = useMemo(
-    () => buildStory(typeSystem, grid, store.snapToGrid, store.gridRowOverrides),
-    [typeSystem, grid, store.snapToGrid, store.gridRowOverrides],
+    () => buildStory(typeSystem, grid, store.snapToGrid, store.gridRowOverrides, store.spaceBefore, store.spaceAfter, store.storyBlocks),
+    [typeSystem, grid, store.snapToGrid, store.gridRowOverrides, store.spaceBefore, store.spaceAfter, store.storyBlocks],
   );
 
   const pageContents = useMemo(
@@ -1299,6 +1489,9 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
         alignItems: 'center',
         gap: `${spreadGap}px`,
         padding: '48px',
+        margin: '0 auto',
+        width: 'fit-content',
+        minHeight: '100%',
       }}>
         {spreads.map((spread, si) => (
           <div
@@ -1326,6 +1519,20 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
                   fontFamily={store.fontFamily}
                   grid={grid}
                   isVerso={isVerso}
+                  onTextEdit={(storyIndex, newText) => {
+                    // Initialize story from defaults on first edit
+                    if (!store.storyBlocks) {
+                      const initial = DEFAULT_STORY.map((b, i) =>
+                        i === storyIndex ? { ...b, text: newText } : { ...b }
+                      );
+                      store.setStoryBlocks(initial);
+                    } else {
+                      store.updateStoryBlockText(storyIndex, newText);
+                    }
+                  }}
+                  onBlockFocus={(storyIndex) => {
+                    store.setActiveBlockIndex(storyIndex);
+                  }}
                 />
               );
             })}
@@ -1495,7 +1702,10 @@ function App() {
       </div>
 
       {/* ══ RIGHT: Canvas Preview ═════════════════════════════════════════════ */}
-      <CanvasPreview grid={grid} typeSystem={typeSystem} />
+      <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+        <CanvasPreview grid={grid} typeSystem={typeSystem} />
+        <StylePicker />
+      </div>
     </div>
   );
 }

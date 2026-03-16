@@ -143,9 +143,6 @@
   flex: 1;
   height: 100vh;
   overflow: auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
   background-color: var(--background-secondary);
   position: relative;
 }

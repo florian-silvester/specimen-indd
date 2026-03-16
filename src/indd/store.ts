@@ -96,6 +96,12 @@ export interface InddStore {
   spaceAfter: Record<string, number>;
   setSpaceBefore: (styleKey: string, rows: number) => void;
   setSpaceAfter: (styleKey: string, rows: number) => void;
+  /** Per-style size overrides in pt (missing = use computed from scale) */
+  sizeOverrides: Record<string, number>;
+  setSizeOverride: (styleKey: string, size: number) => void;
+  /** Per-style tracking overrides in InDesign units (missing = use computed) */
+  trackingOverrides: Record<string, number>;
+  setTrackingOverride: (styleKey: string, tracking: number) => void;
 
   // ── Font ────────────────────────────────────────────────────────────────────
   fontFamily: string;
@@ -106,6 +112,16 @@ export interface InddStore {
   setSecondaryFontFamily: (v: string) => void;
   secondaryFontStyle: string;
   setSecondaryFontStyle: (v: string) => void;
+
+  // ── Story (editable text content) ──────────────────────────────────────────
+  /** Array of {styleKey, text} — the document story. null = use default sample. */
+  storyBlocks: { styleKey: string; text: string }[] | null;
+  setStoryBlocks: (blocks: { styleKey: string; text: string }[]) => void;
+  updateStoryBlockText: (index: number, text: string) => void;
+  updateStoryBlockStyle: (index: number, styleKey: string) => void;
+  /** Currently focused story block index (-1 = none) */
+  activeBlockIndex: number;
+  setActiveBlockIndex: (index: number) => void;
 
   // ── Canvas ─────────────────────────────────────────────────────────────────
   zoom: number;
@@ -247,6 +263,32 @@ export const useInddStore = create<InddStore>((set, get) => ({
   setSpaceAfter: (styleKey, rows) => set((s) => ({
     spaceAfter: { ...s.spaceAfter, [styleKey]: Math.max(0, rows) },
   })),
+  sizeOverrides: {},
+  setSizeOverride: (styleKey, size) => set((s) => ({
+    sizeOverrides: { ...s.sizeOverrides, [styleKey]: Math.max(4, size) },
+  })),
+  trackingOverrides: {},
+  setTrackingOverride: (styleKey, tracking) => set((s) => ({
+    trackingOverrides: { ...s.trackingOverrides, [styleKey]: tracking },
+  })),
+
+  // Story
+  storyBlocks: null,  // null = use default sample text
+  setStoryBlocks: (blocks) => set({ storyBlocks: blocks }),
+  updateStoryBlockText: (index, text) => set((s) => {
+    if (!s.storyBlocks) return {};
+    const next = [...s.storyBlocks];
+    next[index] = { ...next[index], text };
+    return { storyBlocks: next };
+  }),
+  updateStoryBlockStyle: (index, styleKey) => set((s) => {
+    if (!s.storyBlocks) return {};  // caller must initialize first
+    const next = [...s.storyBlocks];
+    next[index] = { ...next[index], styleKey };
+    return { storyBlocks: next };
+  }),
+  activeBlockIndex: -1,
+  setActiveBlockIndex: (index) => set({ activeBlockIndex: index }),
 
   // Font
   fontFamily: 'Georgia',
