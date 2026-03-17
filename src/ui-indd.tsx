@@ -22,6 +22,17 @@ import {
 } from './indd/constants';
 import { calculateGrid, snapLeadingToGrid, GridResult } from './indd/grid-calculator';
 
+// Tiptap editor
+import { Editor } from '@tiptap/core';
+import { Document } from '@tiptap/extension-document';
+import { Text } from '@tiptap/extension-text';
+import { History } from '@tiptap/extension-history';
+import { Gapcursor } from '@tiptap/extension-gapcursor';
+import { StyledParagraph } from './indd/tiptap-schema';
+import { StyledParagraphView, LayoutRegistry, LayoutEntry } from './indd/tiptap-nodeview';
+import { storyBlocksToDoc, docToStoryBlocks } from './indd/tiptap-helpers';
+import { Slice, Fragment as PMFragment } from '@tiptap/pm/model';
+
 /**
  * Resolve grid rows for a style, respecting per-style overrides.
  * If the user has manually set a row count for this style, use that.
@@ -1101,28 +1112,7 @@ function flowTextToPages(
   return pages;
 }
 
-/**
- * Parse the global contentEditable container back into story block edits.
- * Groups by storyIndex and concatenates text from split blocks.
- */
-function parseGlobalContainer(container: HTMLElement): { storyIndex: number; text: string }[] {
-  const map = new Map<number, string>();
-  const order: number[] = [];
-  for (const child of Array.from(container.children)) {
-    const el = child as HTMLElement;
-    if (el.dataset.overflow === 'true') continue;
-    const storyIndex = parseInt(el.dataset.storyIndex || '-1', 10);
-    if (storyIndex < 0) continue;
-    const text = el.textContent || '';
-    if (map.has(storyIndex)) {
-      map.set(storyIndex, map.get(storyIndex)! + text);
-    } else {
-      map.set(storyIndex, text);
-      order.push(storyIndex);
-    }
-  }
-  return order.map(si => ({ storyIndex: si, text: map.get(si)! }));
-}
+// Tiptap removed parseGlobalContainer — editor handles parsing
 
 /** Visual-only page component — renders margins, baseline grid, and page number */
 function PageView({
@@ -1191,10 +1181,10 @@ function PageView({
 }
 
 /**
- * Global text overlay — single contentEditable spanning all pages.
- * Enables cross-page text selection, Cmd+A, and paste flowing across pages.
+ * Tiptap-powered text overlay — single ProseMirror editor spanning all pages.
+ * Handles cross-page selection, undo/redo, paste, and paragraph splitting.
  */
-function GlobalTextOverlay({
+function TiptapTextOverlay({
   pagePositions,
   pageContents,
   ptToPx,
@@ -1226,22 +1216,70 @@ function GlobalTextOverlay({
   totalH: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isEditingRef = useRef(false);
+  const editorRef = useRef<Editor | null>(null);
+  const layoutRegistryRef = useRef<LayoutRegistry>(new Map());
+  const isSyncingFromStoreRef = useRef(false);
+  const syncTimerRef = useRef<any>(null);
 
-  // Compute all text elements with global positions
-  const allElements = useMemo(() => {
+  // Compute layout entries for each story block (non-overflow, first occurrence)
+  const layoutMap = useMemo(() => {
+    const map: LayoutRegistry = new Map();
+
+    for (let pi = 0; pi < pageContents.length; pi++) {
+      const page = pageContents[pi];
+      const pos = pagePositions[pi];
+      if (!page || !pos) continue;
+
+      const isVerso = facingPages && pi > 0 && pi % 2 === 1;
+      const marginLeft = isVerso ? mOuter : mInner;
+
+      for (const el of page.elements) {
+        // Only map the first occurrence (non-overflow) for each storyIndex
+        if (el.isOverflow) continue;
+        if (map.has(el.block.storyIndex)) continue;
+
+        const sizePx = ptToPx(el.block.sizePt);
+        const leadingPx = ptToPx(el.block.leadingPt);
+        const yPx = ptToPx(el.yPt);
+        const incrementPx = ptToPx(grid.baselineIncrement);
+        const letterSpacingEm = `${(el.block.letterSpacing / 100).toFixed(4)}em`;
+
+        const fm = measureFontMetrics(fontFamily, el.block.fontWeight);
+        const contentAreaPx = sizePx * (fm.ascent + fm.descent);
+        const ascentPx = sizePx * fm.ascent;
+        const baselineOffsetPx = (leadingPx - contentAreaPx) / 2 + ascentPx;
+        const elementTopInPage = mTop + yPx + incrementPx - baselineOffsetPx;
+        const heightPx = ptToPx(el.heightPt) + baselineOffsetPx;
+
+        map.set(el.block.storyIndex, {
+          globalX: pos.x + marginLeft,
+          globalY: pos.y + elementTopInPage,
+          sizePx,
+          leadingPx,
+          letterSpacingEm,
+          heightPx,
+          fontFamily,
+          fontWeight: el.block.fontWeight,
+          textW: ptToPx(grid.textAreaWidthPt),
+          isOverflow: false,
+        });
+      }
+    }
+    return map;
+  }, [pageContents, pagePositions, ptToPx, fontFamily, grid, mTop, mInner, mOuter, textW, textH, facingPages]);
+
+  // Compute overflow elements for rendering outside the editor
+  const overflowElements = useMemo(() => {
     const elements: {
-      block: TextBlock;
-      text: string;
-      isOverflow: boolean;
+      key: string;
       globalX: number;
       globalY: number;
       sizePx: number;
       leadingPx: number;
       letterSpacingEm: string;
       heightPx: number;
-      pageIndex: number;
-      clipBottom: number; // to clip text within page bounds
+      fontWeight: number;
+      text: string;
     }[] = [];
 
     for (let pi = 0; pi < pageContents.length; pi++) {
@@ -1253,6 +1291,8 @@ function GlobalTextOverlay({
       const marginLeft = isVerso ? mOuter : mInner;
 
       for (const el of page.elements) {
+        if (!el.isOverflow) continue;
+
         const sizePx = ptToPx(el.block.sizePt);
         const leadingPx = ptToPx(el.block.leadingPt);
         const yPx = ptToPx(el.yPt);
@@ -1267,307 +1307,222 @@ function GlobalTextOverlay({
         const heightPx = ptToPx(el.heightPt) + baselineOffsetPx;
 
         elements.push({
-          block: el.block,
-          text: el.text,
-          isOverflow: el.isOverflow,
+          key: `overflow-${pi}-${el.block.storyIndex}`,
           globalX: pos.x + marginLeft,
           globalY: pos.y + elementTopInPage,
           sizePx,
           leadingPx,
           letterSpacingEm,
           heightPx,
-          pageIndex: pi,
-          clipBottom: pos.y + mTop + textH, // page text area bottom
+          fontWeight: el.block.fontWeight,
+          text: el.text,
         });
       }
     }
-
     return elements;
   }, [pageContents, pagePositions, ptToPx, fontFamily, grid, mTop, mInner, mOuter, textW, textH, facingPages]);
 
-  // Sync DOM from data when not editing
+  // Initialize Tiptap editor (pre-populate registry before creating)
   useEffect(() => {
-    if (isEditingRef.current) return;
-    const container = containerRef.current;
-    if (!container) return;
+    const el = containerRef.current;
+    if (!el || editorRef.current) return;
 
-    // Rebuild the container imperatively
-    const children = Array.from(container.children) as HTMLElement[];
-    let needsRebuild = children.length !== allElements.length;
-    if (!needsRebuild) {
-      for (let i = 0; i < allElements.length; i++) {
-        const ce = allElements[i];
-        const child = children[i];
-        if (child.dataset.storyIndex !== String(ce.block.storyIndex) ||
-            child.dataset.overflow !== String(ce.isOverflow) ||
-            child.textContent !== ce.text) {
-          needsRebuild = true;
-          break;
-        }
-      }
+    // Pre-populate registry so NodeViews get positions on creation
+    const registry = layoutRegistryRef.current;
+    registry.clear();
+    for (const [key, value] of layoutMap) {
+      registry.set(key, value);
     }
-
-    if (needsRebuild) {
-      container.innerHTML = '';
-      for (const ce of allElements) {
-        const div = document.createElement('div');
-        div.dataset.storyIndex = String(ce.block.storyIndex);
-        div.dataset.styleKey = ce.block.styleKey;
-        div.dataset.overflow = String(ce.isOverflow);
-        if (ce.isOverflow) {
-          div.contentEditable = 'false';
-        }
-        div.style.position = 'absolute';
-        div.style.left = `${ce.globalX}px`;
-        div.style.top = `${ce.globalY}px`;
-        div.style.width = `${textW}px`;
-        div.style.height = `${ce.heightPx}px`;
-        div.style.overflow = 'hidden';
-        div.style.fontSize = `${ce.sizePx}px`;
-        div.style.lineHeight = `${ce.leadingPx}px`;
-        div.style.letterSpacing = ce.letterSpacingEm;
-        div.style.fontFamily = `"${fontFamily}", serif`;
-        div.style.fontWeight = String(ce.block.fontWeight);
-        div.style.color = '#000';
-        if (ce.isOverflow) {
-          div.style.opacity = '0.6';
-        }
-        div.textContent = ce.text;
-        container.appendChild(div);
-      }
-    } else {
-      // Update positions/styles only (e.g. zoom changed)
-      for (let i = 0; i < allElements.length; i++) {
-        const ce = allElements[i];
-        const child = children[i];
-        child.style.left = `${ce.globalX}px`;
-        child.style.top = `${ce.globalY}px`;
-        child.style.width = `${textW}px`;
-        child.style.height = `${ce.heightPx}px`;
-        child.style.fontSize = `${ce.sizePx}px`;
-        child.style.lineHeight = `${ce.leadingPx}px`;
-        child.style.letterSpacing = ce.letterSpacingEm;
-        child.style.fontWeight = String(ce.block.fontWeight);
-      }
-    }
-  }, [allElements, fontFamily, textW]);
-
-  // Sync edits back to store — handles both text changes and block deletions
-  const syncToStore = useCallback((edits: { storyIndex: number; text: string }[]) => {
-    const store = useInddStore.getState();
-    const currentBlocks = store.storyBlocks || DEFAULT_STORY.map(b => ({ ...b }));
-
-    // Build a map of storyIndex → new text from the DOM
-    const editMap = new Map(edits.map(e => [e.storyIndex, e.text]));
-
-    // Check if any blocks were deleted (present in store but not in DOM edits)
-    const hasDeletedBlocks = currentBlocks.some((_, i) => !editMap.has(i));
-
-    if (hasDeletedBlocks) {
-      // Rebuild the entire story, keeping only blocks that still exist in the DOM
-      const newBlocks: { styleKey: string; text: string }[] = [];
-      for (let i = 0; i < currentBlocks.length; i++) {
-        if (editMap.has(i)) {
-          const text = editMap.get(i)!;
-          // Skip blocks that are now empty (deleted content)
-          if (text.trim().length > 0 || newBlocks.length === 0) {
-            newBlocks.push({ ...currentBlocks[i], text });
-          }
-        }
-        // Blocks not in editMap were deleted — skip them
-      }
-      // Ensure at least one block remains
-      if (newBlocks.length === 0) {
-        newBlocks.push({ styleKey: 'textMain', text: '' });
-      }
-      store.setStoryBlocks(newBlocks);
-      isEditingRef.current = false; // allow re-render to rebuild DOM with new indices
-    } else {
-      // Simple case — just update text, no blocks removed
-      store.updateStoryBlockTexts(edits.map(e => ({ index: e.storyIndex, text: e.text })));
-    }
-  }, []);
-
-  // Handle input — debounced sync back to store
-  const syncTimer = useRef<any>(null);
-  const handleInput = useCallback(() => {
-    if (syncTimer.current) clearTimeout(syncTimer.current);
-    syncTimer.current = setTimeout(() => {
-      const container = containerRef.current;
-      if (!container) return;
-      const blocks = parseGlobalContainer(container);
-      if (blocks.length > 0) syncToStore(blocks);
-    }, 300);
-  }, [syncToStore]);
-
-  const handleFocus = useCallback(() => {
-    isEditingRef.current = true;
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    isEditingRef.current = false;
-    if (syncTimer.current) clearTimeout(syncTimer.current);
-    const container = containerRef.current;
-    if (!container) return;
-    const blocks = parseGlobalContainer(container);
-    if (blocks.length > 0) syncToStore(blocks);
-  }, [syncToStore]);
-
-  // Click handler — detect which paragraph for style picker
-  const handleClick = useCallback((e: Event) => {
-    let target = e.target as HTMLElement;
-    const container = containerRef.current;
-    if (!container) return;
-    while (target && target !== container) {
-      if (target.dataset?.storyIndex) {
-        useInddStore.getState().setActiveBlockIndex(parseInt(target.dataset.storyIndex, 10));
-        return;
-      }
-      target = target.parentElement!;
-    }
-  }, []);
-
-  // Enter key — split paragraph
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      const container = containerRef.current;
-      if (!container) return;
-
-      let paraDiv = range.startContainer as HTMLElement;
-      if (paraDiv.nodeType === Node.TEXT_NODE) paraDiv = paraDiv.parentElement!;
-      while (paraDiv && paraDiv !== container && !paraDiv.dataset?.storyIndex) {
-        paraDiv = paraDiv.parentElement!;
-      }
-      if (!paraDiv || paraDiv === container) return;
-      if (paraDiv.dataset.overflow === 'true') return; // don't split overflow
-
-      const storyIndex = parseInt(paraDiv.dataset.storyIndex!, 10);
-      const fullText = paraDiv.textContent || '';
-
-      let offset = 0;
-      const treeWalker = document.createTreeWalker(paraDiv, NodeFilter.SHOW_TEXT);
-      let node: Node | null;
-      while ((node = treeWalker.nextNode())) {
-        if (node === range.startContainer) {
-          offset += range.startOffset;
-          break;
-        }
-        offset += (node.textContent || '').length;
-      }
-
-      const textBefore = fullText.slice(0, offset);
-      const textAfter = fullText.slice(offset);
-
-      // Sync all current edits, then split
-      const blocks = parseGlobalContainer(container);
-      syncToStore(blocks.map(b =>
-        b.storyIndex === storyIndex ? { ...b, text: textBefore } : b
-      ));
-
-      const store = useInddStore.getState();
-      const styleKey = paraDiv.dataset.styleKey || 'textMain';
-      if (!store.storyBlocks) {
-        const initial = DEFAULT_STORY.map(b => ({ ...b }));
-        if (initial[storyIndex]) initial[storyIndex].text = textBefore;
-        initial.splice(storyIndex + 1, 0, { styleKey, text: textAfter });
-        store.setStoryBlocks(initial);
-      } else {
-        store.updateStoryBlockText(storyIndex, textBefore);
-        store.insertStoryBlock(storyIndex + 1, styleKey, textAfter);
-      }
-      isEditingRef.current = false;
-    }
-  }, [syncToStore]);
-
-  // Paste handler
-  const handlePaste = useCallback((e: ClipboardEvent) => {
-    e.preventDefault();
-    const text = e.clipboardData?.getData('text/plain') || '';
-    if (!text) return;
-
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    const container = containerRef.current;
-    if (!container) return;
-
-    let paraDiv = range.startContainer as HTMLElement;
-    if (paraDiv.nodeType === Node.TEXT_NODE) paraDiv = paraDiv.parentElement!;
-    while (paraDiv && paraDiv !== container && !paraDiv.dataset?.storyIndex) {
-      paraDiv = paraDiv.parentElement!;
-    }
-    if (!paraDiv || paraDiv === container) return;
-
-    const storyIndex = parseInt(paraDiv.dataset.storyIndex!, 10);
-    const fullText = paraDiv.textContent || '';
-
-    let offset = 0;
-    const treeWalker = document.createTreeWalker(paraDiv, NodeFilter.SHOW_TEXT);
-    let node: Node | null;
-    while ((node = treeWalker.nextNode())) {
-      if (node === range.startContainer) {
-        offset += range.startOffset;
-        break;
-      }
-      offset += (node.textContent || '').length;
-    }
-
-    const textBefore = fullText.slice(0, offset);
-    const textAfter = fullText.slice(offset);
-    const pastedParagraphs = text.split(/\n\n|\n/).filter(t => t.trim());
-
-    if (pastedParagraphs.length === 0) return;
 
     const store = useInddStore.getState();
-    const styleKey = paraDiv.dataset.styleKey || 'textMain';
+    const initialBlocks = store.storyBlocks || DEFAULT_STORY;
 
-    if (!store.storyBlocks) {
-      store.setStoryBlocks(DEFAULT_STORY.map(b => ({ ...b })));
+    const editor = new Editor({
+      element: el,
+      extensions: [
+        Document,
+        Text,
+        History,
+        Gapcursor,
+        StyledParagraph.extend({
+          addNodeView() {
+            return ({ node, view, getPos }) => {
+              return new StyledParagraphView(node, view, getPos, registry);
+            };
+          },
+        }),
+      ],
+      content: storyBlocksToDoc(initialBlocks),
+      editorProps: {
+        attributes: {
+          style: `position:absolute;left:0;top:0;width:${totalW}px;height:${totalH}px;outline:none;cursor:text;z-index:1;`,
+          spellcheck: 'false',
+        },
+        // Custom clipboard text parser: split pasted text into StyledParagraph nodes
+        clipboardTextParser: (text, $context, plain, view) => {
+          const paragraphs = text.split(/\n/).filter(line => line.length > 0);
+          const schema = view.state.schema;
+          const nodes = paragraphs.map(line =>
+            schema.nodes.styledParagraph.create(
+              { styleKey: 'textMain', storyIndex: 0 },
+              line ? [schema.text(line)] : [],
+            ),
+          );
+          // Return a Slice
+          return Slice.maxOpen(PMFragment.from(nodes));
+        },
+      },
+    });
+
+    // Sync editor changes to Zustand store (debounced)
+    editor.on('update', () => {
+      if (isSyncingFromStoreRef.current) return;
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = setTimeout(() => {
+        const blocks = docToStoryBlocks(editor.state.doc);
+        const store = useInddStore.getState();
+        // Avoid writing back if content matches
+        const current = store.storyBlocks || DEFAULT_STORY;
+        const changed = blocks.length !== current.length ||
+          blocks.some((b, i) => b.text !== current[i]?.text || b.styleKey !== current[i]?.styleKey);
+        if (changed) {
+          isSyncingFromStoreRef.current = true;
+          store.setStoryBlocks(blocks);
+          // Re-index storyIndex attrs to match new store indices
+          const { tr } = editor.state;
+          let pos = 0;
+          editor.state.doc.forEach((node, offset, index) => {
+            if (node.attrs.storyIndex !== index) {
+              tr.setNodeMarkup(offset, undefined, { ...node.attrs, storyIndex: index });
+            }
+          });
+          if (tr.docChanged) editor.view.dispatch(tr);
+          isSyncingFromStoreRef.current = false;
+        }
+      }, 200);
+    });
+
+    // Track selection for style picker
+    editor.on('selectionUpdate', () => {
+      const { $from } = editor.state.selection;
+      const node = $from.parent;
+      if (node.type.name === 'styledParagraph') {
+        useInddStore.getState().setActiveBlockIndex(node.attrs.storyIndex);
+      }
+    });
+
+    editorRef.current = editor;
+
+    return () => {
+      editor.destroy();
+      editorRef.current = null;
+    };
+  }, []); // mount once
+
+  // Update layout registry when positions change, then refresh NodeView DOM directly
+  useEffect(() => {
+    const registry = layoutRegistryRef.current;
+    registry.clear();
+    for (const [key, value] of layoutMap) {
+      registry.set(key, value);
     }
 
-    const s = useInddStore.getState();
-    const blocks = [...(s.storyBlocks || [])];
+    const editor = editorRef.current;
+    if (editor && !editor.isDestroyed) {
+      // Update editor element size
+      const editorEl = editor.view.dom as HTMLElement;
+      editorEl.style.width = `${totalW}px`;
+      editorEl.style.height = `${totalH}px`;
 
-    if (pastedParagraphs.length === 1) {
-      blocks[storyIndex] = { ...blocks[storyIndex], text: textBefore + pastedParagraphs[0] + textAfter };
-    } else {
-      blocks[storyIndex] = { ...blocks[storyIndex], text: textBefore + pastedParagraphs[0] };
-      const newBlocks = pastedParagraphs.slice(1, -1).map(t => ({ styleKey, text: t }));
-      newBlocks.push({ styleKey, text: pastedParagraphs[pastedParagraphs.length - 1] + textAfter });
-      blocks.splice(storyIndex + 1, 0, ...newBlocks);
+      // Directly update each NodeView's DOM from the registry
+      const contentEl = editorEl;
+      for (const child of Array.from(contentEl.children) as HTMLElement[]) {
+        const si = parseInt(child.dataset?.storyIndex || '-1', 10);
+        if (si < 0) continue;
+        const layout = registry.get(si);
+        if (layout) {
+          const s = child.style;
+          s.position = 'absolute';
+          s.left = `${layout.globalX}px`;
+          s.top = `${layout.globalY}px`;
+          s.width = `${layout.textW}px`;
+          s.height = `${layout.heightPx}px`;
+          s.overflow = 'hidden';
+          s.fontSize = `${layout.sizePx}px`;
+          s.lineHeight = `${layout.leadingPx}px`;
+          s.letterSpacing = layout.letterSpacingEm;
+          s.fontFamily = `"${layout.fontFamily}", serif`;
+          s.fontWeight = String(layout.fontWeight);
+          s.color = '#000';
+          s.opacity = '';
+          s.pointerEvents = '';
+        } else {
+          child.style.position = 'absolute';
+          child.style.opacity = '0';
+          child.style.pointerEvents = 'none';
+        }
+      }
     }
+  }, [layoutMap, totalW, totalH]);
 
-    store.setStoryBlocks(blocks);
-    isEditingRef.current = false;
+  // Sync Zustand store → editor when storyBlocks changes externally
+  useEffect(() => {
+    const unsub = useInddStore.subscribe((state, prevState) => {
+      if (isSyncingFromStoreRef.current) return;
+      if (state.storyBlocks === prevState.storyBlocks) return;
+
+      const editor = editorRef.current;
+      if (!editor || editor.isDestroyed) return;
+
+      const blocks = state.storyBlocks || DEFAULT_STORY;
+      isSyncingFromStoreRef.current = true;
+      editor.commands.setContent(storyBlocksToDoc(blocks));
+      isSyncingFromStoreRef.current = false;
+    });
+    return unsub;
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      contentEditable
-      suppressContentEditableWarning
-      spellCheck={false}
-      onInput={handleInput}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      onPaste={handlePaste}
-      style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        width: `${totalW}px`,
-        height: `${totalH}px`,
-        outline: 'none',
-        cursor: 'text',
-        zIndex: 1,
-      }}
-    />
+    <Fragment>
+      {/* Tiptap mounts its own contentEditable inside this container */}
+      <div
+        ref={containerRef}
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: `${totalW}px`,
+          height: `${totalH}px`,
+          zIndex: 1,
+        }}
+      />
+
+      {/* Overflow text (continued from previous page) — non-editable */}
+      {overflowElements.map(ov => (
+        <div
+          key={ov.key}
+          style={{
+            position: 'absolute',
+            left: `${ov.globalX}px`,
+            top: `${ov.globalY}px`,
+            width: `${ptToPx(grid.textAreaWidthPt)}px`,
+            height: `${ov.heightPx}px`,
+            overflow: 'hidden',
+            fontSize: `${ov.sizePx}px`,
+            lineHeight: `${ov.leadingPx}px`,
+            letterSpacing: ov.letterSpacingEm,
+            fontFamily: `"${fontFamily}", serif`,
+            fontWeight: ov.fontWeight,
+            color: '#000',
+            opacity: 0.6,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        >
+          {ov.text}
+        </div>
+      ))}
+    </Fragment>
   );
 }
 
@@ -1874,7 +1829,7 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
             })}
 
             {/* Global text overlay — single contentEditable for cross-page selection */}
-            <GlobalTextOverlay
+            <TiptapTextOverlay
               pagePositions={pagePos}
               pageContents={pageContents}
               ptToPx={ptToPx}

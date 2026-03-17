@@ -35,6 +35,12 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
+    "@tiptap/core": "^2.27.2",
+    "@tiptap/extension-document": "^2.27.2",
+    "@tiptap/extension-gapcursor": "^2.27.2",
+    "@tiptap/extension-history": "^2.27.2",
+    "@tiptap/extension-text": "^2.27.2",
+    "@tiptap/pm": "^2.27.2",
     "jszip": "^3.10.1",
     "preact": "^10.26.4",
     "zustand": "^4.5.2"
