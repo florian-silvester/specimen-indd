@@ -1352,18 +1352,38 @@ function GlobalTextOverlay({
     }
   }, [allElements, fontFamily, textW]);
 
-  // Sync edits back to store
+  // Sync edits back to store — handles both text changes and block deletions
   const syncToStore = useCallback((edits: { storyIndex: number; text: string }[]) => {
     const store = useInddStore.getState();
-    if (!store.storyBlocks) {
-      const initial = DEFAULT_STORY.map(b => ({ ...b }));
-      for (const edit of edits) {
-        if (initial[edit.storyIndex]) {
-          initial[edit.storyIndex].text = edit.text;
+    const currentBlocks = store.storyBlocks || DEFAULT_STORY.map(b => ({ ...b }));
+
+    // Build a map of storyIndex → new text from the DOM
+    const editMap = new Map(edits.map(e => [e.storyIndex, e.text]));
+
+    // Check if any blocks were deleted (present in store but not in DOM edits)
+    const hasDeletedBlocks = currentBlocks.some((_, i) => !editMap.has(i));
+
+    if (hasDeletedBlocks) {
+      // Rebuild the entire story, keeping only blocks that still exist in the DOM
+      const newBlocks: { styleKey: string; text: string }[] = [];
+      for (let i = 0; i < currentBlocks.length; i++) {
+        if (editMap.has(i)) {
+          const text = editMap.get(i)!;
+          // Skip blocks that are now empty (deleted content)
+          if (text.trim().length > 0 || newBlocks.length === 0) {
+            newBlocks.push({ ...currentBlocks[i], text });
+          }
         }
+        // Blocks not in editMap were deleted — skip them
       }
-      store.setStoryBlocks(initial);
+      // Ensure at least one block remains
+      if (newBlocks.length === 0) {
+        newBlocks.push({ styleKey: 'textMain', text: '' });
+      }
+      store.setStoryBlocks(newBlocks);
+      isEditingRef.current = false; // allow re-render to rebuild DOM with new indices
     } else {
+      // Simple case — just update text, no blocks removed
       store.updateStoryBlockTexts(edits.map(e => ({ index: e.storyIndex, text: e.text })));
     }
   }, []);
