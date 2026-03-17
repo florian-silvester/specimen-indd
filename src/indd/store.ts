@@ -119,6 +119,12 @@ export interface InddStore {
   setStoryBlocks: (blocks: { styleKey: string; text: string }[]) => void;
   updateStoryBlockText: (index: number, text: string) => void;
   updateStoryBlockStyle: (index: number, styleKey: string) => void;
+  /** Batch-update multiple story block texts at once */
+  updateStoryBlockTexts: (updates: { index: number; text: string }[]) => void;
+  /** Insert a new story block at the given index */
+  insertStoryBlock: (index: number, styleKey: string, text: string) => void;
+  /** Remove a story block (merge with adjacent) */
+  removeStoryBlock: (index: number) => void;
   /** Currently focused story block index (-1 = none) */
   activeBlockIndex: number;
   setActiveBlockIndex: (index: number) => void;
@@ -285,6 +291,27 @@ export const useInddStore = create<InddStore>((set, get) => ({
     if (!s.storyBlocks) return {};  // caller must initialize first
     const next = [...s.storyBlocks];
     next[index] = { ...next[index], styleKey };
+    return { storyBlocks: next };
+  }),
+  updateStoryBlockTexts: (updates) => set((s) => {
+    if (!s.storyBlocks) return {};
+    const next = [...s.storyBlocks];
+    for (const { index, text } of updates) {
+      if (next[index]) next[index] = { ...next[index], text };
+    }
+    return { storyBlocks: next };
+  }),
+  insertStoryBlock: (index, styleKey, text) => set((s) => {
+    if (!s.storyBlocks) return {};
+    const next = [...s.storyBlocks];
+    next.splice(index, 0, { styleKey, text });
+    return { storyBlocks: next };
+  }),
+  removeStoryBlock: (index) => set((s) => {
+    if (!s.storyBlocks) return {};
+    if (s.storyBlocks.length <= 1) return {};
+    const next = [...s.storyBlocks];
+    next.splice(index, 1);
     return { storyBlocks: next };
   }),
   activeBlockIndex: -1,

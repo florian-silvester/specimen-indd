@@ -1101,7 +1101,30 @@ function flowTextToPages(
   return pages;
 }
 
-/** Single page component */
+/**
+ * Parse the global contentEditable container back into story block edits.
+ * Groups by storyIndex and concatenates text from split blocks.
+ */
+function parseGlobalContainer(container: HTMLElement): { storyIndex: number; text: string }[] {
+  const map = new Map<number, string>();
+  const order: number[] = [];
+  for (const child of Array.from(container.children)) {
+    const el = child as HTMLElement;
+    if (el.dataset.overflow === 'true') continue;
+    const storyIndex = parseInt(el.dataset.storyIndex || '-1', 10);
+    if (storyIndex < 0) continue;
+    const text = el.textContent || '';
+    if (map.has(storyIndex)) {
+      map.set(storyIndex, map.get(storyIndex)! + text);
+    } else {
+      map.set(storyIndex, text);
+      order.push(storyIndex);
+    }
+  }
+  return order.map(si => ({ storyIndex: si, text: map.get(si)! }));
+}
+
+/** Visual-only page component — renders margins, baseline grid, and page number */
 function PageView({
   pageIndex,
   pw, ph,
@@ -1110,13 +1133,7 @@ function PageView({
   gridLineSpacingPx,
   gridLineCount,
   showBaselines,
-  pageContent,
-  ptToPx,
-  fontFamily,
-  grid,
   isVerso,
-  onTextEdit,
-  onBlockFocus,
 }: {
   pageIndex: number;
   pw: number; ph: number;
@@ -1125,22 +1142,15 @@ function PageView({
   gridLineSpacingPx: number;
   gridLineCount: number;
   showBaselines: boolean;
-  pageContent: PageContent;
-  ptToPx: (pt: number) => number;
-  fontFamily: string;
-  grid: GridResult;
   isVerso: boolean;
-  onTextEdit: (storyIndex: number, newText: string) => void;
-  onBlockFocus: (storyIndex: number) => void;
 }) {
-  // For facing pages: verso (left) mirrors margins (inner/outer)
   const actualMLeft = isVerso ? mRight : mLeft;
   const actualMRight = isVerso ? mLeft : mRight;
 
   return (
     <div
       className="indd-page"
-      style={{ width: `${pw}px`, height: `${ph}px` }}
+      style={{ position: 'absolute', width: `${pw}px`, height: `${ph}px`, left: 0, top: 0 }}
     >
       {/* Margin guides */}
       <div
@@ -1176,63 +1186,368 @@ function PageView({
       >
         {pageIndex + 1}
       </div>
+    </div>
+  );
+}
 
-      {/* Text content — flowing paragraphs */}
-      {pageContent.elements.map((el, i) => {
+/**
+ * Global text overlay — single contentEditable spanning all pages.
+ * Enables cross-page text selection, Cmd+A, and paste flowing across pages.
+ */
+function GlobalTextOverlay({
+  pagePositions,
+  pageContents,
+  ptToPx,
+  fontFamily,
+  grid,
+  mTop,
+  mInner,
+  mOuter,
+  textW,
+  textH,
+  facingPages,
+  pw,
+  totalW,
+  totalH,
+}: {
+  pagePositions: { x: number; y: number }[];
+  pageContents: PageContent[];
+  ptToPx: (pt: number) => number;
+  fontFamily: string;
+  grid: GridResult;
+  mTop: number;
+  mInner: number;
+  mOuter: number;
+  textW: number;
+  textH: number;
+  facingPages: boolean;
+  pw: number;
+  totalW: number;
+  totalH: number;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isEditingRef = useRef(false);
+
+  // Compute all text elements with global positions
+  const allElements = useMemo(() => {
+    const elements: {
+      block: TextBlock;
+      text: string;
+      isOverflow: boolean;
+      globalX: number;
+      globalY: number;
+      sizePx: number;
+      leadingPx: number;
+      letterSpacingEm: string;
+      heightPx: number;
+      pageIndex: number;
+      clipBottom: number; // to clip text within page bounds
+    }[] = [];
+
+    for (let pi = 0; pi < pageContents.length; pi++) {
+      const page = pageContents[pi];
+      const pos = pagePositions[pi];
+      if (!page || !pos) continue;
+
+      const isVerso = facingPages && pi > 0 && pi % 2 === 1;
+      const marginLeft = isVerso ? mOuter : mInner;
+
+      for (const el of page.elements) {
         const sizePx = ptToPx(el.block.sizePt);
         const leadingPx = ptToPx(el.block.leadingPt);
         const yPx = ptToPx(el.yPt);
         const incrementPx = ptToPx(grid.baselineIncrement);
-        const lsValue = el.block.letterSpacing;
-        const letterSpacingEm = `${(lsValue / 100).toFixed(4)}em`;
+        const letterSpacingEm = `${(el.block.letterSpacing / 100).toFixed(4)}em`;
 
-        // Baseline alignment using CSS half-leading model:
-        // CSS baseline from element top = (lineHeight - contentArea)/2 + ascent
-        // where contentArea = (ascent + descent) * fontSize (from font metrics).
-        // Target baseline = mTop + yPt + increment (lands on grid line).
         const fm = measureFontMetrics(fontFamily, el.block.fontWeight);
         const contentAreaPx = sizePx * (fm.ascent + fm.descent);
         const ascentPx = sizePx * fm.ascent;
         const baselineOffsetPx = (leadingPx - contentAreaPx) / 2 + ascentPx;
-        const elementTop = mTop + yPx + incrementPx - baselineOffsetPx;
+        const elementTopInPage = mTop + yPx + incrementPx - baselineOffsetPx;
+        const heightPx = ptToPx(el.heightPt) + baselineOffsetPx;
 
-        return (
-          <div
-            key={i}
-            className="indd-text-frame"
-            contentEditable={!el.isOverflow}
-            spellCheck={false}
-            onClick={() => { if (!el.isOverflow) onBlockFocus(el.block.storyIndex); }}
-            onBlur={(e: any) => {
-              if (!el.isOverflow) {
-                const newText = e.currentTarget.textContent || '';
-                if (newText !== el.text) {
-                  onTextEdit(el.block.storyIndex, newText);
-                }
-              }
-            }}
-            style={{
-              position: 'absolute',
-              left: `${actualMLeft}px`,
-              top: `${elementTop}px`,
-              width: `${textW}px`,
-              height: `${ptToPx(el.heightPt) + baselineOffsetPx}px`,
-              fontSize: `${sizePx}px`,
-              lineHeight: `${leadingPx}px`,
-              letterSpacing: letterSpacingEm,
-              fontFamily: `"${fontFamily}", serif`,
-              fontWeight: el.block.fontWeight,
-              overflow: 'hidden',
-              color: '#000',
-              outline: 'none',
-              cursor: 'text',
-            }}
-          >
-            {el.text}
-          </div>
-        );
-      })}
-    </div>
+        elements.push({
+          block: el.block,
+          text: el.text,
+          isOverflow: el.isOverflow,
+          globalX: pos.x + marginLeft,
+          globalY: pos.y + elementTopInPage,
+          sizePx,
+          leadingPx,
+          letterSpacingEm,
+          heightPx,
+          pageIndex: pi,
+          clipBottom: pos.y + mTop + textH, // page text area bottom
+        });
+      }
+    }
+
+    return elements;
+  }, [pageContents, pagePositions, ptToPx, fontFamily, grid, mTop, mInner, mOuter, textW, textH, facingPages]);
+
+  // Sync DOM from data when not editing
+  useEffect(() => {
+    if (isEditingRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Rebuild the container imperatively
+    const children = Array.from(container.children) as HTMLElement[];
+    let needsRebuild = children.length !== allElements.length;
+    if (!needsRebuild) {
+      for (let i = 0; i < allElements.length; i++) {
+        const ce = allElements[i];
+        const child = children[i];
+        if (child.dataset.storyIndex !== String(ce.block.storyIndex) ||
+            child.dataset.overflow !== String(ce.isOverflow) ||
+            child.textContent !== ce.text) {
+          needsRebuild = true;
+          break;
+        }
+      }
+    }
+
+    if (needsRebuild) {
+      container.innerHTML = '';
+      for (const ce of allElements) {
+        const div = document.createElement('div');
+        div.dataset.storyIndex = String(ce.block.storyIndex);
+        div.dataset.styleKey = ce.block.styleKey;
+        div.dataset.overflow = String(ce.isOverflow);
+        if (ce.isOverflow) {
+          div.contentEditable = 'false';
+        }
+        div.style.position = 'absolute';
+        div.style.left = `${ce.globalX}px`;
+        div.style.top = `${ce.globalY}px`;
+        div.style.width = `${textW}px`;
+        div.style.height = `${ce.heightPx}px`;
+        div.style.overflow = 'hidden';
+        div.style.fontSize = `${ce.sizePx}px`;
+        div.style.lineHeight = `${ce.leadingPx}px`;
+        div.style.letterSpacing = ce.letterSpacingEm;
+        div.style.fontFamily = `"${fontFamily}", serif`;
+        div.style.fontWeight = String(ce.block.fontWeight);
+        div.style.color = '#000';
+        if (ce.isOverflow) {
+          div.style.opacity = '0.6';
+        }
+        div.textContent = ce.text;
+        container.appendChild(div);
+      }
+    } else {
+      // Update positions/styles only (e.g. zoom changed)
+      for (let i = 0; i < allElements.length; i++) {
+        const ce = allElements[i];
+        const child = children[i];
+        child.style.left = `${ce.globalX}px`;
+        child.style.top = `${ce.globalY}px`;
+        child.style.width = `${textW}px`;
+        child.style.height = `${ce.heightPx}px`;
+        child.style.fontSize = `${ce.sizePx}px`;
+        child.style.lineHeight = `${ce.leadingPx}px`;
+        child.style.letterSpacing = ce.letterSpacingEm;
+        child.style.fontWeight = String(ce.block.fontWeight);
+      }
+    }
+  }, [allElements, fontFamily, textW]);
+
+  // Sync edits back to store
+  const syncToStore = useCallback((edits: { storyIndex: number; text: string }[]) => {
+    const store = useInddStore.getState();
+    if (!store.storyBlocks) {
+      const initial = DEFAULT_STORY.map(b => ({ ...b }));
+      for (const edit of edits) {
+        if (initial[edit.storyIndex]) {
+          initial[edit.storyIndex].text = edit.text;
+        }
+      }
+      store.setStoryBlocks(initial);
+    } else {
+      store.updateStoryBlockTexts(edits.map(e => ({ index: e.storyIndex, text: e.text })));
+    }
+  }, []);
+
+  // Handle input — debounced sync back to store
+  const syncTimer = useRef<any>(null);
+  const handleInput = useCallback(() => {
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      const container = containerRef.current;
+      if (!container) return;
+      const blocks = parseGlobalContainer(container);
+      if (blocks.length > 0) syncToStore(blocks);
+    }, 300);
+  }, [syncToStore]);
+
+  const handleFocus = useCallback(() => {
+    isEditingRef.current = true;
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    isEditingRef.current = false;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    const container = containerRef.current;
+    if (!container) return;
+    const blocks = parseGlobalContainer(container);
+    if (blocks.length > 0) syncToStore(blocks);
+  }, [syncToStore]);
+
+  // Click handler — detect which paragraph for style picker
+  const handleClick = useCallback((e: Event) => {
+    let target = e.target as HTMLElement;
+    const container = containerRef.current;
+    if (!container) return;
+    while (target && target !== container) {
+      if (target.dataset?.storyIndex) {
+        useInddStore.getState().setActiveBlockIndex(parseInt(target.dataset.storyIndex, 10));
+        return;
+      }
+      target = target.parentElement!;
+    }
+  }, []);
+
+  // Enter key — split paragraph
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const container = containerRef.current;
+      if (!container) return;
+
+      let paraDiv = range.startContainer as HTMLElement;
+      if (paraDiv.nodeType === Node.TEXT_NODE) paraDiv = paraDiv.parentElement!;
+      while (paraDiv && paraDiv !== container && !paraDiv.dataset?.storyIndex) {
+        paraDiv = paraDiv.parentElement!;
+      }
+      if (!paraDiv || paraDiv === container) return;
+      if (paraDiv.dataset.overflow === 'true') return; // don't split overflow
+
+      const storyIndex = parseInt(paraDiv.dataset.storyIndex!, 10);
+      const fullText = paraDiv.textContent || '';
+
+      let offset = 0;
+      const treeWalker = document.createTreeWalker(paraDiv, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = treeWalker.nextNode())) {
+        if (node === range.startContainer) {
+          offset += range.startOffset;
+          break;
+        }
+        offset += (node.textContent || '').length;
+      }
+
+      const textBefore = fullText.slice(0, offset);
+      const textAfter = fullText.slice(offset);
+
+      // Sync all current edits, then split
+      const blocks = parseGlobalContainer(container);
+      syncToStore(blocks.map(b =>
+        b.storyIndex === storyIndex ? { ...b, text: textBefore } : b
+      ));
+
+      const store = useInddStore.getState();
+      const styleKey = paraDiv.dataset.styleKey || 'textMain';
+      if (!store.storyBlocks) {
+        const initial = DEFAULT_STORY.map(b => ({ ...b }));
+        if (initial[storyIndex]) initial[storyIndex].text = textBefore;
+        initial.splice(storyIndex + 1, 0, { styleKey, text: textAfter });
+        store.setStoryBlocks(initial);
+      } else {
+        store.updateStoryBlockText(storyIndex, textBefore);
+        store.insertStoryBlock(storyIndex + 1, styleKey, textAfter);
+      }
+      isEditingRef.current = false;
+    }
+  }, [syncToStore]);
+
+  // Paste handler
+  const handlePaste = useCallback((e: ClipboardEvent) => {
+    e.preventDefault();
+    const text = e.clipboardData?.getData('text/plain') || '';
+    if (!text) return;
+
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    const container = containerRef.current;
+    if (!container) return;
+
+    let paraDiv = range.startContainer as HTMLElement;
+    if (paraDiv.nodeType === Node.TEXT_NODE) paraDiv = paraDiv.parentElement!;
+    while (paraDiv && paraDiv !== container && !paraDiv.dataset?.storyIndex) {
+      paraDiv = paraDiv.parentElement!;
+    }
+    if (!paraDiv || paraDiv === container) return;
+
+    const storyIndex = parseInt(paraDiv.dataset.storyIndex!, 10);
+    const fullText = paraDiv.textContent || '';
+
+    let offset = 0;
+    const treeWalker = document.createTreeWalker(paraDiv, NodeFilter.SHOW_TEXT);
+    let node: Node | null;
+    while ((node = treeWalker.nextNode())) {
+      if (node === range.startContainer) {
+        offset += range.startOffset;
+        break;
+      }
+      offset += (node.textContent || '').length;
+    }
+
+    const textBefore = fullText.slice(0, offset);
+    const textAfter = fullText.slice(offset);
+    const pastedParagraphs = text.split(/\n\n|\n/).filter(t => t.trim());
+
+    if (pastedParagraphs.length === 0) return;
+
+    const store = useInddStore.getState();
+    const styleKey = paraDiv.dataset.styleKey || 'textMain';
+
+    if (!store.storyBlocks) {
+      store.setStoryBlocks(DEFAULT_STORY.map(b => ({ ...b })));
+    }
+
+    const s = useInddStore.getState();
+    const blocks = [...(s.storyBlocks || [])];
+
+    if (pastedParagraphs.length === 1) {
+      blocks[storyIndex] = { ...blocks[storyIndex], text: textBefore + pastedParagraphs[0] + textAfter };
+    } else {
+      blocks[storyIndex] = { ...blocks[storyIndex], text: textBefore + pastedParagraphs[0] };
+      const newBlocks = pastedParagraphs.slice(1, -1).map(t => ({ styleKey, text: t }));
+      newBlocks.push({ styleKey, text: pastedParagraphs[pastedParagraphs.length - 1] + textAfter });
+      blocks.splice(storyIndex + 1, 0, ...newBlocks);
+    }
+
+    store.setStoryBlocks(blocks);
+    isEditingRef.current = false;
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onInput={handleInput}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: `${totalW}px`,
+        height: `${totalH}px`,
+        outline: 'none',
+        cursor: 'text',
+        zIndex: 1,
+      }}
+    />
   );
 }
 
@@ -1482,63 +1797,82 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
         <button className="button-secondary-new" onClick={store.zoomIn}>+</button>
       </div>
 
-      {/* Vertical stack of spreads */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: `${spreadGap}px`,
-        padding: '48px',
-        margin: '0 auto',
-        width: 'fit-content',
-        minHeight: '100%',
-      }}>
-        {spreads.map((spread, si) => (
-          <div
-            key={si}
-            style={{
-              display: 'flex',
-              gap: store.facingPages ? '4px' : '0',
-            }}
-          >
-            {spread.pages.map(pageIndex => {
-              const isVerso = store.facingPages && pageIndex > 0 && pageIndex % 2 === 1;
+      {/* Absolutely positioned pages + global text overlay */}
+      {(() => {
+        const padding = 48;
+        const facingGap = store.facingPages ? 4 : 0;
+
+        // Compute page positions
+        const pagePos: { x: number; y: number }[] = [];
+        const maxSpreadPages = Math.max(...spreads.map(s => s.pages.length));
+        const maxSpreadW = maxSpreadPages * pw + (maxSpreadPages > 1 ? facingGap : 0);
+        let yOff = 0;
+
+        for (const spread of spreads) {
+          const spreadW = spread.pages.length * pw + (spread.pages.length > 1 ? facingGap : 0);
+          const spreadX = (maxSpreadW - spreadW) / 2;
+          for (let i = 0; i < spread.pages.length; i++) {
+            const pi = spread.pages[i];
+            pagePos[pi] = {
+              x: spreadX + i * (pw + facingGap),
+              y: yOff,
+            };
+          }
+          yOff += ph + spreadGap;
+        }
+
+        const totalH = yOff - spreadGap;
+        const totalW = maxSpreadW;
+
+        return (
+          <div style={{
+            position: 'relative',
+            width: `${totalW}px`,
+            height: `${totalH}px`,
+            margin: `${padding}px auto`,
+          }}>
+            {/* Visual page chrome (margins, grid, page numbers) */}
+            {Array.from({ length: pageCount }, (_, pi) => {
+              const pos = pagePos[pi];
+              if (!pos) return null;
+              const isVerso = store.facingPages && pi > 0 && pi % 2 === 1;
               return (
-                <PageView
-                  key={pageIndex}
-                  pageIndex={pageIndex}
-                  pw={pw} ph={ph}
-                  mTop={mTop} mBottom={mBottom}
-                  mLeft={mInner} mRight={mOuter}
-                  textW={textW} textH={textH}
-                  gridLineSpacingPx={gridLineSpacingPx}
-                  gridLineCount={gridLineCount}
-                  showBaselines={store.showBaselines && canShowBaselines}
-                  pageContent={pageContents[pageIndex] || { elements: [] }}
-                  ptToPx={ptToPx}
-                  fontFamily={store.fontFamily}
-                  grid={grid}
-                  isVerso={isVerso}
-                  onTextEdit={(storyIndex, newText) => {
-                    // Initialize story from defaults on first edit
-                    if (!store.storyBlocks) {
-                      const initial = DEFAULT_STORY.map((b, i) =>
-                        i === storyIndex ? { ...b, text: newText } : { ...b }
-                      );
-                      store.setStoryBlocks(initial);
-                    } else {
-                      store.updateStoryBlockText(storyIndex, newText);
-                    }
-                  }}
-                  onBlockFocus={(storyIndex) => {
-                    store.setActiveBlockIndex(storyIndex);
-                  }}
-                />
+                <div key={pi} style={{ position: 'absolute', left: `${pos.x}px`, top: `${pos.y}px` }}>
+                  <PageView
+                    pageIndex={pi}
+                    pw={pw} ph={ph}
+                    mTop={mTop} mBottom={mBottom}
+                    mLeft={mInner} mRight={mOuter}
+                    textW={textW} textH={textH}
+                    gridLineSpacingPx={gridLineSpacingPx}
+                    gridLineCount={gridLineCount}
+                    showBaselines={store.showBaselines && canShowBaselines}
+                    isVerso={isVerso}
+                  />
+                </div>
               );
             })}
+
+            {/* Global text overlay — single contentEditable for cross-page selection */}
+            <GlobalTextOverlay
+              pagePositions={pagePos}
+              pageContents={pageContents}
+              ptToPx={ptToPx}
+              fontFamily={store.fontFamily}
+              grid={grid}
+              mTop={mTop}
+              mInner={mInner}
+              mOuter={mOuter}
+              textW={textW}
+              textH={textH}
+              facingPages={store.facingPages}
+              pw={pw}
+              totalW={totalW}
+              totalH={totalH}
+            />
           </div>
-        ))}
-      </div>
+        );
+      })()}
     </div>
   );
 }
