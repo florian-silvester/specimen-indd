@@ -3,28 +3,41 @@
  */
 import type { JSONContent } from '@tiptap/core';
 
-/** Convert store story blocks to Tiptap JSON document */
+/** Convert store story blocks to Tiptap JSON document.
+ *  Newlines in text become hardBreak nodes (Shift+Enter). */
 export function storyBlocksToDoc(
   blocks: { styleKey: string; text: string }[],
 ): JSONContent {
   return {
     type: 'doc',
-    content: blocks.map((block, index) => ({
-      type: 'styledParagraph',
-      attrs: {
-        styleKey: block.styleKey,
-        storyIndex: index,
-      },
-      content: block.text
-        ? [{ type: 'text', text: block.text }]
-        : [],
-    })),
+    content: blocks.map((block, index) => {
+      // Split text on newlines to create interleaved text + hardBreak nodes
+      const parts = block.text.split('\n');
+      const content: JSONContent[] = [];
+      for (let i = 0; i < parts.length; i++) {
+        if (parts[i]) {
+          content.push({ type: 'text', text: parts[i] });
+        }
+        if (i < parts.length - 1) {
+          content.push({ type: 'hardBreak' });
+        }
+      }
+      return {
+        type: 'styledParagraph',
+        attrs: {
+          styleKey: block.styleKey,
+          storyIndex: index,
+        },
+        content: content.length > 0 ? content : undefined,
+      };
+    }),
   };
 }
 
-/** Extract story blocks from Tiptap editor document */
+/** Extract story blocks from Tiptap editor document.
+ *  hardBreak nodes become newlines in the text. */
 export function docToStoryBlocks(
-  doc: { content: readonly { attrs?: any; textContent?: string; content?: { forEach: (fn: (node: any) => void) => void } }[] },
+  doc: { content: { forEach: (fn: (node: any) => void) => void } },
 ): { styleKey: string; text: string }[] {
   const blocks: { styleKey: string; text: string }[] = [];
 
@@ -33,7 +46,11 @@ export function docToStoryBlocks(
       let text = '';
       if (node.content) {
         node.content.forEach((child: any) => {
-          text += child.text || '';
+          if (child.type?.name === 'hardBreak') {
+            text += '\n';
+          } else {
+            text += child.text || '';
+          }
         });
       }
       blocks.push({
@@ -44,19 +61,4 @@ export function docToStoryBlocks(
   });
 
   return blocks;
-}
-
-/** Create a plain-text clipboard parser that splits on newlines
- *  and creates StyledParagraph nodes */
-export function createClipboardTextParser(schema: any) {
-  return (text: string, $context: any) => {
-    const paragraphs = text.split(/\n/).filter((line) => line.length > 0);
-    const nodes = paragraphs.map((line) =>
-      schema.nodes.styledParagraph.create(
-        { styleKey: 'textMain', storyIndex: 0 },
-        line ? [schema.text(line)] : [],
-      ),
-    );
-    return schema.nodes.doc.create(null, nodes).slice(0);
-  };
 }

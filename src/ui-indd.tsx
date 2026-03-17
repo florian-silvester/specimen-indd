@@ -32,6 +32,7 @@ import { StyledParagraph } from './indd/tiptap-schema';
 import { StyledParagraphView, LayoutRegistry, LayoutEntry } from './indd/tiptap-nodeview';
 import { storyBlocksToDoc, docToStoryBlocks } from './indd/tiptap-helpers';
 import { Slice, Fragment as PMFragment } from '@tiptap/pm/model';
+import { HardBreak } from '@tiptap/extension-hard-break';
 
 /**
  * Resolve grid rows for a style, respecting per-style overrides.
@@ -1344,6 +1345,7 @@ function TiptapTextOverlay({
         Text,
         History,
         Gapcursor,
+        HardBreak,
         StyledParagraph.extend({
           addNodeView() {
             return ({ node, view, getPos }) => {

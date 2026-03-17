@@ -20,7 +20,7 @@ declare module '@tiptap/core' {
 export const StyledParagraph = Node.create<StyledParagraphOptions>({
   name: 'styledParagraph',
   group: 'block',
-  content: 'text*',
+  content: 'inline*',
   defining: true,
 
   addOptions() {
