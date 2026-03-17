@@ -109,6 +109,21 @@ const _metricsCanvas = document.createElement('canvas');
 const _metricsCtx = _metricsCanvas.getContext('2d')!;
 const _metricsCache = new Map<string, { ascent: number; descent: number }>();
 
+/** Estimate the number of wrapped lines for text at a given font/size/width.
+ *  Uses canvas measureText for accurate width, then divides by available width. */
+function estimateLineCount(
+  text: string,
+  fontFamily: string,
+  fontWeight: number,
+  sizePt: number,
+  textAreaWidthPt: number,
+): number {
+  if (!text || text.length === 0) return 1;
+  _metricsCtx.font = `${fontWeight} ${sizePt}px "${fontFamily}", serif`;
+  const textWidth = _metricsCtx.measureText(text).width;
+  return Math.max(1, Math.ceil(textWidth / textAreaWidthPt));
+}
+
 /** Returns ascent & descent ratios (relative to fontSize) for a font + weight. */
 function measureFontMetrics(fontFamily: string, fontWeight: number = 400): { ascent: number; descent: number } {
   const key = `${fontFamily}:${fontWeight}`;
@@ -994,6 +1009,7 @@ function flowTextToPages(
   blocks: TextBlock[],
   grid: GridResult,
   pageCount: number,
+  fontFamily: string,
 ): PageContent[] {
   const pages: PageContent[] = [];
   const textAreaHeightPt = grid.textAreaHeightPt;
@@ -1009,10 +1025,8 @@ function flowTextToPages(
     const linesPerRow = block.gridRows;
     const rowHeightPt = linesPerRow * increment;
 
-    // For body text, estimate how many lines this paragraph needs
-    // based on characters per line (rough estimate: ~65 chars per line at body size)
-    const charsPerLine = Math.max(20, Math.floor(grid.textAreaWidthPt / (block.sizePt * 0.5)));
-    const totalLines = Math.max(1, Math.ceil(block.text.length / charsPerLine));
+    // Estimate lines using canvas text measurement for accuracy
+    const totalLines = estimateLineCount(block.text, fontFamily, block.fontWeight, block.sizePt, grid.textAreaWidthPt);
     const totalHeightPt = totalLines * rowHeightPt;
 
     // Space before (from store, in grid rows converted to pt)
@@ -1734,8 +1748,8 @@ function CanvasPreview({ grid, typeSystem }: { grid: GridResult; typeSystem: Typ
   );
 
   const pageContents = useMemo(
-    () => flowTextToPages(story, grid, store.pageCount),
-    [story, grid, store.pageCount],
+    () => flowTextToPages(story, grid, store.pageCount, store.fontFamily),
+    [story, grid, store.pageCount, store.fontFamily],
   );
 
   // Build spreads
